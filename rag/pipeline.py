@@ -36,16 +36,33 @@ _PARAPHRASE_RE = re.compile(
 )
 
 
-def is_abstention(answer: str) -> bool:
-    """True if the answer is the fallback (or a close paraphrase of it) at the start.
+_CITATION_RE = re.compile(r"\[(\d+(?:\s*,\s*\d+)*)\]")
 
-    Only the *start* of the answer is checked: a partial answer that first states
-    supported facts and then notes a missing part is NOT an abstention.
+
+def cited_indices(answer: str) -> list[int]:
+    """1-based passage numbers cited as [n] or [n, m] in the answer, in order of first use."""
+    seen: list[int] = []
+    for group in _CITATION_RE.findall(answer or ""):
+        for part in group.split(","):
+            n = int(part)
+            if n not in seen:
+                seen.append(n)
+    return seen
+
+
+def is_abstention(answer: str) -> bool:
+    """True if the answer is the fallback (or a close paraphrase of it).
+
+    The answer abstains when it starts with the fallback, or when it contains the
+    fallback anywhere but cites no passage (a hedged non-answer). A partial answer
+    that cites supported facts and then notes a missing part is NOT an abstention.
     """
     norm = _normalize(answer)
     if not norm:
         return True
-    return norm.startswith(_FALLBACK_NORM) or bool(_PARAPHRASE_RE.match(norm))
+    if norm.startswith(_FALLBACK_NORM) or _PARAPHRASE_RE.match(norm):
+        return True
+    return _FALLBACK_NORM in norm and not cited_indices(answer)
 
 
 def unique_sources(chunks: list[RetrievedChunk]) -> list[dict]:
@@ -58,6 +75,16 @@ def unique_sources(chunks: list[RetrievedChunk]) -> list[dict]:
             seen.add(key)
             out.append({"source": c.source, "page": c.page})
     return out
+
+
+def cited_sources(answer: str, chunks: list[RetrievedChunk]) -> list[dict]:
+    """(source, page) of the passages the answer actually cites.
+
+    Falls back to all retrieved chunks when the answer has no valid [n] markers,
+    so a substantive answer always carries a source reference.
+    """
+    cited = [chunks[n - 1] for n in cited_indices(answer) if 1 <= n <= len(chunks)]
+    return unique_sources(cited or chunks)
 
 
 class RAGPipeline:
@@ -104,7 +131,7 @@ class RAGPipeline:
             question=question,
             answer=answer,
             chunks=chunks,
-            sources=[] if abstained else unique_sources(chunks),
+            sources=[] if abstained else cited_sources(answer, chunks),
             abstained=abstained,
             config=config,
         )

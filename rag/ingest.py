@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 
 from rag.chunking import split_documents
 from rag.config import Settings
-from rag.pdf_loader import PDFValidationError, load_pdf_bytes
+from rag.pdf_loader import PDFValidationError, compute_file_hash, load_pdf_bytes
 from rag.vectorstore import VectorStoreManager
 
 logger = logging.getLogger(__name__)
@@ -25,6 +25,24 @@ class IngestReport:
 
 def ingest_file(store: VectorStoreManager, filename: str, data: bytes, settings: Settings) -> IngestReport:
     """Index one uploaded PDF. Never raises for bad input; problems become status="error"."""
+    # Cheap duplicate check on the raw bytes before parsing the whole PDF.
+    file_hash = compute_file_hash(data) if data else ""
+    try:
+        if file_hash and store.has_file(file_hash):
+            return IngestReport(
+                filename=filename,
+                status="duplicate",
+                message="This file is already indexed; skipped re-indexing.",
+                file_hash=file_hash,
+            )
+    except Exception as exc:
+        logger.exception("Could not check for duplicates of %s", filename)
+        return IngestReport(
+            filename=filename,
+            status="error",
+            message=f"Unexpected error while checking the vector store ({type(exc).__name__}: {exc}).",
+        )
+
     try:
         loaded = load_pdf_bytes(filename, data, max_file_mb=settings.max_file_mb)
     except PDFValidationError as exc:
@@ -47,12 +65,6 @@ def ingest_file(store: VectorStoreManager, filename: str, data: bytes, settings:
     )
 
     try:
-        if store.has_file(loaded.file_hash):
-            report.status = "duplicate"
-            report.message = "This file is already indexed; skipped re-indexing."
-            report.chunks = 0
-            return report
-
         chunks = split_documents(loaded.pages, settings.chunk_size, settings.chunk_overlap)
         if not chunks:
             report.status = "error"

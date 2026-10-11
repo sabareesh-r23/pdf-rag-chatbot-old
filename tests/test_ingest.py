@@ -86,3 +86,14 @@ def test_unexpected_failure_is_reported_not_raised(store, test_settings, sample_
     report = ingest_file(store, *sample_pdf_bytes, test_settings)
     assert report.status == "error"
     assert "disk full" in report.message
+
+
+def test_duplicate_detected_before_parsing(store, test_settings, sample_pdf_bytes, monkeypatch):
+    name, data = sample_pdf_bytes
+    ingest_file(store, name, data, test_settings)
+
+    def must_not_parse(*args, **kwargs):
+        raise AssertionError("duplicate upload should not be parsed again")
+
+    monkeypatch.setattr("rag.ingest.load_pdf_bytes", must_not_parse)
+    assert ingest_file(store, name, data, test_settings).status == "duplicate"

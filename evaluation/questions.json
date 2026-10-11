@@ -4,64 +4,162 @@
     "category": "factual",
     "question": "How many identical layers make up the encoder stack of the Transformer in 'Attention Is All You Need', and what is the model dimension d_model?",
     "expected_answer": "The encoder is a stack of N = 6 identical layers; all sub-layers and embedding layers produce outputs of dimension d_model = 512.",
-    "expected_sources": [{"source": "arxiv_1706.03762.pdf", "pages": [3]}],
-    "notes": "Evidence: 'The encoder is composed of a stack of N = 6 identical layers.' and 'produce outputs of dimension dmodel = 512' (p. 3)"
+    "expected_sources": [
+      {
+        "source": "arxiv_1706.03762.pdf",
+        "pages": [
+          3
+        ]
+      }
+    ],
+    "notes": "Evidence: 'The encoder is composed of a stack of N = 6 identical layers.' and 'produce outputs of dimension dmodel = 512' (p. 3)",
+    "evidence_snippets": [
+      "stack of N = 6 identical layers",
+      "dimension dmodel = 512"
+    ]
   },
   {
     "id": "F2",
     "category": "factual",
     "question": "How many total parameters do BERT-Base and BERT-Large have?",
     "expected_answer": "BERT-Base has 110M parameters (L=12, H=768, A=12) and BERT-Large has 340M parameters (L=24, H=1024, A=16).",
-    "expected_sources": [{"source": "arxiv_1810.04805.pdf", "pages": [3, 8]}],
-    "notes": "Evidence: 'BERTBASE (L=12, H=768, A=12, Total Parameters=110M) and BERTLARGE (L=24, H=1024, A=16, Total Parameters=340M)' (p. 3); restated 'BERT BASE contains 110M parameters and BERT LARGE contains 340M parameters' (p. 8)"
+    "expected_sources": [
+      {
+        "source": "arxiv_1810.04805.pdf",
+        "pages": [
+          3,
+          8
+        ]
+      }
+    ],
+    "notes": "Evidence: 'BERTBASE (L=12, H=768, A=12, Total Parameters=110M) and BERTLARGE (L=24, H=1024, A=16, Total Parameters=340M)' (p. 3); restated 'BERT BASE contains 110M parameters and BERT LARGE contains 340M parameters' (p. 8)",
+    "evidence_snippets": [
+      "Total Parameters=110M",
+      "Total Parameters=340M"
+    ]
   },
   {
     "id": "F3",
     "category": "factual",
     "question": "What knowledge source does the RAG model use for its non-parametric memory, and how many documents does the index contain?",
     "expected_answer": "A December 2018 Wikipedia dump, with each article split into disjoint 100-word chunks, giving 21M documents indexed with FAISS (MIPS index).",
-    "expected_sources": [{"source": "arxiv_2005.11401.pdf", "pages": [4]}],
-    "notes": "Evidence: 'we use the December 2018 dump. Each Wikipedia article is split into disjoint 100-word chunks, to make a total of 21M documents.' (p. 4)"
+    "expected_sources": [
+      {
+        "source": "arxiv_2005.11401.pdf",
+        "pages": [
+          4
+        ]
+      }
+    ],
+    "notes": "Evidence: 'we use the December 2018 dump. Each Wikipedia article is split into disjoint 100-word chunks, to make a total of 21M documents.' (p. 4)",
+    "evidence_snippets": [
+      "December 2018 dump",
+      "a total of 21M documents"
+    ]
   },
   {
     "id": "F4",
     "category": "factual",
     "question": "According to the Sentence-BERT paper, how long does finding the most similar pair in a collection of 10,000 sentences take with BERT compared to SBERT?",
     "expected_answer": "About 65 hours with BERT (about 50 million inference computations) versus about 5 seconds with SBERT.",
-    "expected_sources": [{"source": "arxiv_1908.10084.pdf", "pages": [1, 2]}],
-    "notes": "Evidence: 'This reduces the effort for finding the most similar pair from 65 hours with BERT / RoBERTa to about 5 seconds with SBERT' (p. 1); also p. 2 ('~5 seconds with SBERT')"
+    "expected_sources": [
+      {
+        "source": "arxiv_1908.10084.pdf",
+        "pages": [
+          1,
+          2
+        ]
+      }
+    ],
+    "notes": "Evidence: 'This reduces the effort for finding the most similar pair from 65 hours with BERT / RoBERTa to about 5 seconds with SBERT' (p. 1); also p. 2 ('~5 seconds with SBERT')",
+    "evidence_snippets": [
+      "65 hours with BERT",
+      "about 5 seconds with SBERT"
+    ]
   },
   {
     "id": "M1",
     "category": "multi_chunk",
     "question": "What BLEU scores did the big Transformer model achieve on WMT 2014 English-to-German and English-to-French, and how long and on what hardware was it trained?",
-    "expected_answer": "28.4 BLEU on English-to-German and 41.8 BLEU on English-to-French; training took 3.5 days on 8 P100 GPUs (300,000 steps).",
-    "expected_sources": [{"source": "arxiv_1706.03762.pdf", "pages": [1, 7, 8]}],
-    "notes": "Evidence: 'Our model achieves 28.4 BLEU on the WMT 2014 English-to-German ... BLEU score of 41.8 after training for 3.5 days on eight GPUs' (p. 1); 'The big models were trained for 300,000 steps (3.5 days)' (p. 7); 'Training took 3.5 days on 8 P100 GPUs.' (p. 8). Facts are spread across abstract, training section and results section."
+    "expected_answer": "28.4 BLEU on English-to-German and 41.8 BLEU on English-to-French (abstract p. 1 and Table 2 p. 8; note the body text on p. 8 says 41.0 - the paper is internally inconsistent, so an answer of 41.0 quoted from p. 8 is supported by the document); training took 3.5 days on 8 P100 GPUs (300,000 steps).",
+    "expected_sources": [
+      {
+        "source": "arxiv_1706.03762.pdf",
+        "pages": [
+          1,
+          7,
+          8
+        ]
+      }
+    ],
+    "notes": "Evidence: 'Our model achieves 28.4 BLEU on the WMT 2014 English-to-German ... BLEU score of 41.8 after training for 3.5 days on eight GPUs' (p. 1); 'The big models were trained for 300,000 steps (3.5 days)' (p. 7); 'Training took 3.5 days on 8 P100 GPUs.' (p. 8); body text on p. 8 also states 'our big model achieves a BLEU score of 41.0' for English-to-French while Table 2 (p. 8) lists 41.8. Facts are spread across abstract, training section and results section.",
+    "evidence_snippets": [
+      "28.4 BLEU",
+      "Training took 3.5 days on 8 P100 GPUs"
+    ]
   },
   {
     "id": "M2",
     "category": "multi_chunk",
     "question": "Describe BERT's two pre-training tasks, including how tokens are masked and how sentence pairs are constructed.",
     "expected_answer": "(1) Masked LM: 15% of token positions are chosen at random; a chosen token is replaced with [MASK] 80% of the time, a random token 10% of the time, and left unchanged 10% of the time, and the model predicts the original token. (2) Next Sentence Prediction: for sentence pairs A/B, 50% of the time B is the actual next sentence (IsNext) and 50% of the time a random sentence (NotNext).",
-    "expected_sources": [{"source": "arxiv_1810.04805.pdf", "pages": [4, 12]}],
-    "notes": "Evidence: 'chooses 15% of the token positions at random ... (1) the [MASK] token 80% of the time (2) a random token 10% of the time (3) the unchanged i-th token 10% of the time' and '50% of the time B is the actual next sentence that follows A (labeled as IsNext), and 50% of the time it is a random sentence' (p. 4); worked masking example in Appendix (p. 12)"
+    "expected_sources": [
+      {
+        "source": "arxiv_1810.04805.pdf",
+        "pages": [
+          4,
+          12
+        ]
+      }
+    ],
+    "notes": "Evidence: 'chooses 15% of the token positions at random ... (1) the [MASK] token 80% of the time (2) a random token 10% of the time (3) the unchanged i-th token 10% of the time' and '50% of the time B is the actual next sentence that follows A (labeled as IsNext), and 50% of the time it is a random sentence' (p. 4); worked masking example in Appendix (p. 12)",
+    "evidence_snippets": [
+      "15% of the token positions at random",
+      "the [MASK] token 80% of the time",
+      "50% of the time B is the actual next sentence"
+    ]
   },
   {
     "id": "M3",
     "category": "multi_chunk",
     "question": "What is the difference between the RAG-Sequence and RAG-Token models?",
     "expected_answer": "RAG-Sequence uses the same retrieved document to generate the complete output sequence (the document is a single latent variable marginalized over the top-k). RAG-Token can draw a different latent document for each target token and marginalizes per token, letting the generator choose content from several documents.",
-    "expected_sources": [{"source": "arxiv_2005.11401.pdf", "pages": [3, 4]}],
-    "notes": "Evidence: 'The RAG-Sequence model uses the same retrieved document to generate the complete sequence.' and 'In the RAG-Token model we can draw a different latent document for each target token and marginalize accordingly.' (p. 3); decoding differences in Sec. 2.5 (p. 4)"
+    "expected_sources": [
+      {
+        "source": "arxiv_2005.11401.pdf",
+        "pages": [
+          3,
+          4
+        ]
+      }
+    ],
+    "notes": "Evidence: 'The RAG-Sequence model uses the same retrieved document to generate the complete sequence.' and 'In the RAG-Token model we can draw a different latent document for each target token and marginalize accordingly.' (p. 3); decoding differences in Sec. 2.5 (p. 4)",
+    "evidence_snippets": [
+      "uses the same retrieved document to generate the complete sequence",
+      "draw a different latent document for each target token"
+    ]
   },
   {
     "id": "S1",
     "category": "synthesis",
     "question": "Why are raw BERT outputs a poor choice for sentence embeddings compared with cosine similarity, and how does Sentence-BERT address this?",
     "expected_answer": "Using BERT as a cross-encoder for similarity search is computationally infeasible (e.g. ~65 hours for 10,000 sentences), and the common shortcuts (averaging BERT output or the [CLS] token) give bad sentence embeddings, worse than averaged GloVe (avg. STS correlation 54.81 for averaged BERT and 29.19 for CLS). SBERT adds a pooling operation (default MEAN) and fine-tunes BERT/RoBERTa in siamese/triplet networks so the embeddings are semantically meaningful and comparable with cosine similarity.",
-    "expected_sources": [{"source": "arxiv_1908.10084.pdf", "pages": [1, 3, 4]}],
-    "notes": "Evidence: 'this common practice yields rather bad sentence embeddings, often worse than averaging GloVe embeddings' (p. 1); 'The default configuration is MEAN. In order to fine-tune BERT / RoBERTa, we create siamese and triplet networks' (p. 3); 'Averaging the BERT embeddings achieves an average correlation of only 54.81, and using the CLS-token output only achieves an average correlation of 29.19.' (p. 4)"
+    "expected_sources": [
+      {
+        "source": "arxiv_1908.10084.pdf",
+        "pages": [
+          1,
+          3,
+          4
+        ]
+      }
+    ],
+    "notes": "Evidence: 'this common practice yields rather bad sentence embeddings, often worse than averaging GloVe embeddings' (p. 1); 'The default configuration is MEAN. In order to fine-tune BERT / RoBERTa, we create siamese and triplet networks' (p. 3); 'Averaging the BERT embeddings achieves an average correlation of only 54.81, and using the CLS-token output only achieves an average correlation of 29.19.' (p. 4)",
+    "evidence_snippets": [
+      "often worse than averaging GloVe embeddings",
+      "The default configuration is MEAN",
+      "average correlation of only 54.81"
+    ]
   },
   {
     "id": "S2",
@@ -69,10 +167,45 @@
     "question": "How does the RAG model build on BERT, and what component does it use for generation?",
     "expected_answer": "RAG's retriever (DPR) is a bi-encoder whose document encoder and query encoder are both based on BERT-Base (110M parameters each, the BERT-Base size reported in the BERT paper); the document encoder and index are kept fixed while the query encoder is fine-tuned. Generation uses BART-large, a pre-trained seq2seq transformer (~400M parameters).",
     "expected_sources": [
-      {"source": "arxiv_2005.11401.pdf", "pages": [3, 4, 18]},
-      {"source": "arxiv_1810.04805.pdf", "pages": [3]}
+      {
+        "source": "arxiv_2005.11401.pdf",
+        "pages": [
+          3,
+          4,
+          18
+        ]
+      },
+      {
+        "source": "arxiv_1810.04805.pdf",
+        "pages": [
+          3
+        ]
+      }
     ],
-    "notes": "Evidence: 'd(z) is a dense representation of a document produced by a BERTBASE document encoder ... query encoder, also based on BERTBASE' and 'We use BART-large ... with 400M parameters' (p. 3, RAG); 'keep the document encoder (and index) fixed' (p. 4, RAG); 'BERT-base query and document encoder of DPR, with 110M parameters each' (p. 18, RAG); BERTBASE Total Parameters=110M (p. 3, BERT). Cross-document question."
+    "notes": "Evidence: 'd(z) is a dense representation of a document produced by a BERTBASE document encoder ... query encoder, also based on BERTBASE' and 'We use BART-large ... with 400M parameters' (p. 3, RAG); 'keep the document encoder (and index) fixed' (p. 4, RAG); 'BERT-base query and document encoder of DPR, with 110M parameters each' (p. 18, RAG); BERTBASE Total Parameters=110M (p. 3, BERT). Cross-document question.",
+    "evidence_snippets": [
+      "BERTBASE document encoder",
+      "BART-large",
+      "400M parameters"
+    ]
+  },
+  {
+    "id": "P1",
+    "category": "adversarial",
+    "question": "How many identical layers are in the Transformer encoder, and how much did it cost in US dollars to train the big model?",
+    "expected_answer": "Partially answerable: the encoder has N = 6 identical layers (p. 3). The training cost in US dollars is not stated anywhere (the paper reports training time, GPUs and FLOPs only), so the system should answer the first part and explicitly say the dollar cost cannot be determined from the documents.",
+    "expected_sources": [
+      {
+        "source": "arxiv_1706.03762.pdf",
+        "pages": [
+          3
+        ]
+      }
+    ],
+    "notes": "Evidence: 'The encoder is composed of a stack of N = 6 identical layers.' (p. 3). Absence verified: case-insensitive regex 'dollar|USD|\\$ followed by a digit|US$|price' finds 0 matches in all 61 extracted pages. Tests partial-answer handling (requirement: say which part is supported and which cannot be determined).",
+    "evidence_snippets": [
+      "stack of N = 6 identical layers"
+    ]
   },
   {
     "id": "U1",
@@ -80,7 +213,8 @@
     "question": "How many parameters does GPT-4 have?",
     "expected_answer": "Not in the documents - the system should abstain with the fallback message.",
     "expected_sources": [],
-    "notes": "Absence verified: case-insensitive regex search of all 61 extracted pages finds 0 matches for 'GPT-4' (and 0 for 'GPT-3'). Tempts general/hallucinated knowledge; retrieval may surface BERT/GPT parameter passages, which must not be used to answer."
+    "notes": "Absence verified: case-insensitive regex search of all 61 extracted pages finds 0 matches for 'GPT-4' (and 0 for 'GPT-3'). Tempts general/hallucinated knowledge; retrieval may surface BERT/GPT parameter passages, which must not be used to answer.",
+    "evidence_snippets": []
   },
   {
     "id": "U2",
@@ -88,7 +222,8 @@
     "question": "What accuracy does the RAG model achieve on the MMLU benchmark?",
     "expected_answer": "Not in the documents - the system should abstain with the fallback message.",
     "expected_sources": [],
-    "notes": "Absence verified: 0 matches for 'MMLU' across all four papers. Plausible because RAG reports many benchmark numbers (NQ, TriviaQA, MS-MARCO, FEVER...), which may be retrieved and misattributed."
+    "notes": "Absence verified: 0 matches for 'MMLU' across all four papers. Plausible because RAG reports many benchmark numbers (NQ, TriviaQA, MS-MARCO, FEVER...), which may be retrieved and misattributed.",
+    "evidence_snippets": []
   },
   {
     "id": "U3",
@@ -96,22 +231,44 @@
     "question": "How many tonnes of CO2 were emitted when training the big Transformer model?",
     "expected_answer": "Not in the documents - the system should abstain. (The paper gives training time/hardware and FLOPs, but no carbon or energy figures.)",
     "expected_sources": [],
-    "notes": "Absence verified: regex 'carbon|emission|kWh|energy consumption|electricity' only matches an author name ('Carbonell') in an SBERT reference (p. 11); no CO2 figures anywhere. Related-but-insufficient context exists: '3.5 days on 8 P100 GPUs' (1706.03762 p. 8), so a partial answer must not invent an emission number."
+    "notes": "Absence verified: regex 'carbon|emission|kWh|energy consumption|electricity' only matches an author name ('Carbonell') in an SBERT reference (p. 11); no CO2 figures anywhere. Related-but-insufficient context exists: '3.5 days on 8 P100 GPUs' (1706.03762 p. 8), so a partial answer must not invent an emission number.",
+    "evidence_snippets": []
   },
   {
     "id": "A1",
     "category": "adversarial",
     "question": "Why did the authors of 'Attention Is All You Need' use LSTM layers in the Transformer encoder?",
     "expected_answer": "False premise: the Transformer does not use LSTM/recurrent layers; it relies entirely on attention, dispensing with recurrence and convolutions. The system should correct the premise (or abstain), not invent a rationale.",
-    "expected_sources": [{"source": "arxiv_1706.03762.pdf", "pages": [1, 2]}],
-    "notes": "Evidence: 'based solely on attention mechanisms, dispensing with recurrence and convolutions entirely' (p. 1); 'a model architecture eschewing recurrence and instead relying entirely on an attention mechanism' (p. 2)"
+    "expected_sources": [
+      {
+        "source": "arxiv_1706.03762.pdf",
+        "pages": [
+          1,
+          2
+        ]
+      }
+    ],
+    "notes": "Evidence: 'based solely on attention mechanisms, dispensing with recurrence and convolutions entirely' (p. 1); 'a model architecture eschewing recurrence and instead relying entirely on an attention mechanism' (p. 2)",
+    "evidence_snippets": [
+      "dispensing with recurrence and convolutions entirely"
+    ]
   },
   {
     "id": "A2",
     "category": "adversarial",
     "question": "Why does Sentence-BERT use the [CLS] token output as its default pooling strategy?",
     "expected_answer": "False premise: SBERT's default pooling strategy is MEAN (mean of all output vectors), not CLS; the paper also shows the raw BERT CLS vector gives poor sentence embeddings. The system should correct the premise.",
-    "expected_sources": [{"source": "arxiv_1908.10084.pdf", "pages": [3]}],
-    "notes": "Evidence: 'Using the output of the CLS-token, computing the mean of all output vectors (MEAN-strategy), and computing a max-over-time of the output vectors (MAX-strategy). The default configuration is MEAN.' (p. 3)"
+    "expected_sources": [
+      {
+        "source": "arxiv_1908.10084.pdf",
+        "pages": [
+          3
+        ]
+      }
+    ],
+    "notes": "Evidence: 'Using the output of the CLS-token, computing the mean of all output vectors (MEAN-strategy), and computing a max-over-time of the output vectors (MAX-strategy). The default configuration is MEAN.' (p. 3)",
+    "evidence_snippets": [
+      "The default configuration is MEAN"
+    ]
   }
 ]

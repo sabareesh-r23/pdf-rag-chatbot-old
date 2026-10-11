@@ -1,0 +1,1642 @@
+{
+  "run_id": "20261011_113211",
+  "started_at": "2026-10-11T11:32:11",
+  "finished_at": "2026-10-11T11:35:02",
+  "questions_file": "evaluation/questions.json",
+  "pdf_dir": "/Users/sabareeshravi/dev/pdf-rag-chatbot/data/sample_pdfs",
+  "config": {
+    "chunk_size": 1000,
+    "chunk_overlap": 200,
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "chroma_dir": "/Users/sabareeshravi/dev/pdf-rag-chatbot/chroma_db",
+    "collection_name": "eval_cs1000_co200",
+    "top_k": 8,
+    "min_relevance": 0.0,
+    "llm_provider": "ollama",
+    "llm_model": "llama3.2:3b",
+    "llm_temperature": 0.0,
+    "ollama_base_url": "http://localhost:11434",
+    "max_file_mb": 50
+  },
+  "fallback_answer": "I could not find enough information in the uploaded documents to answer this question.",
+  "environment": {
+    "python": "3.12.12",
+    "platform": "macOS-26.3-arm64-arm-64bit"
+  },
+  "ingestion": [
+    {
+      "filename": "arxiv_1706.03762.pdf",
+      "status": "duplicate",
+      "message": "This file is already indexed; skipped re-indexing.",
+      "pages": 15,
+      "empty_pages": [],
+      "chunks": 0,
+      "file_hash": "bdfaa68d8984f0dc02beaca527b76f207d99b666d31d1da728ee0728182df697",
+      "seconds": 1.2
+    },
+    {
+      "filename": "arxiv_1810.04805.pdf",
+      "status": "duplicate",
+      "message": "This file is already indexed; skipped re-indexing.",
+      "pages": 16,
+      "empty_pages": [],
+      "chunks": 0,
+      "file_hash": "5692a5514787a8c6727b4ff3b726a3385798bc68e12138d1d4af83947e2acf6e",
+      "seconds": 0.68
+    },
+    {
+      "filename": "arxiv_1908.10084.pdf",
+      "status": "duplicate",
+      "message": "This file is already indexed; skipped re-indexing.",
+      "pages": 11,
+      "empty_pages": [],
+      "chunks": 0,
+      "file_hash": "92366d22fc0521350d6cbe0ad72bcee754f90e88181d7b4a8e2adb1e7e594fec",
+      "seconds": 0.23
+    },
+    {
+      "filename": "arxiv_2005.11401.pdf",
+      "status": "duplicate",
+      "message": "This file is already indexed; skipped re-indexing.",
+      "pages": 19,
+      "empty_pages": [],
+      "chunks": 0,
+      "file_hash": "23e3249e9a1e75418d82efecab0ea8c4d033b89c93742f63208d47ce01f21233",
+      "seconds": 0.61
+    }
+  ],
+  "human_fields": [
+    "correct",
+    "relevant",
+    "supported",
+    "abstention_correct",
+    "failure_class",
+    "observations"
+  ],
+  "questions": [
+    {
+      "id": "F1",
+      "category": "factual",
+      "question": "How many identical layers make up the encoder stack of the Transformer in 'Attention Is All You Need', and what is the model dimension d_model?",
+      "expected_answer": "The encoder is a stack of N = 6 identical layers; all sub-layers and embedding layers produce outputs of dimension d_model = 512.",
+      "expected_sources": [
+        {
+          "source": "arxiv_1706.03762.pdf",
+          "pages": [
+            3
+          ]
+        }
+      ],
+      "notes": "Evidence: 'The encoder is composed of a stack of N = 6 identical layers.' and 'produce outputs of dimension dmodel = 512' (p. 3)",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 3,
+          "score": 0.7483,
+          "chunk_id": "bdfaa68d8984-p3-c0",
+          "text": "Figure 1: The Transformer - model architecture.\nThe Transformer follows this overall architecture using stacked self-attention and point-wise, fully\nconnected layers for both the encoder and decoder, shown in the left and right halves of Figure 1,\nrespectively.\n3.1 Encoder and Decoder Stacks\nEncoder: The encoder is composed of a stack of N = 6 identical layers. Each layer has two\nsub-layers. The first is a multi-head self-attention mechanism, and the second is a simple, positionwise fully connected feed-forward network. We employ a residual connection [11] around each of\nthe two sub-layers, followed by layer normalization [ 1]. That is, the output of each sub-layer is\nLayerNorm(x + Sublayer(x)), where Sublayer(x) is the function implemented by the sub-layer\nitself. To facilitate these residual connections, all sub-layers in the model, as well as the embedding\nlayers, produce outputs of dimension dmodel = 512."
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 3,
+          "score": 0.6746,
+          "chunk_id": "bdfaa68d8984-p3-c1",
+          "text": "itself. To facilitate these residual connections, all sub-layers in the model, as well as the embedding\nlayers, produce outputs of dimension dmodel = 512.\nDecoder: The decoder is also composed of a stack of N = 6identical layers. In addition to the two\nsub-layers in each encoder layer, the decoder inserts a third sub-layer, which performs multi-head\nattention over the output of the encoder stack. Similar to the encoder, we employ residual connections\naround each of the sub-layers, followed by layer normalization. We also modify the self-attention\nsub-layer in the decoder stack to prevent positions from attending to subsequent positions. This\nmasking, combined with fact that the output embeddings are offset by one position, ensures that the\npredictions for position i can depend only on the known outputs at positions less than i.\n3.2 Attention\nAn attention function can be described as mapping a query and a set of key-value pairs to an output,"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 5,
+          "score": 0.6567,
+          "chunk_id": "bdfaa68d8984-p5-c1",
+          "text": "The Transformer uses multi-head attention in three different ways:\n• In \"encoder-decoder attention\" layers, the queries come from the previous decoder layer,\nand the memory keys and values come from the output of the encoder. This allows every\nposition in the decoder to attend over all positions in the input sequence. This mimics the\ntypical encoder-decoder attention mechanisms in sequence-to-sequence models such as\n[38, 2, 9].\n• The encoder contains self-attention layers. In a self-attention layer all of the keys, values\nand queries come from the same place, in this case, the output of the previous layer in the\nencoder. Each position in the encoder can attend to all positions in the previous layer of the\nencoder.\n• Similarly, self-attention layers in the decoder allow each position in the decoder to attend to\nall positions in the decoder up to and including that position. We need to prevent leftward"
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 5,
+          "score": 0.6482,
+          "chunk_id": "bdfaa68d8984-p5-c0",
+          "text": "output values. These are concatenated and once again projected, resulting in the final values, as\ndepicted in Figure 2.\nMulti-head attention allows the model to jointly attend to information from different representation\nsubspaces at different positions. With a single attention head, averaging inhibits this.\nMultiHead(Q, K, V) = Concat(head1, ...,headh)W O\nwhere headi = Attention(QW Qi , KWKi , V WVi )\nWhere the projections are parameter matricesW Qi ∈ Rdmodel×dk, W Ki ∈ Rdmodel×dk, W Vi ∈ Rdmodel×dv\nand W O ∈ Rhdv×dmodel.\nIn this work we employ h = 8 parallel attention layers, or heads. For each of these we use\ndk = dv = dmodel/h = 64. Due to the reduced dimension of each head, the total computational cost\nis similar to that of single-head attention with full dimensionality.\n3.2.3 Applications of Attention in our Model\nThe Transformer uses multi-head attention in three different ways:\n• In \"encoder-decoder attention\" layers, the queries come from the previous decoder layer,"
+        },
+        {
+          "rank": 5,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 6,
+          "score": 0.5634,
+          "chunk_id": "bdfaa68d8984-p6-c0",
+          "text": "Table 1: Maximum path lengths, per-layer complexity and minimum number of sequential operations\nfor different layer types. n is the sequence length, d is the representation dimension, k is the kernel\nsize of convolutions and r the size of the neighborhood in restricted self-attention.\nLayer Type Complexity per Layer Sequential Maximum Path Length\nOperations\nSelf-Attention O(n2 · d) O(1) O(1)\nRecurrent O(n · d2) O(n) O(n)\nConvolutional O(k · n · d2) O(1) O(logk(n))\nSelf-Attention (restricted) O(r · n · d) O(1) O(n/r)\n3.5 Positional Encoding\nSince our model contains no recurrence and no convolution, in order for the model to make use of the\norder of the sequence, we must inject some information about the relative or absolute position of the\ntokens in the sequence. To this end, we add \"positional encodings\" to the input embeddings at the\nbottoms of the encoder and decoder stacks. The positional encodings have the same dimension dmodel"
+        },
+        {
+          "rank": 6,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 5,
+          "score": 0.5058,
+          "chunk_id": "bdfaa68d8984-p5-c2",
+          "text": "encoder.\n• Similarly, self-attention layers in the decoder allow each position in the decoder to attend to\nall positions in the decoder up to and including that position. We need to prevent leftward\ninformation flow in the decoder to preserve the auto-regressive property. We implement this\ninside of scaled dot-product attention by masking out (setting to −∞) all values in the input\nof the softmax which correspond to illegal connections. See Figure 2.\n3.3 Position-wise Feed-Forward Networks\nIn addition to attention sub-layers, each of the layers in our encoder and decoder contains a fully\nconnected feed-forward network, which is applied to each position separately and identically. This\nconsists of two linear transformations with a ReLU activation in between.\nFFN(x) = max(0, xW1 + b1)W2 + b2 (2)\nWhile the linear transformations are the same across different positions, they use different parameters"
+        },
+        {
+          "rank": 7,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 3,
+          "score": 0.5027,
+          "chunk_id": "5692a5514787-p3-c3",
+          "text": "the tensor2tensor library.1 Because the use\nof Transformers has become common and our implementation is almost identical to the original,\nwe will omit an exhaustive background description of the model architecture and refer readers to\nVaswani et al. (2017) as well as excellent guides\nsuch as “The Annotated Transformer.”2\nIn this work, we denote the number of layers\n(i.e., Transformer blocks) asL, the hidden size as\nH, and the number of self-attention heads as A.3\nWe primarily report results on two model sizes:\nBERTBASE (L=12, H=768, A=12, Total Parameters=110M) and BERTLARGE (L=24, H=1024,\nA=16, Total Parameters=340M).\nBERTBASE was chosen to have the same model\nsize as OpenAI GPT for comparison purposes.\nCritically, however, the BERT Transformer uses\nbidirectional self-attention, while the GPT Transformer uses constrained self-attention where every\ntoken can only attend to context to its left.4\n1https://github.com/tensorﬂow/tensor2tensor"
+        },
+        {
+          "rank": 8,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 10,
+          "score": 0.4923,
+          "chunk_id": "bdfaa68d8984-p10-c2",
+          "text": "multi-headed self-attention.\nFor translation tasks, the Transformer can be trained significantly faster than architectures based\non recurrent or convolutional layers. On both WMT 2014 English-to-German and WMT 2014\nEnglish-to-French translation tasks, we achieve a new state of the art. In the former task our best\nmodel outperforms even all previously reported ensembles.\nWe are excited about the future of attention-based models and plan to apply them to other tasks. We\nplan to extend the Transformer to problems involving input and output modalities other than text and\nto investigate local, restricted attention mechanisms to efficiently handle large inputs and outputs\nsuch as images, audio and video. Making generation less sequential is another research goals of ours.\nThe code we used to train and evaluate our models is available at https://github.com/\ntensorflow/tensor2tensor.\nAcknowledgements We are grateful to Nal Kalchbrenner and Stephan Gouws for their fruitful"
+        }
+      ],
+      "actual_answer": "The encoder stack of the Transformer consists of 6 identical layers [1]. The model dimension d_model is 512 [1], [2].",
+      "sources": [
+        {
+          "source": "arxiv_1706.03762.pdf",
+          "page": 3
+        },
+        {
+          "source": "arxiv_1706.03762.pdf",
+          "page": 5
+        },
+        {
+          "source": "arxiv_1706.03762.pdf",
+          "page": 6
+        },
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 3
+        },
+        {
+          "source": "arxiv_1706.03762.pdf",
+          "page": 10
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 11.33,
+      "error": null,
+      "expected_page_retrieved": true,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "F2",
+      "category": "factual",
+      "question": "How many total parameters do BERT-Base and BERT-Large have?",
+      "expected_answer": "BERT-Base has 110M parameters (L=12, H=768, A=12) and BERT-Large has 340M parameters (L=24, H=1024, A=16).",
+      "expected_sources": [
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "pages": [
+            3,
+            8
+          ]
+        }
+      ],
+      "notes": "Evidence: 'BERTBASE (L=12, H=768, A=12, Total Parameters=110M) and BERTLARGE (L=24, H=1024, A=16, Total Parameters=340M)' (p. 3); restated 'BERT BASE contains 110M parameters and BERT LARGE contains 340M parameters' (p. 8)",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 8,
+          "score": 0.5458,
+          "chunk_id": "5692a5514787-p8-c4",
+          "text": "We can see that larger models lead to a strict accuracy improvement across all four datasets, even\nfor MRPC which only has 3,600 labeled training examples, and is substantially different from\nthe pre-training tasks. It is also perhaps surprising that we are able to achieve such signiﬁcant\nimprovements on top of models which are already quite large relative to the existing literature.\nFor example, the largest Transformer explored in\nVaswani et al. (2017) is (L=6, H=1024, A=16)\nwith 100M parameters for the encoder, and the\nlargest Transformer we have found in the literature\nis (L=64, H=512, A=2) with 235M parameters\n(Al-Rfou et al., 2018). By contrast, BERT BASE\ncontains 110M parameters and BERT LARGE contains 340M parameters.\nIt has long been known that increasing the\nmodel size will lead to continual improvements\non large-scale tasks such as machine translation\nand language modeling, which is demonstrated\nby the LM perplexity of held-out training data"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 6,
+          "score": 0.5356,
+          "chunk_id": "5692a5514787-p6-c2",
+          "text": "BERTBASE and OpenAI GPT are nearly identical\nin terms of model architecture apart from the attention masking. For the largest and most widely\nreported GLUE task, MNLI, BERT obtains a 4.6%\nabsolute accuracy improvement. On the ofﬁcial\nGLUE leaderboard10, BERTLARGE obtains a score\nof 80.5, compared to OpenAI GPT, which obtains\n72.8 as of the date of writing.\nWe ﬁnd that BERT LARGE signiﬁcantly outperforms BERTBASE across all tasks, especially those\nwith very little training data. The effect of model\nsize is explored more thoroughly in Section 5.2.\n4.2 SQuAD v1.1\nThe Stanford Question Answering Dataset\n(SQuAD v1.1) is a collection of 100k crowdsourced question/answer pairs (Rajpurkar et al.,\n2016). Given a question and a passage from\n9The GLUE data set distribution does not include the Test\nlabels, and we only made a single GLUE evaluation server\nsubmission for each of BERTBASE and BERTLARGE .\n10https://gluebenchmark.com/leaderboard\nWikipedia containing the answer, the task is to"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 3,
+          "score": 0.5348,
+          "chunk_id": "5692a5514787-p3-c3",
+          "text": "the tensor2tensor library.1 Because the use\nof Transformers has become common and our implementation is almost identical to the original,\nwe will omit an exhaustive background description of the model architecture and refer readers to\nVaswani et al. (2017) as well as excellent guides\nsuch as “The Annotated Transformer.”2\nIn this work, we denote the number of layers\n(i.e., Transformer blocks) asL, the hidden size as\nH, and the number of self-attention heads as A.3\nWe primarily report results on two model sizes:\nBERTBASE (L=12, H=768, A=12, Total Parameters=110M) and BERTLARGE (L=24, H=1024,\nA=16, Total Parameters=340M).\nBERTBASE was chosen to have the same model\nsize as OpenAI GPT for comparison purposes.\nCritically, however, the BERT Transformer uses\nbidirectional self-attention, while the GPT Transformer uses constrained self-attention where every\ntoken can only attend to context to its left.4\n1https://github.com/tensorﬂow/tensor2tensor"
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 18,
+          "score": 0.5074,
+          "chunk_id": "23e3249e9a1e-p18-c5",
+          "text": "documents for questions that are less likely to beneﬁt from retrieval, suggesting that null document\nmechanisms may not be necessary for RAG.\nG Parameters\nOur RAG models contain the trainable parameters for the BERT-base query and document encoder of\nDPR, with 110M parameters each (although we do not train the document encoder ourselves) and\n406M trainable parameters from BART-large, 406M parameters, making a total of 626M trainable\n18"
+        },
+        {
+          "rank": 5,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 9,
+          "score": 0.5045,
+          "chunk_id": "5692a5514787-p9-c3",
+          "text": "CSE (Akbik et al., 2018) - 93.1\nFine-tuning approach\nBERTLARGE 96.6 92.8\nBERTBASE 96.4 92.4\nFeature-based approach (BERTBASE )\nEmbeddings 91.0 -\nSecond-to-Last Hidden 95.6 -\nLast Hidden 94.9 -\nWeighted Sum Last Four Hidden 95.9 -\nConcat Last Four Hidden 96.1 -\nWeighted Sum All 12 Layers 95.5 -\nTable 7: CoNLL-2003 Named Entity Recognition results. Hyperparameters were selected using the Dev\nset. The reported Dev and Test scores are averaged over\n5 random restarts using those hyperparameters.\nlayer in the output. We use the representation of\nthe ﬁrst sub-token as the input to the token-level\nclassiﬁer over the NER label set.\nTo ablate the ﬁne-tuning approach, we apply the\nfeature-based approach by extracting the activations from one or more layers without ﬁne-tuning\nany parameters of BERT. These contextual embeddings are used as input to a randomly initialized two-layer 768-dimensional BiLSTM before\nthe classiﬁcation layer.\nResults are presented in Table 7. BERT LARGE"
+        },
+        {
+          "rank": 6,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 3,
+          "score": 0.4993,
+          "chunk_id": "5692a5514787-p3-c2",
+          "text": "framework: pre-training and ﬁne-tuning. During pre-training, the model is trained on unlabeled\ndata over different pre-training tasks. For ﬁnetuning, the BERT model is ﬁrst initialized with\nthe pre-trained parameters, and all of the parameters are ﬁne-tuned using labeled data from the\ndownstream tasks. Each downstream task has separate ﬁne-tuned models, even though they are initialized with the same pre-trained parameters. The\nquestion-answering example in Figure 1 will serve\nas a running example for this section.\nA distinctive feature of BERT is its uniﬁed architecture across different tasks. There is minimal difference between the pre-trained architecture and the ﬁnal downstream architecture.\nModel Architecture BERT’s model architecture is a multi-layer bidirectional Transformer encoder based on the original implementation described in Vaswani et al. (2017) and released in\nthe tensor2tensor library.1 Because the use"
+        },
+        {
+          "rank": 7,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 9,
+          "score": 0.4859,
+          "chunk_id": "5692a5514787-p9-c0",
+          "text": "mixed results on the downstream task impact of\nincreasing the pre-trained bi-LM size from two\nto four layers and Melamud et al. (2016) mentioned in passing that increasing hidden dimension size from 200 to 600 helped, but increasing\nfurther to 1,000 did not bring further improvements. Both of these prior works used a featurebased approach — we hypothesize that when the\nmodel is ﬁne-tuned directly on the downstream\ntasks and uses only a very small number of randomly initialized additional parameters, the taskspeciﬁc models can beneﬁt from the larger, more\nexpressive pre-trained representations even when\ndownstream task data is very small.\n5.3 Feature-based Approach with BERT\nAll of the BERT results presented so far have used\nthe ﬁne-tuning approach, where a simple classiﬁcation layer is added to the pre-trained model, and\nall parameters are jointly ﬁne-tuned on a downstream task. However, the feature-based approach,"
+        },
+        {
+          "rank": 8,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 1,
+          "score": 0.4848,
+          "chunk_id": "92366d22fc05-p1-c3",
+          "text": "in a collection of n = 10 000 sentences the pair\nwith the highest similarity requires with BERT\nn·(n−1)/2 = 49 995 000 inference computations.\nOn a modern V100 GPU, this requires about 65\nhours. Similar, ﬁnding which of the over 40 million existent questions of Quora is the most similar\nfor a new question could be modeled as a pair-wise\ncomparison with BERT, however, answering a single query would require over 50 hours.\nA common method to address clustering and semantic search is to map each sentence to a vector space such that semantically similar sentences\nare close. Researchers have started to input individual sentences into BERT and to derive ﬁxedsize sentence embeddings. The most commonly\nused approach is to average the BERT output layer\n(known as BERT embeddings) or by using the output of the ﬁrst token (the [CLS] token). As we\nwill show, this common practice yields rather bad\nsentence embeddings, often worse than averaging\nGloVe embeddings (Pennington et al., 2014)."
+        }
+      ],
+      "actual_answer": "The total number of parameters for BERT-Base is 110M [3] and for BERT-Large is 340M [3].",
+      "sources": [
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 8
+        },
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 6
+        },
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 3
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 18
+        },
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 9
+        },
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "page": 1
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 10.14,
+      "error": null,
+      "expected_page_retrieved": true,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "F3",
+      "category": "factual",
+      "question": "What knowledge source does the RAG model use for its non-parametric memory, and how many documents does the index contain?",
+      "expected_answer": "A December 2018 Wikipedia dump, with each article split into disjoint 100-word chunks, giving 21M documents indexed with FAISS (MIPS index).",
+      "expected_sources": [
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "pages": [
+            4
+          ]
+        }
+      ],
+      "notes": "Evidence: 'we use the December 2018 dump. Each Wikipedia article is split into disjoint 100-word chunks, to make a total of 21M documents.' (p. 4)",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 18,
+          "score": 0.6848,
+          "chunk_id": "23e3249e9a1e-p18-c5",
+          "text": "documents for questions that are less likely to beneﬁt from retrieval, suggesting that null document\nmechanisms may not be necessary for RAG.\nG Parameters\nOur RAG models contain the trainable parameters for the BERT-base query and document encoder of\nDPR, with 110M parameters each (although we do not train the document encoder ourselves) and\n406M trainable parameters from BART-large, 406M parameters, making a total of 626M trainable\n18"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 19,
+          "score": 0.671,
+          "chunk_id": "23e3249e9a1e-p19-c1",
+          "text": "The non-parametric memory index does not consist of trainable parameters, but does consists of 21M\n728 dimensional vectors, consisting of 15.3B values. These can be easily be stored at 8-bit ﬂoating\npoint precision to manage memory and disk footprints.\nH Retrieval Collapse\nIn preliminary experiments, we observed that for some tasks such as story generation [ 11], the\nretrieval component would “collapse” and learn to retrieve the same documents regardless of the\ninput. In these cases, once retrieval had collapsed, the generator would learn to ignore the documents,\nand the RAG model would perform equivalently to BART. The collapse could be due to a less-explicit\nrequirement for factual knowledge in some tasks, or the longer target sequences, which could result\nin less informative gradients for the retriever. Perez et al.[46] also found spurious retrieval results\nwhen optimizing a retrieval component in order to improve performance on downstream tasks.\nI Number of instances per dataset"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 8,
+          "score": 0.6256,
+          "chunk_id": "23e3249e9a1e-p8-c1",
+          "text": "RAG-Token 43.5 54.8 46.5 51.9 17.9 22.6 56.2 49.4 74.5 90.6RAG-Sequence 44.0 55.8 44.9 53.4 15.3 21.5 57.2 47.5\nbetween these dates and use a template “Who is {position}?” (e.g. “Who is the President of Peru?”)\nto query our NQ RAG model with each index. RAG answers 70% correctly using the 2016 index for\n2016 world leaders and 68% using the 2018 index for 2018 world leaders. Accuracy with mismatched\nindices is low (12% with the 2018 index and 2016 leaders, 4% with the 2016 index and 2018 leaders).\nThis shows we can update RAG’s world knowledge by simply replacing its non-parametric memory.\nEffect of Retrieving more documents Models are trained with either 5 or 10 retrieved latent\ndocuments, and we do not observe signiﬁcant differences in performance between them. We have the\nﬂexibility to adjust the number of retrieved documents at test time, which can affect performance and\nruntime. Figure 3 (left) shows that retrieving more documents at test time monotonically improves"
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 8,
+          "score": 0.5769,
+          "chunk_id": "23e3249e9a1e-p8-c2",
+          "text": "ﬂexibility to adjust the number of retrieved documents at test time, which can affect performance and\nruntime. Figure 3 (left) shows that retrieving more documents at test time monotonically improves\nOpen-domain QA results for RAG-Sequence, but performance peaks for RAG-Token at 10 retrieved\ndocuments. Figure 3 (right) shows that retrieving more documents leads to higher Rouge-L for\nRAG-Token at the expense of Bleu-1, but the effect is less pronounced for RAG-Sequence.\n10 20 30 40 50\nKR e t r i e v e dD o c s\n39\n40\n41\n42\n43\n44NQ Exact Match RAG-Tok\nRAG-Seq\n10 20 30 40 50\nKR e t r i e v e dD o c s\n40\n50\n60\n70\n80NQ Answer Recall @ K\nRAG-Tok\nRAG-Seq\nFixed DPR\nBM25\n10 20 30 40 50\nKR e t r i e v e dD o c s\n48\n50\n52\n54\n56Bleu-1 / Rouge-L score\nRAG-Tok R-L\nRAG-Tok B-1\nRAG-Seq R-L\nRAG-Seq B-1\nFigure 3: Left: NQ performance as more documents are retrieved. Center: Retrieval recall performance in NQ. Right: MS-MARCO Bleu-1 and Rouge-L as more documents are retrieved.\n5 Related Work"
+        },
+        {
+          "rank": 5,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 17,
+          "score": 0.5759,
+          "chunk_id": "23e3249e9a1e-p17-c2",
+          "text": "We train all RAG models and BART baselines using Fairseq [45].2 We train with mixed precision\nﬂoating point arithmetic [40], distributing training across 8, 32GB NVIDIA V100 GPUs, though\ntraining and inference can be run on one GPU. We ﬁnd that doing Maximum Inner Product Search\nwith FAISS is sufﬁciently fast on CPU, so we store document index vectors on CPU, requiring∼ 100\nGB of CPU memory for all of Wikipedia. After submission, We have ported our code to HuggingFace\nTransformers [66]3, which achieves equivalent performance to the previous version but is a cleaner\nand easier to use implementation. This version is also open-sourced. We also compress the document\nindex using FAISS’s compression tools, reducing the CPU memory requirement to 36GB. Scripts to\nrun experiments with RAG can be found athttps://github.com/huggingface/transformers/\nblob/master/examples/rag/README.md and an interactive demo of a RAG model can be found\nat https://huggingface.co/rag/"
+        },
+        {
+          "rank": 6,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 9,
+          "score": 0.5703,
+          "chunk_id": "23e3249e9a1e-p9-c4",
+          "text": "could represent promising future work.\n6 Discussion\nIn this work, we presented hybrid generation models with access to parametric and non-parametric\nmemory. We showed that our RAG models obtain state of the art results on open-domain QA. We\nfound that people prefer RAG’s generation over purely parametric BART, ﬁnding RAG more factual\nand speciﬁc. We conducted an thorough investigation of the learned retrieval component, validating\nits effectiveness, and we illustrated how the retrieval index can be hot-swapped to update the model\nwithout requiring any retraining. In future work, it may be fruitful to investigate if the two components\ncan be jointly pre-trained from scratch, either with a denoising objective similar to BART or some\nanother objective. Our work opens up new research directions on how parametric and non-parametric\nmemories interact and how to most effectively combine them, showing promise in being applied to a\nwide variety of NLP tasks.\n9"
+        },
+        {
+          "rank": 7,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 2,
+          "score": 0.5653,
+          "chunk_id": "23e3249e9a1e-p2-c5",
+          "text": "2 Methods\nWe explore RAG models, which use the input sequencex to retrieve text documentsz and use them\nas additional context when generating the target sequence y. As shown in Figure 1, our models\nleverage two components: (i) a retriever pη(z|x) with parametersη that returns (top-K truncated)\ndistributions over text passages given a queryx and (ii) a generatorpθ(yi|x,z,y 1:i−1) parametrized\n1Code to run experiments with RAG has been open-sourced as part of the HuggingFace Transformers Library [66] and can be found at https://github.com/huggingface/transformers/blob/master/\nexamples/rag/. An interactive demo of RAG models can be found at https://huggingface.co/rag/\n2"
+        },
+        {
+          "rank": 8,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 6,
+          "score": 0.5487,
+          "chunk_id": "23e3249e9a1e-p6-c1",
+          "text": "to more effective marginalization over documents. Furthermore, RAG can generate correct answers\neven when the correct answer is not in any retrieved document, achieving 11.8% accuracy in such\ncases for NQ, where an extractive model would score 0%.\n4.2 Abstractive Question Answering\nAs shown in Table 2, RAG-Sequence outperforms BART on Open MS-MARCO NLG by 2.6 Bleu\npoints and 2.6 Rouge-L points. RAG approaches state-of-the-art model performance, which is\nimpressive given that (i) those models access gold passages with speciﬁc information required to\ngenerate the reference answer , (ii) many questions are unanswerable without the gold passages, and\n(iii) not all questions are answerable from Wikipedia alone. Table 3 shows some generated answers\nfrom our models. Qualitatively, we ﬁnd that RAG models hallucinate less and generate factually\ncorrect text more often than BART. Later, we also show that RAG generations are more diverse than\nBART generations (see §4.5)."
+        }
+      ],
+      "actual_answer": "The RAG model uses a non-parametric memory index that consists of 21M dimensional vectors, consisting of 15.3B values [2]. The number of documents in the index is not specified.",
+      "sources": [
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 18
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 19
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 8
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 17
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 9
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 2
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 6
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 10.71,
+      "error": null,
+      "expected_page_retrieved": false,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "F4",
+      "category": "factual",
+      "question": "According to the Sentence-BERT paper, how long does finding the most similar pair in a collection of 10,000 sentences take with BERT compared to SBERT?",
+      "expected_answer": "About 65 hours with BERT (about 50 million inference computations) versus about 5 seconds with SBERT.",
+      "expected_sources": [
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "pages": [
+            1,
+            2
+          ]
+        }
+      ],
+      "notes": "Evidence: 'This reduces the effort for finding the most similar pair from 65 hours with BERT / RoBERTa to about 5 seconds with SBERT' (p. 1); also p. 2 ('~5 seconds with SBERT')",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 1,
+          "score": 0.6795,
+          "chunk_id": "92366d22fc05-p1-c3",
+          "text": "in a collection of n = 10 000 sentences the pair\nwith the highest similarity requires with BERT\nn·(n−1)/2 = 49 995 000 inference computations.\nOn a modern V100 GPU, this requires about 65\nhours. Similar, ﬁnding which of the over 40 million existent questions of Quora is the most similar\nfor a new question could be modeled as a pair-wise\ncomparison with BERT, however, answering a single query would require over 50 hours.\nA common method to address clustering and semantic search is to map each sentence to a vector space such that semantically similar sentences\nare close. Researchers have started to input individual sentences into BERT and to derive ﬁxedsize sentence embeddings. The most commonly\nused approach is to average the BERT output layer\n(known as BERT embeddings) or by using the output of the ﬁrst token (the [CLS] token). As we\nwill show, this common practice yields rather bad\nsentence embeddings, often worse than averaging\nGloVe embeddings (Pennington et al., 2014)."
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 1,
+          "score": 0.6701,
+          "chunk_id": "92366d22fc05-p1-c0",
+          "text": "Sentence-BERT: Sentence Embeddings using Siamese BERT-Networks\nNils Reimers and Iryna Gurevych\nUbiquitous Knowledge Processing Lab (UKP-TUDA)\nDepartment of Computer Science, Technische Universit¨at Darmstadt\nwww.ukp.tu-darmstadt.de\nAbstract\nBERT (Devlin et al., 2018) and RoBERTa (Liu\net al., 2019) has set a new state-of-the-art\nperformance on sentence-pair regression tasks\nlike semantic textual similarity (STS). However, it requires that both sentences are fed\ninto the network, which causes a massive computational overhead: Finding the most similar pair in a collection of 10,000 sentences\nrequires about 50 million inference computations (~65 hours) with BERT. The construction\nof BERT makes it unsuitable for semantic similarity search as well as for unsupervised tasks\nlike clustering.\nIn this publication, we present Sentence-BERT\n(SBERT), a modiﬁcation of the pretrained"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 8,
+          "score": 0.6581,
+          "chunk_id": "92366d22fc05-p8-c4",
+          "text": "like cosine-similarity. The performance for seven\nSTS tasks was below the performance of average\nGloVe embeddings.\nTo overcome this shortcoming, we presented\nSentence-BERT (SBERT). SBERT ﬁne-tunes\nBERT in a siamese / triplet network architecture. We evaluated the quality on various common benchmarks, where it could achieve a signiﬁcant improvement over state-of-the-art sentence embeddings methods. Replacing BERT with\nRoBERTa did not yield a signiﬁcant improvement\nin our experiments.\nSBERT is computationally efﬁcient. On a GPU,\nit is about 9% faster than InferSent and about 55%\nfaster than Universal Sentence Encoder. SBERT\ncan be used for tasks which are computationally\nnot feasible to be modeled with BERT. For example, clustering of 10,000 sentences with hierarchical clustering requires with BERT about 65 hours,\nas around 50 Million sentence combinations must\nbe computed. With SBERT, we were able to reduce the effort to about 5 seconds."
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 2,
+          "score": 0.6434,
+          "chunk_id": "92366d22fc05-p2-c0",
+          "text": "most similar sentence pair in a collection of 10,000\nsentences is reduced from 65 hours with BERT to\nthe computation of 10,000 sentence embeddings\n(~5 seconds with SBERT) and computing cosinesimilarity (~0.01 seconds). By using optimized\nindex structures, ﬁnding the most similar Quora\nquestion can be reduced from 50 hours to a few\nmilliseconds (Johnson et al., 2017).\nWe ﬁne-tune SBERT on NLI data, which creates sentence embeddings that signiﬁcantly outperform other state-of-the-art sentence embedding\nmethods like InferSent (Conneau et al., 2017) and\nUniversal Sentence Encoder (Cer et al., 2018). On\nseven Semantic Textual Similarity (STS) tasks,\nSBERT achieves an improvement of 11.7 points\ncompared to InferSent and 5.5 points compared to\nUniversal Sentence Encoder. On SentEval (Conneau and Kiela, 2018), an evaluation toolkit for\nsentence embeddings, we achieve an improvement\nof 2.1 and 2.6 points, respectively.\nSBERT can be adapted to a speciﬁc task. It"
+        },
+        {
+          "rank": 5,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 1,
+          "score": 0.6308,
+          "chunk_id": "92366d22fc05-p1-c2",
+          "text": "derive semantically meaningful sentence embeddings2. This enables BERT to be used for certain\nnew tasks, which up-to-now were not applicable\nfor BERT. These tasks include large-scale seman1Code available: https://github.com/UKPLab/\nsentence-transformers\n2With semantically meaningful we mean that semantically\nsimilar sentences are close in vector space.\ntic similarity comparison, clustering, and information retrieval via semantic search.\nBERT set new state-of-the-art performance on\nvarious sentence classiﬁcation and sentence-pair\nregression tasks. BERT uses a cross-encoder: Two\nsentences are passed to the transformer network\nand the target value is predicted. However, this\nsetup is unsuitable for various pair regression tasks\ndue to too many possible combinations. Finding\nin a collection of n = 10 000 sentences the pair\nwith the highest similarity requires with BERT\nn·(n−1)/2 = 49 995 000 inference computations.\nOn a modern V100 GPU, this requires about 65"
+        },
+        {
+          "rank": 6,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 5,
+          "score": 0.6217,
+          "chunk_id": "92366d22fc05-p5-c4",
+          "text": "that Pearson correlation has some serious drawbacks and should be avoided for comparing STS\nsystems. The results are depicted in Table 3.\nUnsupervised methods like tf-idf, average\nGloVe embeddings or InferSent perform rather\nbadly on this dataset with low scores. Training\nSBERT in the 10-fold cross-validation setup gives\na performance that is nearly on-par with BERT.\nHowever, in the cross-topic evaluation, we observe a performance drop of SBERT by about 7\npoints Spearman correlation. To be considered\nsimilar, arguments should address the same claims\nand provide the same reasoning. BERT is able to\nuse attention to compare directly both sentences\n(e.g. word-by-word comparison), while SBERT\nmust map individual sentences from an unseen\ntopic to a vector space such that arguments with\nsimilar claims and reasons are close. This is a\nmuch more challenging task, which appears to require more than just two topics for training to work\non-par with BERT.\n4.4 Wikipedia Sections Distinction"
+        },
+        {
+          "rank": 7,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 8,
+          "score": 0.6071,
+          "chunk_id": "92366d22fc05-p8-c3",
+          "text": "SBERT-base 44 1378\nSBERT-base - smart batching 83 2042\nTable 7: Computation speed (sentences per second) of\nsentence embedding methods. Higher is better.\nOn CPU, InferSent is about 65% faster than\nSBERT. This is due to the much simpler network architecture. InferSent uses a single BiLSTM layer, while BERT uses 12 stacked transformer layers. However, an advantage of transformer networks is the computational efﬁciency\non GPUs. There, SBERT with smart batching\nis about 9% faster than InferSent and about 55%\nfaster than Universal Sentence Encoder. Smart\nbatching achieves a speed-up of 89% on CPU and\n48% on GPU. Average GloVe embeddings is obviously by a large margin the fastest method to compute sentence embeddings.\n8 Conclusion\nWe showed that BERT out-of-the-box maps sentences to a vector space that is rather unsuitable to be used with common similarity measures\nlike cosine-similarity. The performance for seven\nSTS tasks was below the performance of average\nGloVe embeddings."
+        },
+        {
+          "rank": 8,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 1,
+          "score": 0.5898,
+          "chunk_id": "92366d22fc05-p1-c1",
+          "text": "of BERT makes it unsuitable for semantic similarity search as well as for unsupervised tasks\nlike clustering.\nIn this publication, we present Sentence-BERT\n(SBERT), a modiﬁcation of the pretrained\nBERT network that use siamese and triplet network structures to derive semantically meaningful sentence embeddings that can be compared using cosine-similarity. This reduces the\neffort for ﬁnding the most similar pair from 65\nhours with BERT / RoBERTa to about 5 seconds with SBERT, while maintaining the accuracy from BERT.\nWe evaluate SBERT and SRoBERTa on common STS tasks and transfer learning tasks,\nwhere it outperforms other state-of-the-art\nsentence embeddings methods.1\n1 Introduction\nIn this publication, we present Sentence-BERT\n(SBERT), a modiﬁcation of the BERT network using siamese and triplet networks that is able to\nderive semantically meaningful sentence embeddings2. This enables BERT to be used for certain\nnew tasks, which up-to-now were not applicable"
+        }
+      ],
+      "actual_answer": "Finding the most similar pair in a collection of 10,000 sentences takes about 65 hours with BERT [5], while it takes about 5 seconds with SBERT [3].",
+      "sources": [
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "page": 1
+        },
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "page": 8
+        },
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "page": 2
+        },
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "page": 5
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 10.79,
+      "error": null,
+      "expected_page_retrieved": true,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "M1",
+      "category": "multi_chunk",
+      "question": "What BLEU scores did the big Transformer model achieve on WMT 2014 English-to-German and English-to-French, and how long and on what hardware was it trained?",
+      "expected_answer": "28.4 BLEU on English-to-German and 41.8 BLEU on English-to-French; training took 3.5 days on 8 P100 GPUs (300,000 steps).",
+      "expected_sources": [
+        {
+          "source": "arxiv_1706.03762.pdf",
+          "pages": [
+            1,
+            7,
+            8
+          ]
+        }
+      ],
+      "notes": "Evidence: 'Our model achieves 28.4 BLEU on the WMT 2014 English-to-German ... BLEU score of 41.8 after training for 3.5 days on eight GPUs' (p. 1); 'The big models were trained for 300,000 steps (3.5 days)' (p. 7); 'Training took 3.5 days on 8 P100 GPUs.' (p. 8). Facts are spread across abstract, training section and results section.",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 8,
+          "score": 0.7227,
+          "chunk_id": "bdfaa68d8984-p8-c1",
+          "text": "positional encodings in both the encoder and decoder stacks. For the base model, we use a rate of\nPdrop = 0.1.\nLabel Smoothing During training, we employed label smoothing of value ϵls = 0.1 [36]. This\nhurts perplexity, as the model learns to be more unsure, but improves accuracy and BLEU score.\n6 Results\n6.1 Machine Translation\nOn the WMT 2014 English-to-German translation task, the big transformer model (Transformer (big)\nin Table 2) outperforms the best previously reported models (including ensembles) by more than 2.0\nBLEU, establishing a new state-of-the-art BLEU score of 28.4. The configuration of this model is\nlisted in the bottom line of Table 3. Training took 3.5 days on 8 P100 GPUs. Even our base model\nsurpasses all previously published models and ensembles, at a fraction of the training cost of any of\nthe competitive models.\nOn the WMT 2014 English-to-French translation task, our big model achieves a BLEU score of 41.0,"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 8,
+          "score": 0.6636,
+          "chunk_id": "bdfaa68d8984-p8-c0",
+          "text": "Table 2: The Transformer achieves better BLEU scores than previous state-of-the-art models on the\nEnglish-to-German and English-to-French newstest2014 tests at a fraction of the training cost.\nModel\nBLEU Training Cost (FLOPs)\nEN-DE EN-FR EN-DE EN-FR\nByteNet [18] 23.75\nDeep-Att + PosUnk [39] 39.2 1.0 · 1020\nGNMT + RL [38] 24.6 39.92 2.3 · 1019 1.4 · 1020\nConvS2S [9] 25.16 40.46 9.6 · 1018 1.5 · 1020\nMoE [32] 26.03 40.56 2.0 · 1019 1.2 · 1020\nDeep-Att + PosUnk Ensemble [39] 40.4 8.0 · 1020\nGNMT + RL Ensemble [38] 26.30 41.16 1.8 · 1020 1.1 · 1021\nConvS2S Ensemble [9] 26.36 41.29 7.7 · 1019 1.2 · 1021\nTransformer (base model) 27.3 38.1 3.3 · 1018\nTransformer (big) 28.4 41.8 2.3 · 1019\nResidual Dropout We apply dropout [33] to the output of each sub-layer, before it is added to the\nsub-layer input and normalized. In addition, we apply dropout to the sums of the embeddings and the\npositional encodings in both the encoder and decoder stacks. For the base model, we use a rate of\nPdrop = 0.1."
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 8,
+          "score": 0.6045,
+          "chunk_id": "bdfaa68d8984-p8-c2",
+          "text": "the competitive models.\nOn the WMT 2014 English-to-French translation task, our big model achieves a BLEU score of 41.0,\noutperforming all of the previously published single models, at less than 1/4 the training cost of the\nprevious state-of-the-art model. The Transformer (big) model trained for English-to-French used\ndropout rate Pdrop = 0.1, instead of 0.3.\nFor the base models, we used a single model obtained by averaging the last 5 checkpoints, which\nwere written at 10-minute intervals. For the big models, we averaged the last 20 checkpoints. We\nused beam search with a beam size of 4 and length penalty α = 0.6 [38]. These hyperparameters\nwere chosen after experimentation on the development set. We set the maximum output length during\ninference to input length + 50, but terminate early when possible [38].\nTable 2 summarizes our results and compares our translation quality and training costs to other model"
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 8,
+          "score": 0.5337,
+          "chunk_id": "bdfaa68d8984-p8-c3",
+          "text": "inference to input length + 50, but terminate early when possible [38].\nTable 2 summarizes our results and compares our translation quality and training costs to other model\narchitectures from the literature. We estimate the number of floating point operations used to train a\nmodel by multiplying the training time, the number of GPUs used, and an estimate of the sustained\nsingle-precision floating-point capacity of each GPU 5.\n6.2 Model Variations\nTo evaluate the importance of different components of the Transformer, we varied our base model\nin different ways, measuring the change in performance on English-to-German translation on the\n5We used values of 2.8, 3.7, 6.0 and 9.5 TFLOPS for K80, K40, M40 and P100, respectively.\n8"
+        },
+        {
+          "rank": 5,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 9,
+          "score": 0.517,
+          "chunk_id": "bdfaa68d8984-p9-c0",
+          "text": "Table 3: Variations on the Transformer architecture. Unlisted values are identical to those of the base\nmodel. All metrics are on the English-to-German translation development set, newstest2013. Listed\nperplexities are per-wordpiece, according to our byte-pair encoding, and should not be compared to\nper-word perplexities.\nN d model dff h d k dv Pdrop ϵls train PPL BLEU paramssteps (dev) (dev) ×106\nbase 6 512 2048 8 64 64 0.1 0.1 100K 4.92 25.8 65\n(A)\n1 512 512 5.29 24.9\n4 128 128 5.00 25.5\n16 32 32 4.91 25.8\n32 16 16 5.01 25.4\n(B) 16 5.16 25.1 5832 5.01 25.4 60\n(C)\n2 6.11 23.7 36\n4 5.19 25.3 50\n8 4.88 25.5 80\n256 32 32 5.75 24.5 28\n1024 128 128 4.66 26.0 168\n1024 5.12 25.4 53\n4096 4.75 26.2 90\n(D)\n0.0 5.77 24.6\n0.2 4.95 25.5\n0.0 4.67 25.3\n0.2 5.47 25.7\n(E) positional embedding instead of sinusoids 4.92 25.7\nbig 6 1024 4096 16 0.3 300K 4.33 26.4 213\ndevelopment set, newstest2013. We used beam search as described in the previous section, but no"
+        },
+        {
+          "rank": 6,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 1,
+          "score": 0.5113,
+          "chunk_id": "bdfaa68d8984-p1-c1",
+          "text": "mechanism. We propose a new simple network architecture, the Transformer,\nbased solely on attention mechanisms, dispensing with recurrence and convolutions\nentirely. Experiments on two machine translation tasks show these models to\nbe superior in quality while being more parallelizable and requiring significantly\nless time to train. Our model achieves 28.4 BLEU on the WMT 2014 Englishto-German translation task, improving over the existing best results, including\nensembles, by over 2 BLEU. On the WMT 2014 English-to-French translation task,\nour model establishes a new single-model state-of-the-art BLEU score of 41.8 after\ntraining for 3.5 days on eight GPUs, a small fraction of the training costs of the\nbest models from the literature. We show that the Transformer generalizes well to\nother tasks by applying it successfully to English constituency parsing both with\nlarge and limited training data."
+        },
+        {
+          "rank": 7,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 8,
+          "score": 0.4582,
+          "chunk_id": "5692a5514787-p8-c4",
+          "text": "We can see that larger models lead to a strict accuracy improvement across all four datasets, even\nfor MRPC which only has 3,600 labeled training examples, and is substantially different from\nthe pre-training tasks. It is also perhaps surprising that we are able to achieve such signiﬁcant\nimprovements on top of models which are already quite large relative to the existing literature.\nFor example, the largest Transformer explored in\nVaswani et al. (2017) is (L=6, H=1024, A=16)\nwith 100M parameters for the encoder, and the\nlargest Transformer we have found in the literature\nis (L=64, H=512, A=2) with 235M parameters\n(Al-Rfou et al., 2018). By contrast, BERT BASE\ncontains 110M parameters and BERT LARGE contains 340M parameters.\nIt has long been known that increasing the\nmodel size will lead to continual improvements\non large-scale tasks such as machine translation\nand language modeling, which is demonstrated\nby the LM perplexity of held-out training data"
+        },
+        {
+          "rank": 8,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 12,
+          "score": 0.4336,
+          "chunk_id": "5692a5514787-p12-c4",
+          "text": "word.\nThe advantage of this procedure is that the\nTransformer encoder does not know which words\nit will be asked to predict or which have been replaced by random words, so it is forced to keep\na distributional contextual representation of every input token. Additionally, because random\nreplacement only occurs for 1.5% of all tokens\n(i.e., 10% of 15%), this does not seem to harm\nthe model’s language understanding capability. In\nSection C.2, we evaluate the impact this procedure.\nCompared to standard langauge model training,\nthe masked LM only make predictions on 15% of\ntokens in each batch, which suggests that more\npre-training steps may be required for the model"
+        }
+      ],
+      "actual_answer": "The big Transformer model achieved a BLEU score of 28.4 on WMT 2014 English-to-German translation task and a BLEU score of 41.0 on WMT 2014 English-to-French translation task.\n\nIt was trained for 3.5 days on 8 P100 GPUs [1].",
+      "sources": [
+        {
+          "source": "arxiv_1706.03762.pdf",
+          "page": 8
+        },
+        {
+          "source": "arxiv_1706.03762.pdf",
+          "page": 9
+        },
+        {
+          "source": "arxiv_1706.03762.pdf",
+          "page": 1
+        },
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 8
+        },
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 12
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 13.45,
+      "error": null,
+      "expected_page_retrieved": true,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "M2",
+      "category": "multi_chunk",
+      "question": "Describe BERT's two pre-training tasks, including how tokens are masked and how sentence pairs are constructed.",
+      "expected_answer": "(1) Masked LM: 15% of token positions are chosen at random; a chosen token is replaced with [MASK] 80% of the time, a random token 10% of the time, and left unchanged 10% of the time, and the model predicts the original token. (2) Next Sentence Prediction: for sentence pairs A/B, 50% of the time B is the actual next sentence (IsNext) and 50% of the time a random sentence (NotNext).",
+      "expected_sources": [
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "pages": [
+            4,
+            12
+          ]
+        }
+      ],
+      "notes": "Evidence: 'chooses 15% of the token positions at random ... (1) the [MASK] token 80% of the time (2) a random token 10% of the time (3) the unchanged i-th token 10% of the time' and '50% of the time B is the actual next sentence that follows A (labeled as IsNext), and 50% of the time it is a random sentence' (p. 4); worked masking example in Appendix (p. 12)",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 4,
+          "score": 0.8127,
+          "chunk_id": "5692a5514787-p4-c1",
+          "text": "tasks. Sentence pairs are packed together into a\nsingle sequence. We differentiate the sentences in\ntwo ways. First, we separate them with a special\ntoken ([SEP]). Second, we add a learned embedding to every token indicating whether it belongs\nto sentence A or sentence B. As shown in Figure 1,\nwe denote input embedding asE, the ﬁnal hidden\nvector of the special [CLS] token as C ∈ RH,\nand the ﬁnal hidden vector for the ith input token\nasTi∈ RH.\nFor a given token, its input representation is\nconstructed by summing the corresponding token,\nsegment, and position embeddings. A visualization of this construction can be seen in Figure 2.\n3.1 Pre-training BERT\nUnlike Peters et al. (2018a) and Radford et al.\n(2018), we do not use traditional left-to-right or\nright-to-left language models to pre-train BERT.\nInstead, we pre-train BERT using two unsupervised tasks, described in this section. This step\nis presented in the left part of Figure 1."
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 4,
+          "score": 0.7873,
+          "chunk_id": "5692a5514787-p4-c0",
+          "text": "Input/Output Representations To make BERT\nhandle a variety of down-stream tasks, our input\nrepresentation is able to unambiguously represent\nboth a single sentence and a pair of sentences\n(e.g.,⟨ Question, Answer⟩) in one token sequence.\nThroughout this work, a “sentence” can be an arbitrary span of contiguous text, rather than an actual\nlinguistic sentence. A “sequence” refers to the input token sequence to BERT, which may be a single sentence or two sentences packed together.\nWe use WordPiece embeddings (Wu et al.,\n2016) with a 30,000 token vocabulary. The ﬁrst\ntoken of every sequence is always a special classiﬁcation token ( [CLS]). The ﬁnal hidden state\ncorresponding to this token is used as the aggregate sequence representation for classiﬁcation\ntasks. Sentence pairs are packed together into a\nsingle sequence. We differentiate the sentences in\ntwo ways. First, we separate them with a special"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 5,
+          "score": 0.7792,
+          "chunk_id": "5692a5514787-p5-c2",
+          "text": "as Parikh et al. (2016); Seo et al. (2017). BERT\ninstead uses the self-attention mechanism to unify\nthese two stages, as encoding a concatenated text\npair with self-attention effectively includes bidirectional cross attention between two sentences.\nFor each task, we simply plug in the taskspeciﬁc inputs and outputs into BERT and ﬁnetune all the parameters end-to-end. At the input, sentence A and sentence B from pre-training\nare analogous to (1) sentence pairs in paraphrasing, (2) hypothesis-premise pairs in entailment, (3)\nquestion-passage pairs in question answering, and\n(4) a degenerate text- ∅ pair in text classiﬁcation\nor sequence tagging. At the output, the token representations are fed into an output layer for tokenlevel tasks, such as sequence tagging or question\nanswering, and the [CLS] representation is fed\ninto an output layer for classiﬁcation, such as entailment or sentiment analysis."
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 3,
+          "score": 0.755,
+          "chunk_id": "5692a5514787-p3-c0",
+          "text": "BERT BERT\nE[CLS] E1 E[SEP]... EN E1’ ... EM’\nC\nT1\nT[SEP]...\nTN\nT1’ ...\nTM’\n[CLS] Tok 1 [SEP]... Tok N Tok 1 ... TokM\nQuestion Paragraph\nStart/End Span\nBERT\nE[CLS] E1 E[SEP]... EN E1’ ... EM’\nC\nT1\nT[SEP]...\nTN\nT1’ ...\nTM’\n[CLS] Tok 1 [SEP]... Tok N Tok 1 ... TokM\nMasked Sentence A Masked Sentence B\nPre-training Fine-Tuning\nNSP Mask LM Mask LM\nUnlabeled Sentence A and B Pair\nSQuAD\nQuestion Answer Pair\nNERMNLI\nFigure 1: Overall pre-training and ﬁne-tuning procedures for BERT. Apart from output layers, the same architectures are used in both pre-training and ﬁne-tuning. The same pre-trained model parameters are used to initialize\nmodels for different down-stream tasks. During ﬁne-tuning, all parameters are ﬁne-tuned. [CLS] is a special\nsymbol added in front of every input example, and [SEP] is a special separator token (e.g. separating questions/answers).\ning and auto-encoder objectives have been used\nfor pre-training such models (Howard and Ruder,"
+        },
+        {
+          "rank": 5,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 4,
+          "score": 0.7412,
+          "chunk_id": "5692a5514787-p4-c4",
+          "text": "are creating a mismatch between pre-training and\nﬁne-tuning, since the [MASK] token does not appear during ﬁne-tuning. To mitigate this, we do\nnot always replace “masked” words with the actual [MASK] token. The training data generator\nchooses 15% of the token positions at random for\nprediction. If the i-th token is chosen, we replace\nthei-th token with (1) the [MASK] token 80% of\nthe time (2) a random token 10% of the time (3)\nthe unchanged i-th token 10% of the time. Then,\nTi will be used to predict the original token with\ncross entropy loss. We compare variations of this\nprocedure in Appendix C.2.\nTask #2: Next Sentence Prediction (NSP)\nMany important downstream tasks such as Question Answering (QA) and Natural Language Inference (NLI) are based on understanding the relationship between two sentences, which is not directly captured by language modeling. In order"
+        },
+        {
+          "rank": 6,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 14,
+          "score": 0.7174,
+          "chunk_id": "5692a5514787-p14-c2",
+          "text": "[SEP], [CLS] and sentence A/B embeddings during pre-training.\n• GPT was trained for 1M steps with a batch\nsize of 32,000 words; BERT was trained for\n1M steps with a batch size of 128,000 words.\n• GPT used the same learning rate of 5e-5 for\nall ﬁne-tuning experiments; BERT chooses a\ntask-speciﬁc ﬁne-tuning learning rate which\nperforms the best on the development set.\nTo isolate the effect of these differences, we perform ablation experiments in Section 5.1 which\ndemonstrate that the majority of the improvements\nare in fact coming from the two pre-training tasks\nand the bidirectionality they enable.\nA.5 Illustrations of Fine-tuning on Different\nTasks\nThe illustration of ﬁne-tuning BERT on different\ntasks can be seen in Figure 4. Our task-speciﬁc\nmodels are formed by incorporating BERT with\none additional output layer, so a minimal number of parameters need to be learned from scratch.\nAmong the tasks, (a) and (b) are sequence-level\ntasks while (c) and (d) are token-level tasks. In"
+        },
+        {
+          "rank": 7,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 1,
+          "score": 0.7111,
+          "chunk_id": "5692a5514787-p1-c4",
+          "text": "and could be very harmful when applying ﬁnetuning based approaches to token-level tasks such\nas question answering, where it is crucial to incorporate context from both directions.\nIn this paper, we improve the ﬁne-tuning based\napproaches by proposing BERT: Bidirectional\nEncoder Representations from Transformers.\nBERT alleviates the previously mentioned unidirectionality constraint by using a “masked language model” (MLM) pre-training objective, inspired by the Cloze task (Taylor, 1953). The\nmasked language model randomly masks some of\nthe tokens from the input, and the objective is to\npredict the original vocabulary id of the masked\narXiv:1810.04805v2 [cs.CL] 24 May 2019"
+        },
+        {
+          "rank": 8,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 12,
+          "score": 0.6943,
+          "chunk_id": "5692a5514787-p12-c2",
+          "text": "in Natural Language Processing (EMNLP).\nYukun Zhu, Ryan Kiros, Rich Zemel, Ruslan Salakhutdinov, Raquel Urtasun, Antonio Torralba, and Sanja\nFidler. 2015. Aligning books and movies: Towards\nstory-like visual explanations by watching movies\nand reading books. In Proceedings of the IEEE\ninternational conference on computer vision , pages\n19–27.\nAppendix for “BERT: Pre-training of\nDeep Bidirectional Transformers for\nLanguage Understanding”\nWe organize the appendix into three sections:\n• Additional implementation details for BERT\nare presented in Appendix A;\n• Additional details for our experiments are\npresented in Appendix B; and\n• Additional ablation studies are presented in\nAppendix C.\nWe present additional ablation studies for\nBERT including:\n– Effect of Number of Training Steps; and\n– Ablation for Different Masking Procedures.\nA Additional Details for BERT\nA.1 Illustration of the Pre-training Tasks\nWe provide examples of the pre-training tasks in\nthe following."
+        }
+      ],
+      "actual_answer": "BERT's two pre-training tasks are:\n\n1. Masked Language Modeling (MLM): In this task, some tokens from the input sequence are randomly masked, and the objective is to predict the original vocabulary id of the masked token with cross entropy loss [7]. The masking procedure involves replacing a certain percentage of tokens (80% of the time) with the [MASK] token, and 10% of the time with a random token, and the remaining 10% of the time with the unchanged token [5].\n2. Next Sentence Prediction (NSP): In this task, two sentences are packed together into a single sequence, separated by a special token ([SEP]) and an embedding indicating whether each token belongs to sentence A or B [1]. The objective is to predict whether the two sentences are adjacent in the original text.\n\nI could not find enough information in the uploaded documents to answer this question.",
+      "sources": [
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 4
+        },
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 5
+        },
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 3
+        },
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 14
+        },
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 1
+        },
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 12
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 17.77,
+      "error": null,
+      "expected_page_retrieved": true,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "M3",
+      "category": "multi_chunk",
+      "question": "What is the difference between the RAG-Sequence and RAG-Token models?",
+      "expected_answer": "RAG-Sequence uses the same retrieved document to generate the complete output sequence (the document is a single latent variable marginalized over the top-k). RAG-Token can draw a different latent document for each target token and marginalizes per token, letting the generator choose content from several documents.",
+      "expected_sources": [
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "pages": [
+            3,
+            4
+          ]
+        }
+      ],
+      "notes": "Evidence: 'The RAG-Sequence model uses the same retrieved document to generate the complete sequence.' and 'In the RAG-Token model we can draw a different latent document for each target token and marginalize accordingly.' (p. 3); decoding differences in Sec. 2.5 (p. 4)",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 3,
+          "score": 0.5679,
+          "chunk_id": "23e3249e9a1e-p3-c2",
+          "text": "before marginalizing, and repeating the process with the following output token, Formally, we deﬁne:\npRAG-Token(y|x) ≈\nN∏\ni\n∑\nz∈top-k(p(·|x))\npη(z|x)pθ(yi|x,z,y 1:i−1)\nFinally, we note that RAG can be used for sequence classiﬁcation tasks by considering the target class\nas a target sequence of length one, in which case RAG-Sequence and RAG-Token are equivalent.\n2.2 Retriever: DPR\nThe retrieval componentpη(z|x) is based on DPR [26]. DPR follows a bi-encoder architecture:\npη(z|x)∝ exp\n(\nd(z)⊤q(x)) d(z) = BERTd(z), q(x) = BERTq(x)\nwhere d(z) is a dense representation of a document produced by a BERTBASE document encoder [8],\nand q(x) a query representation produced by a query encoder, also based on BERTBASE. Calculating\ntop-k(pη(·|x)), the list ofk documentsz with highest prior probabilitypη(z|x), is a Maximum Inner\nProduct Search (MIPS) problem, which can be approximately solved in sub-linear time [23]. We use"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 2,
+          "score": 0.5493,
+          "chunk_id": "23e3249e9a1e-p2-c5",
+          "text": "2 Methods\nWe explore RAG models, which use the input sequencex to retrieve text documentsz and use them\nas additional context when generating the target sequence y. As shown in Figure 1, our models\nleverage two components: (i) a retriever pη(z|x) with parametersη that returns (top-K truncated)\ndistributions over text passages given a queryx and (ii) a generatorpθ(yi|x,z,y 1:i−1) parametrized\n1Code to run experiments with RAG has been open-sourced as part of the HuggingFace Transformers Library [66] and can be found at https://github.com/huggingface/transformers/blob/master/\nexamples/rag/. An interactive demo of RAG models can be found at https://huggingface.co/rag/\n2"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 3,
+          "score": 0.5281,
+          "chunk_id": "23e3249e9a1e-p3-c1",
+          "text": "the complete sequence. Technically, it treats the retrieved document as a single latent variable that\nis marginalized to get the seq2seq probability p(y|x) via a top-K approximation. Concretely, the\ntop K documents are retrieved using the retriever, and the generator produces the output sequence\nprobability for each document, which are then marginalized,\npRAG-Sequence(y|x) ≈\n∑\nz∈top-k(p(·|x))\npη(z|x)pθ(y|x,z ) =\n∑\nz∈top-k(p(·|x))\npη(z|x)\nN∏\ni\npθ(yi|x,z,y 1:i−1)\nRAG-Token Model In the RAG-Token model we can draw a different latent document for each\ntarget token and marginalize accordingly. This allows the generator to choose content from several\ndocuments when producing an answer. Concretely, the top K documents are retrieved using the\nretriever, and then the generator produces a distribution for the next output token for each document,\nbefore marginalizing, and repeating the process with the following output token, Formally, we deﬁne:\npRAG-Token(y|x) ≈\nN∏\ni\n∑\nz∈top-k(p(·|x))"
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 4,
+          "score": 0.52,
+          "chunk_id": "23e3249e9a1e-p4-c0",
+          "text": "minimize the negative marginal log-likelihood of each target,∑j− logp(yj|xj) using stochastic\ngradient descent with Adam [28]. Updating the document encoder BERTd during training is costly as\nit requires the document index to be periodically updated as REALM does during pre-training [20].\nWe do not ﬁnd this step necessary for strong performance, and keep the document encoder (and\nindex) ﬁxed, only ﬁne-tuning the query encoder BERTq and the BART generator.\n2.5 Decoding\nAt test time, RAG-Sequence and RAG-Token require different ways to approximatearg maxyp(y|x).\nRAG-Token The RAG-Token model can be seen as a standard, autoregressive seq2seq generator with transition probability: p′θ(yi|x,y 1:i−1) = ∑z∈top-k(p(·|x))pη(zi|x)pθ(yi|x,zi,y 1:i−1) To\ndecode, we can plugp′θ(yi|x,y 1:i−1) into a standard beam decoder."
+        },
+        {
+          "rank": 5,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 8,
+          "score": 0.5075,
+          "chunk_id": "23e3249e9a1e-p8-c2",
+          "text": "ﬂexibility to adjust the number of retrieved documents at test time, which can affect performance and\nruntime. Figure 3 (left) shows that retrieving more documents at test time monotonically improves\nOpen-domain QA results for RAG-Sequence, but performance peaks for RAG-Token at 10 retrieved\ndocuments. Figure 3 (right) shows that retrieving more documents leads to higher Rouge-L for\nRAG-Token at the expense of Bleu-1, but the effect is less pronounced for RAG-Sequence.\n10 20 30 40 50\nKR e t r i e v e dD o c s\n39\n40\n41\n42\n43\n44NQ Exact Match RAG-Tok\nRAG-Seq\n10 20 30 40 50\nKR e t r i e v e dD o c s\n40\n50\n60\n70\n80NQ Answer Recall @ K\nRAG-Tok\nRAG-Seq\nFixed DPR\nBM25\n10 20 30 40 50\nKR e t r i e v e dD o c s\n48\n50\n52\n54\n56Bleu-1 / Rouge-L score\nRAG-Tok R-L\nRAG-Tok B-1\nRAG-Seq R-L\nRAG-Seq B-1\nFigure 3: Left: NQ performance as more documents are retrieved. Center: Retrieval recall performance in NQ. Right: MS-MARCO Bleu-1 and Rouge-L as more documents are retrieved.\n5 Related Work"
+        },
+        {
+          "rank": 6,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 6,
+          "score": 0.5049,
+          "chunk_id": "23e3249e9a1e-p6-c2",
+          "text": "correct text more often than BART. Later, we also show that RAG generations are more diverse than\nBART generations (see §4.5).\n4.3 Jeopardy Question Generation\nTable 2 shows that RAG-Token performs better than RAG-Sequence on Jeopardy question generation,\nwith both models outperforming BART on Q-BLEU-1. 4 shows human evaluation results, over 452\npairs of generations from BART and RAG-Token. Evaluators indicated that BART was more factual\nthan RAG in only 7.1% of cases, while RAG was more factual in 42.7% of cases, and both RAG and\nBART were factual in a further 17% of cases, clearly demonstrating the effectiveness of RAG on\nthe task over a state-of-the-art generation model. Evaluators also ﬁnd RAG generations to be more\nspeciﬁc by a large margin. Table 3 shows typical generations from each model.\nJeopardy questions often contain two separate pieces of information, and RAG-Token may perform"
+        },
+        {
+          "rank": 7,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 8,
+          "score": 0.4842,
+          "chunk_id": "23e3249e9a1e-p8-c0",
+          "text": "Table 4: Human assessments for the Jeopardy\nQuestion Generation Task.\nFactuality Speciﬁcity\nBART better 7.1% 16.8%\nRAG better 42.7% 37.4%\nBoth good 11.7% 11.8%\nBoth poor 17.7% 6.9%\nNo majority 20.8% 20.1%\nTable 5: Ratio of distinct to total tri-grams for\ngeneration tasks.\nMSMARCO Jeopardy QGen\nGold 89.6% 90.0%\nBART 70.7% 32.4%\nRAG-Token 77.8% 46.8%\nRAG-Seq. 83.5% 53.8%\nTable 6: Ablations on the dev set. As FEVER is a classiﬁcation task, both RAG models are equivalent.\nModel NQ TQA WQ CT Jeopardy-QGen MSMarco FVR-3 FVR-2\nExact Match B-1 QB-1 R-L B-1 Label Accuracy\nRAG-Token-BM25 29.7 41.5 32.1 33.1 17.5 22.3 55.5 48.4 75.1 91.6RAG-Sequence-BM25 31.8 44.1 36.6 33.8 11.1 19.5 56.5 46.9\nRAG-Token-Frozen 37.8 50.1 37.1 51.1 16.7 21.7 55.9 49.4 72.9 89.4RAG-Sequence-Frozen 41.2 52.1 41.8 52.6 11.8 19.6 56.7 47.3\nRAG-Token 43.5 54.8 46.5 51.9 17.9 22.6 56.2 49.4 74.5 90.6RAG-Sequence 44.0 55.8 44.9 53.4 15.3 21.5 57.2 47.5"
+        },
+        {
+          "rank": 8,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 17,
+          "score": 0.47,
+          "chunk_id": "23e3249e9a1e-p17-c3",
+          "text": "blob/master/examples/rag/README.md and an interactive demo of a RAG model can be found\nat https://huggingface.co/rag/\n2https://github.com/pytorch/fairseq\n3https://github.com/huggingface/transformers\n17"
+        }
+      ],
+      "actual_answer": "The RAG-Sequence model treats the retrieved document as a single latent variable that is marginalized to get the seq2seq probability p(y|x) via a top-K approximation, whereas the RAG-Token model can draw a different latent document for each target token and marginalize accordingly.\n\n[3] [4]",
+      "sources": [
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 3
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 2
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 4
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 8
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 6
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 17
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 13.8,
+      "error": null,
+      "expected_page_retrieved": true,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "S1",
+      "category": "synthesis",
+      "question": "Why are raw BERT outputs a poor choice for sentence embeddings compared with cosine similarity, and how does Sentence-BERT address this?",
+      "expected_answer": "Using BERT as a cross-encoder for similarity search is computationally infeasible (e.g. ~65 hours for 10,000 sentences), and the common shortcuts (averaging BERT output or the [CLS] token) give bad sentence embeddings, worse than averaged GloVe (avg. STS correlation 54.81 for averaged BERT and 29.19 for CLS). SBERT adds a pooling operation (default MEAN) and fine-tunes BERT/RoBERTa in siamese/triplet networks so the embeddings are semantically meaningful and comparable with cosine similarity.",
+      "expected_sources": [
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "pages": [
+            1,
+            3,
+            4
+          ]
+        }
+      ],
+      "notes": "Evidence: 'this common practice yields rather bad sentence embeddings, often worse than averaging GloVe embeddings' (p. 1); 'The default configuration is MEAN. In order to fine-tune BERT / RoBERTa, we create siamese and triplet networks' (p. 3); 'Averaging the BERT embeddings achieves an average correlation of only 54.81, and using the CLS-token output only achieves an average correlation of 29.19.' (p. 4)",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 7,
+          "score": 0.7535,
+          "chunk_id": "92366d22fc05-p7-c2",
+          "text": "CLS-token output achieves decent results (Table 5), outperforming average GloVe embeddings.\nThe reason for this are the different setups. For\nthe STS tasks, we used cosine-similarity to estimate the similarities between sentence embeddings. Cosine-similarity treats all dimensions\nequally. In contrast, SentEval ﬁts a logistic regression classiﬁer to the sentence embeddings. This\nallows that certain dimensions can have higher or\nlower impact on the classiﬁcation result.\nWe conclude that average BERT embeddings /\nCLS-token output from BERT return sentence embeddings that are infeasible to be used with cosinesimilarity or with Manhatten / Euclidean distance.\nFor transfer learning, they yield slightly worse\nresults than InferSent or Universal Sentence Encoder. However, using the described ﬁne-tuning\nsetup with a siamese network structure on NLI\ndatasets yields sentence embeddings that achieve\na new state-of-the-art for the SentEval toolkit.\n6 Ablation Study"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 3,
+          "score": 0.7425,
+          "chunk_id": "92366d22fc05-p3-c2",
+          "text": "Sentence A Sentence B\nBERT BERT\nu v\npooling pooling\ncosine-sim(u, v)\n-1 … 1\nFigure 2: SBERT architecture at inference, for example, to compute similarity scores. This architecture is\nalso used with the regression objective function.\ntraining data. We experiment with the following\nstructures and objective functions.\nClassiﬁcation Objective Function. We concatenate the sentence embeddings u and v with\nthe element-wise difference|u−v| and multiply it\nwith the trainable weightWt∈ R3n×k:\no = softmax(Wt(u,v,|u−v|))\nwhere n is the dimension of the sentence embeddings andk the number of labels. We optimize\ncross-entropy loss. This structure is depicted in\nFigure 1.\nRegression Objective Function. The cosinesimilarity between the two sentence embeddings\nu and v is computed (Figure 2). We use meansquared-error loss as the objective function.\nTriplet Objective Function. Given an anchor\nsentence a, a positive sentence p, and a negative\nsentencen, triplet loss tunes the network such that"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 5,
+          "score": 0.6898,
+          "chunk_id": "92366d22fc05-p5-c1",
+          "text": "BERT systems were trained with 10 random seeds and\n4 epochs. SBERT was ﬁne-tuned on the STSb dataset,\nSBERT-NLI was pretrained on the NLI datasets, then\nﬁne-tuned on the STSb dataset.\nWe use the training set to ﬁne-tune SBERT using the regression objective function. At prediction time, we compute the cosine-similarity between the sentence embeddings. All systems are\ntrained with 10 random seeds to counter variances\n(Reimers and Gurevych, 2018).\nThe results are depicted in Table 2. We experimented with two setups: Only training on\nSTSb, and ﬁrst training on NLI, then training on\nSTSb. We observe that the later strategy leads to a\nslight improvement of 1-2 points. This two-step\napproach had an especially large impact for the\nBERT cross-encoder, which improved the performance by 3-4 points. We do not observe a signiﬁcant difference between BERT and RoBERTa.\n4.3 Argument Facet Similarity\nWe evaluate SBERT on the Argument Facet Similarity (AFS) corpus by Misra et al. (2016). The"
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 1,
+          "score": 0.6892,
+          "chunk_id": "92366d22fc05-p1-c3",
+          "text": "in a collection of n = 10 000 sentences the pair\nwith the highest similarity requires with BERT\nn·(n−1)/2 = 49 995 000 inference computations.\nOn a modern V100 GPU, this requires about 65\nhours. Similar, ﬁnding which of the over 40 million existent questions of Quora is the most similar\nfor a new question could be modeled as a pair-wise\ncomparison with BERT, however, answering a single query would require over 50 hours.\nA common method to address clustering and semantic search is to map each sentence to a vector space such that semantically similar sentences\nare close. Researchers have started to input individual sentences into BERT and to derive ﬁxedsize sentence embeddings. The most commonly\nused approach is to average the BERT output layer\n(known as BERT embeddings) or by using the output of the ﬁrst token (the [CLS] token). As we\nwill show, this common practice yields rather bad\nsentence embeddings, often worse than averaging\nGloVe embeddings (Pennington et al., 2014)."
+        },
+        {
+          "rank": 5,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 1,
+          "score": 0.6829,
+          "chunk_id": "92366d22fc05-p1-c1",
+          "text": "of BERT makes it unsuitable for semantic similarity search as well as for unsupervised tasks\nlike clustering.\nIn this publication, we present Sentence-BERT\n(SBERT), a modiﬁcation of the pretrained\nBERT network that use siamese and triplet network structures to derive semantically meaningful sentence embeddings that can be compared using cosine-similarity. This reduces the\neffort for ﬁnding the most similar pair from 65\nhours with BERT / RoBERTa to about 5 seconds with SBERT, while maintaining the accuracy from BERT.\nWe evaluate SBERT and SRoBERTa on common STS tasks and transfer learning tasks,\nwhere it outperforms other state-of-the-art\nsentence embeddings methods.1\n1 Introduction\nIn this publication, we present Sentence-BERT\n(SBERT), a modiﬁcation of the BERT network using siamese and triplet networks that is able to\nderive semantically meaningful sentence embeddings2. This enables BERT to be used for certain\nnew tasks, which up-to-now were not applicable"
+        },
+        {
+          "rank": 6,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 8,
+          "score": 0.6679,
+          "chunk_id": "92366d22fc05-p8-c4",
+          "text": "like cosine-similarity. The performance for seven\nSTS tasks was below the performance of average\nGloVe embeddings.\nTo overcome this shortcoming, we presented\nSentence-BERT (SBERT). SBERT ﬁne-tunes\nBERT in a siamese / triplet network architecture. We evaluated the quality on various common benchmarks, where it could achieve a signiﬁcant improvement over state-of-the-art sentence embeddings methods. Replacing BERT with\nRoBERTa did not yield a signiﬁcant improvement\nin our experiments.\nSBERT is computationally efﬁcient. On a GPU,\nit is about 9% faster than InferSent and about 55%\nfaster than Universal Sentence Encoder. SBERT\ncan be used for tasks which are computationally\nnot feasible to be modeled with BERT. For example, clustering of 10,000 sentences with hierarchical clustering requires with BERT about 65 hours,\nas around 50 Million sentence combinations must\nbe computed. With SBERT, we were able to reduce the effort to about 5 seconds."
+        },
+        {
+          "rank": 7,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 4,
+          "score": 0.6678,
+          "chunk_id": "92366d22fc05-p4-c3",
+          "text": "without using any STS speciﬁc training data. We\nuse the STS tasks 2012 - 2016 (Agirre et al., 2012,\n2013, 2014, 2015, 2016), the STS benchmark (Cer\net al., 2017), and the SICK-Relatedness dataset\n(Marelli et al., 2014). These datasets provide labels between 0 and 5 on the semantic relatedness\nof sentence pairs. We showed in (Reimers et al.,\n2016) that Pearson correlation is badly suited for\nSTS. Instead, we compute the Spearman’s rank\ncorrelation between the cosine-similarity of the\nsentence embeddings and the gold labels. The\nsetup for the other sentence embedding methods\nis equivalent, the similarity is computed by cosinesimilarity. The results are depicted in Table 1.\nThe results shows that directly using the output\nof BERT leads to rather poor performances. Averaging the BERT embeddings achieves an average correlation of only 54.81, and using the CLStoken output only achieves an average correlation\nof 29.19. Both are worse than computing average\nGloVe embeddings."
+        },
+        {
+          "rank": 8,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 1,
+          "score": 0.6677,
+          "chunk_id": "92366d22fc05-p1-c2",
+          "text": "derive semantically meaningful sentence embeddings2. This enables BERT to be used for certain\nnew tasks, which up-to-now were not applicable\nfor BERT. These tasks include large-scale seman1Code available: https://github.com/UKPLab/\nsentence-transformers\n2With semantically meaningful we mean that semantically\nsimilar sentences are close in vector space.\ntic similarity comparison, clustering, and information retrieval via semantic search.\nBERT set new state-of-the-art performance on\nvarious sentence classiﬁcation and sentence-pair\nregression tasks. BERT uses a cross-encoder: Two\nsentences are passed to the transformer network\nand the target value is predicted. However, this\nsetup is unsuitable for various pair regression tasks\ndue to too many possible combinations. Finding\nin a collection of n = 10 000 sentences the pair\nwith the highest similarity requires with BERT\nn·(n−1)/2 = 49 995 000 inference computations.\nOn a modern V100 GPU, this requires about 65"
+        }
+      ],
+      "actual_answer": "Raw BERT outputs are a poor choice for sentence embeddings compared with cosine similarity because they treat all dimensions equally, whereas SentEval fits a logistic regression classifier to the sentence embeddings, allowing certain dimensions to have higher or lower impact on the classification result [1]. This makes average BERT embeddings / CLS-token output from BERT infeasible to be used with cosine-similarity or with Manhattan/Euclidean distance.",
+      "sources": [
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "page": 7
+        },
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "page": 3
+        },
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "page": 5
+        },
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "page": 1
+        },
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "page": 8
+        },
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "page": 4
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 13.93,
+      "error": null,
+      "expected_page_retrieved": true,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "S2",
+      "category": "synthesis",
+      "question": "How does the RAG model build on BERT, and what component does it use for generation?",
+      "expected_answer": "RAG's retriever (DPR) is a bi-encoder whose document encoder and query encoder are both based on BERT-Base (110M parameters each, the BERT-Base size reported in the BERT paper); the document encoder and index are kept fixed while the query encoder is fine-tuned. Generation uses BART-large, a pre-trained seq2seq transformer (~400M parameters).",
+      "expected_sources": [
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "pages": [
+            3,
+            4,
+            18
+          ]
+        },
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "pages": [
+            3
+          ]
+        }
+      ],
+      "notes": "Evidence: 'd(z) is a dense representation of a document produced by a BERTBASE document encoder ... query encoder, also based on BERTBASE' and 'We use BART-large ... with 400M parameters' (p. 3, RAG); 'keep the document encoder (and index) fixed' (p. 4, RAG); 'BERT-base query and document encoder of DPR, with 110M parameters each' (p. 18, RAG); BERTBASE Total Parameters=110M (p. 3, BERT). Cross-document question.",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 17,
+          "score": 0.5994,
+          "chunk_id": "23e3249e9a1e-p17-c3",
+          "text": "blob/master/examples/rag/README.md and an interactive demo of a RAG model can be found\nat https://huggingface.co/rag/\n2https://github.com/pytorch/fairseq\n3https://github.com/huggingface/transformers\n17"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 18,
+          "score": 0.5774,
+          "chunk_id": "23e3249e9a1e-p18-c5",
+          "text": "documents for questions that are less likely to beneﬁt from retrieval, suggesting that null document\nmechanisms may not be necessary for RAG.\nG Parameters\nOur RAG models contain the trainable parameters for the BERT-base query and document encoder of\nDPR, with 110M parameters each (although we do not train the document encoder ourselves) and\n406M trainable parameters from BART-large, 406M parameters, making a total of 626M trainable\n18"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 2,
+          "score": 0.5614,
+          "chunk_id": "23e3249e9a1e-p2-c5",
+          "text": "2 Methods\nWe explore RAG models, which use the input sequencex to retrieve text documentsz and use them\nas additional context when generating the target sequence y. As shown in Figure 1, our models\nleverage two components: (i) a retriever pη(z|x) with parametersη that returns (top-K truncated)\ndistributions over text passages given a queryx and (ii) a generatorpθ(yi|x,z,y 1:i−1) parametrized\n1Code to run experiments with RAG has been open-sourced as part of the HuggingFace Transformers Library [66] and can be found at https://github.com/huggingface/transformers/blob/master/\nexamples/rag/. An interactive demo of RAG models can be found at https://huggingface.co/rag/\n2"
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 3,
+          "score": 0.5195,
+          "chunk_id": "23e3249e9a1e-p3-c2",
+          "text": "before marginalizing, and repeating the process with the following output token, Formally, we deﬁne:\npRAG-Token(y|x) ≈\nN∏\ni\n∑\nz∈top-k(p(·|x))\npη(z|x)pθ(yi|x,z,y 1:i−1)\nFinally, we note that RAG can be used for sequence classiﬁcation tasks by considering the target class\nas a target sequence of length one, in which case RAG-Sequence and RAG-Token are equivalent.\n2.2 Retriever: DPR\nThe retrieval componentpη(z|x) is based on DPR [26]. DPR follows a bi-encoder architecture:\npη(z|x)∝ exp\n(\nd(z)⊤q(x)) d(z) = BERTd(z), q(x) = BERTq(x)\nwhere d(z) is a dense representation of a document produced by a BERTBASE document encoder [8],\nand q(x) a query representation produced by a query encoder, also based on BERTBASE. Calculating\ntop-k(pη(·|x)), the list ofk documentsz with highest prior probabilitypη(z|x), is a Maximum Inner\nProduct Search (MIPS) problem, which can be approximately solved in sub-linear time [23]. We use"
+        },
+        {
+          "rank": 5,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 4,
+          "score": 0.5046,
+          "chunk_id": "23e3249e9a1e-p4-c0",
+          "text": "minimize the negative marginal log-likelihood of each target,∑j− logp(yj|xj) using stochastic\ngradient descent with Adam [28]. Updating the document encoder BERTd during training is costly as\nit requires the document index to be periodically updated as REALM does during pre-training [20].\nWe do not ﬁnd this step necessary for strong performance, and keep the document encoder (and\nindex) ﬁxed, only ﬁne-tuning the query encoder BERTq and the BART generator.\n2.5 Decoding\nAt test time, RAG-Sequence and RAG-Token require different ways to approximatearg maxyp(y|x).\nRAG-Token The RAG-Token model can be seen as a standard, autoregressive seq2seq generator with transition probability: p′θ(yi|x,y 1:i−1) = ∑z∈top-k(p(·|x))pη(zi|x)pθ(yi|x,zi,y 1:i−1) To\ndecode, we can plugp′θ(yi|x,y 1:i−1) into a standard beam decoder."
+        },
+        {
+          "rank": 6,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 6,
+          "score": 0.4635,
+          "chunk_id": "23e3249e9a1e-p6-c1",
+          "text": "to more effective marginalization over documents. Furthermore, RAG can generate correct answers\neven when the correct answer is not in any retrieved document, achieving 11.8% accuracy in such\ncases for NQ, where an extractive model would score 0%.\n4.2 Abstractive Question Answering\nAs shown in Table 2, RAG-Sequence outperforms BART on Open MS-MARCO NLG by 2.6 Bleu\npoints and 2.6 Rouge-L points. RAG approaches state-of-the-art model performance, which is\nimpressive given that (i) those models access gold passages with speciﬁc information required to\ngenerate the reference answer , (ii) many questions are unanswerable without the gold passages, and\n(iii) not all questions are answerable from Wikipedia alone. Table 3 shows some generated answers\nfrom our models. Qualitatively, we ﬁnd that RAG models hallucinate less and generate factually\ncorrect text more often than BART. Later, we also show that RAG generations are more diverse than\nBART generations (see §4.5)."
+        },
+        {
+          "rank": 7,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 4,
+          "score": 0.4516,
+          "chunk_id": "92366d22fc05-p4-c0",
+          "text": "Model STS12 STS13 STS14 STS15 STS16 STSb SICK-R Avg.\nAvg. GloVe embeddings 55.14 70.66 59.73 68.25 63.66 58.02 53.76 61.32\nAvg. BERT embeddings 38.78 57.98 57.98 63.15 61.06 46.35 58.40 54.81\nBERT CLS-vector 20.16 30.01 20.09 36.88 38.08 16.50 42.63 29.19\nInferSent - Glove 52.86 66.75 62.15 72.77 66.87 68.03 65.65 65.01\nUniversal Sentence Encoder 64.49 67.80 64.61 76.83 73.18 74.92 76.69 71.22\nSBERT-NLI-base 70.97 76.53 73.19 79.09 74.30 77.03 72.91 74.89\nSBERT-NLI-large 72.27 78.46 74.90 80.99 76.25 79.23 73.75 76.55\nSRoBERTa-NLI-base 71.54 72.49 70.80 78.74 73.69 77.77 74.46 74.21\nSRoBERTa-NLI-large 74.53 77.00 73.18 81.85 76.82 79.10 74.29 76.68\nTable 1: Spearman rank correlationρ between the cosine similarity of sentence representations and the gold labels\nfor various Textual Similarity (STS) tasks. Performance is reported by convention as ρ× 100. STS12-STS16:\nSemEval 2012-2016, STSb: STSbenchmark, SICK-R: SICK relatedness dataset."
+        },
+        {
+          "rank": 8,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 4,
+          "score": 0.4514,
+          "chunk_id": "23e3249e9a1e-p4-c5",
+          "text": "text generation. To test RAG’s natural language generation (NLG) in a knowledge-intensive setting,\nwe use the MSMARCO NLG task v2.1 [ 43]. The task consists of questions, ten gold passages\nretrieved from a search engine for each question, and a full sentence answer annotated from the\nretrieved passages. We do not use the supplied passages, only the questions and answers, to treat\n4"
+        }
+      ],
+      "actual_answer": "The RAG model builds on BERT by using its trainable parameters for the query and document encoder. The RAG models contain the trainable parameters for the BERT-base query and document encoder of DPR, with 110M parameters each [2]. \n\nThe component used for generation is a generator pθ(yi|x,z,y 1:i−1) parametrized by the model, which is based on the retriever pη(z|x).",
+      "sources": [
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 17
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 18
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 2
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 3
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 4
+        },
+        {
+          "source": "arxiv_2005.11401.pdf",
+          "page": 6
+        },
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "page": 4
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 12.77,
+      "error": null,
+      "expected_page_retrieved": true,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "U1",
+      "category": "unanswerable",
+      "question": "How many parameters does GPT-4 have?",
+      "expected_answer": "Not in the documents - the system should abstain with the fallback message.",
+      "expected_sources": [],
+      "notes": "Absence verified: case-insensitive regex search of all 61 extracted pages finds 0 matches for 'GPT-4' (and 0 for 'GPT-3'). Tempts general/hallucinated knowledge; retrieval may surface BERT/GPT parameter passages, which must not be used to answer.",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 3,
+          "score": 0.397,
+          "chunk_id": "5692a5514787-p3-c4",
+          "text": "bidirectional self-attention, while the GPT Transformer uses constrained self-attention where every\ntoken can only attend to context to its left.4\n1https://github.com/tensorﬂow/tensor2tensor\n2http://nlp.seas.harvard.edu/2018/04/03/attention.html\n3In all cases we set the feed-forward/ﬁlter size to be 4H,\ni.e., 3072 for the H = 768 and 4096 for the H = 1024.\n4We note that in the literature the bidirectional Trans-"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 3,
+          "score": 0.3617,
+          "chunk_id": "5692a5514787-p3-c3",
+          "text": "the tensor2tensor library.1 Because the use\nof Transformers has become common and our implementation is almost identical to the original,\nwe will omit an exhaustive background description of the model architecture and refer readers to\nVaswani et al. (2017) as well as excellent guides\nsuch as “The Annotated Transformer.”2\nIn this work, we denote the number of layers\n(i.e., Transformer blocks) asL, the hidden size as\nH, and the number of self-attention heads as A.3\nWe primarily report results on two model sizes:\nBERTBASE (L=12, H=768, A=12, Total Parameters=110M) and BERTLARGE (L=24, H=1024,\nA=16, Total Parameters=340M).\nBERTBASE was chosen to have the same model\nsize as OpenAI GPT for comparison purposes.\nCritically, however, the BERT Transformer uses\nbidirectional self-attention, while the GPT Transformer uses constrained self-attention where every\ntoken can only attend to context to its left.4\n1https://github.com/tensorﬂow/tensor2tensor"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 7,
+          "score": 0.2969,
+          "chunk_id": "bdfaa68d8984-p7-c3",
+          "text": "We trained our models on one machine with 8 NVIDIA P100 GPUs. For our base models using\nthe hyperparameters described throughout the paper, each training step took about 0.4 seconds. We\ntrained the base models for a total of 100,000 steps or 12 hours. For our big models,(described on the\nbottom line of table 3), step time was 1.0 seconds. The big models were trained for 300,000 steps\n(3.5 days).\n5.3 Optimizer\nWe used the Adam optimizer [20] with β1 = 0.9, β2 = 0.98 and ϵ = 10−9. We varied the learning\nrate over the course of training, according to the formula:\nlrate = d−0.5model · min(step_num−0.5, step_num · warmup_steps−1.5) (3)\nThis corresponds to increasing the learning rate linearly for the first warmup_steps training steps,\nand decreasing it thereafter proportionally to the inverse square root of the step number. We used\nwarmup_steps = 4000.\n5.4 Regularization\nWe employ three types of regularization during training:\n7"
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 13,
+          "score": 0.2885,
+          "chunk_id": "5692a5514787-p13-c4",
+          "text": "10% of the steps of sequence of 512 to learn the\npositional embeddings.\nA.3 Fine-tuning Procedure\nFor ﬁne-tuning, most model hyperparameters are\nthe same as in pre-training, with the exception of\nthe batch size, learning rate, and number of training epochs. The dropout probability was always\nkept at 0.1. The optimal hyperparameter values\nare task-speciﬁc, but we found the following range\nof possible values to work well across all tasks:\n• Batch size: 16, 32\n13https://cloudplatform.googleblog.com/2018/06/CloudTPU-now-offers-preemptible-pricing-and-globalavailability.html"
+        },
+        {
+          "rank": 5,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 14,
+          "score": 0.2743,
+          "chunk_id": "5692a5514787-p14-c1",
+          "text": "approach.\nThe most comparable existing pre-training\nmethod to BERT is OpenAI GPT, which trains a\nleft-to-right Transformer LM on a large text corpus. In fact, many of the design decisions in BERT\nwere intentionally made to make it as close to\nGPT as possible so that the two methods could be\nminimally compared. The core argument of this\nwork is that the bi-directionality and the two pretraining tasks presented in Section 3.1 account for\nthe majority of the empirical improvements, but\nwe do note that there are several other differences\nbetween how BERT and GPT were trained:\n• GPT is trained on the BooksCorpus (800M\nwords); BERT is trained on the BooksCorpus (800M words) and Wikipedia (2,500M\nwords).\n• GPT uses a sentence separator ( [SEP]) and\nclassiﬁer token ( [CLS]) which are only introduced at ﬁne-tuning time; BERT learns\n[SEP], [CLS] and sentence A/B embeddings during pre-training.\n• GPT was trained for 1M steps with a batch\nsize of 32,000 words; BERT was trained for"
+        },
+        {
+          "rank": 6,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 6,
+          "score": 0.268,
+          "chunk_id": "5692a5514787-p6-c2",
+          "text": "BERTBASE and OpenAI GPT are nearly identical\nin terms of model architecture apart from the attention masking. For the largest and most widely\nreported GLUE task, MNLI, BERT obtains a 4.6%\nabsolute accuracy improvement. On the ofﬁcial\nGLUE leaderboard10, BERTLARGE obtains a score\nof 80.5, compared to OpenAI GPT, which obtains\n72.8 as of the date of writing.\nWe ﬁnd that BERT LARGE signiﬁcantly outperforms BERTBASE across all tasks, especially those\nwith very little training data. The effect of model\nsize is explored more thoroughly in Section 5.2.\n4.2 SQuAD v1.1\nThe Stanford Question Answering Dataset\n(SQuAD v1.1) is a collection of 100k crowdsourced question/answer pairs (Rajpurkar et al.,\n2016). Given a question and a passage from\n9The GLUE data set distribution does not include the Test\nlabels, and we only made a single GLUE evaluation server\nsubmission for each of BERTBASE and BERTLARGE .\n10https://gluebenchmark.com/leaderboard\nWikipedia containing the answer, the task is to"
+        },
+        {
+          "rank": 7,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 6,
+          "score": 0.2616,
+          "chunk_id": "5692a5514787-p6-c0",
+          "text": "System MNLI-(m/mm) QQP QNLI SST-2 CoLA STS-B MRPC RTE A verage\n392k 363k 108k 67k 8.5k 5.7k 3.5k 2.5k -\nPre-OpenAI SOTA 80.6/80.1 66.1 82.3 93.2 35.0 81.0 86.0 61.7 74.0\nBiLSTM+ELMo+Attn 76.4/76.1 64.8 79.8 90.4 36.0 73.3 84.9 56.8 71.0\nOpenAI GPT 82.1/81.4 70.3 87.4 91.3 45.4 80.0 82.3 56.0 75.1\nBERTBASE 84.6/83.4 71.2 90.5 93.5 52.1 85.8 88.9 66.4 79.6\nBERTLARGE 86.7/85.9 72.1 92.7 94.9 60.5 86.5 89.3 70.1 82.1\nTable 1: GLUE Test results, scored by the evaluation server ( https://gluebenchmark.com/leaderboard).\nThe number below each task denotes the number of training examples. The “Average” column is slightly different\nthan the ofﬁcial GLUE score, since we exclude the problematic WNLI set. 8 BERT and OpenAI GPT are singlemodel, single task. F1 scores are reported for QQP and MRPC, Spearman correlations are reported for STS-B, and\naccuracy scores are reported for the other tasks. We exclude entries that use BERT as one of their components.\nWe use a batch size of 32 and ﬁne-tune for 3"
+        },
+        {
+          "rank": 8,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 18,
+          "score": 0.2604,
+          "chunk_id": "23e3249e9a1e-p18-c5",
+          "text": "documents for questions that are less likely to beneﬁt from retrieval, suggesting that null document\nmechanisms may not be necessary for RAG.\nG Parameters\nOur RAG models contain the trainable parameters for the BERT-base query and document encoder of\nDPR, with 110M parameters each (although we do not train the document encoder ourselves) and\n406M trainable parameters from BART-large, 406M parameters, making a total of 626M trainable\n18"
+        }
+      ],
+      "actual_answer": "I could not find enough information in the uploaded documents to answer this question.",
+      "sources": [],
+      "abstained": true,
+      "latency_seconds": 10.53,
+      "error": null,
+      "expected_page_retrieved": null,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "U2",
+      "category": "unanswerable",
+      "question": "What accuracy does the RAG model achieve on the MMLU benchmark?",
+      "expected_answer": "Not in the documents - the system should abstain with the fallback message.",
+      "expected_sources": [],
+      "notes": "Absence verified: 0 matches for 'MMLU' across all four papers. Plausible because RAG reports many benchmark numbers (NQ, TriviaQA, MS-MARCO, FEVER...), which may be retrieved and misattributed.",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 8,
+          "score": 0.5242,
+          "chunk_id": "23e3249e9a1e-p8-c2",
+          "text": "ﬂexibility to adjust the number of retrieved documents at test time, which can affect performance and\nruntime. Figure 3 (left) shows that retrieving more documents at test time monotonically improves\nOpen-domain QA results for RAG-Sequence, but performance peaks for RAG-Token at 10 retrieved\ndocuments. Figure 3 (right) shows that retrieving more documents leads to higher Rouge-L for\nRAG-Token at the expense of Bleu-1, but the effect is less pronounced for RAG-Sequence.\n10 20 30 40 50\nKR e t r i e v e dD o c s\n39\n40\n41\n42\n43\n44NQ Exact Match RAG-Tok\nRAG-Seq\n10 20 30 40 50\nKR e t r i e v e dD o c s\n40\n50\n60\n70\n80NQ Answer Recall @ K\nRAG-Tok\nRAG-Seq\nFixed DPR\nBM25\n10 20 30 40 50\nKR e t r i e v e dD o c s\n48\n50\n52\n54\n56Bleu-1 / Rouge-L score\nRAG-Tok R-L\nRAG-Tok B-1\nRAG-Seq R-L\nRAG-Seq B-1\nFigure 3: Left: NQ performance as more documents are retrieved. Center: Retrieval recall performance in NQ. Right: MS-MARCO Bleu-1 and Rouge-L as more documents are retrieved.\n5 Related Work"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 8,
+          "score": 0.4956,
+          "chunk_id": "23e3249e9a1e-p8-c1",
+          "text": "RAG-Token 43.5 54.8 46.5 51.9 17.9 22.6 56.2 49.4 74.5 90.6RAG-Sequence 44.0 55.8 44.9 53.4 15.3 21.5 57.2 47.5\nbetween these dates and use a template “Who is {position}?” (e.g. “Who is the President of Peru?”)\nto query our NQ RAG model with each index. RAG answers 70% correctly using the 2016 index for\n2016 world leaders and 68% using the 2018 index for 2018 world leaders. Accuracy with mismatched\nindices is low (12% with the 2018 index and 2016 leaders, 4% with the 2016 index and 2018 leaders).\nThis shows we can update RAG’s world knowledge by simply replacing its non-parametric memory.\nEffect of Retrieving more documents Models are trained with either 5 or 10 retrieved latent\ndocuments, and we do not observe signiﬁcant differences in performance between them. We have the\nﬂexibility to adjust the number of retrieved documents at test time, which can affect performance and\nruntime. Figure 3 (left) shows that retrieving more documents at test time monotonically improves"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 18,
+          "score": 0.4892,
+          "chunk_id": "23e3249e9a1e-p18-c5",
+          "text": "documents for questions that are less likely to beneﬁt from retrieval, suggesting that null document\nmechanisms may not be necessary for RAG.\nG Parameters\nOur RAG models contain the trainable parameters for the BERT-base query and document encoder of\nDPR, with 110M parameters each (although we do not train the document encoder ourselves) and\n406M trainable parameters from BART-large, 406M parameters, making a total of 626M trainable\n18"
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 17,
+          "score": 0.4688,
+          "chunk_id": "23e3249e9a1e-p17-c3",
+          "text": "blob/master/examples/rag/README.md and an interactive demo of a RAG model can be found\nat https://huggingface.co/rag/\n2https://github.com/pytorch/fairseq\n3https://github.com/huggingface/transformers\n17"
+        },
+        {
+          "rank": 5,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 4,
+          "score": 0.4483,
+          "chunk_id": "23e3249e9a1e-p4-c0",
+          "text": "minimize the negative marginal log-likelihood of each target,∑j− logp(yj|xj) using stochastic\ngradient descent with Adam [28]. Updating the document encoder BERTd during training is costly as\nit requires the document index to be periodically updated as REALM does during pre-training [20].\nWe do not ﬁnd this step necessary for strong performance, and keep the document encoder (and\nindex) ﬁxed, only ﬁne-tuning the query encoder BERTq and the BART generator.\n2.5 Decoding\nAt test time, RAG-Sequence and RAG-Token require different ways to approximatearg maxyp(y|x).\nRAG-Token The RAG-Token model can be seen as a standard, autoregressive seq2seq generator with transition probability: p′θ(yi|x,y 1:i−1) = ∑z∈top-k(p(·|x))pη(zi|x)pθ(yi|x,zi,y 1:i−1) To\ndecode, we can plugp′θ(yi|x,y 1:i−1) into a standard beam decoder."
+        },
+        {
+          "rank": 6,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 8,
+          "score": 0.4358,
+          "chunk_id": "23e3249e9a1e-p8-c0",
+          "text": "Table 4: Human assessments for the Jeopardy\nQuestion Generation Task.\nFactuality Speciﬁcity\nBART better 7.1% 16.8%\nRAG better 42.7% 37.4%\nBoth good 11.7% 11.8%\nBoth poor 17.7% 6.9%\nNo majority 20.8% 20.1%\nTable 5: Ratio of distinct to total tri-grams for\ngeneration tasks.\nMSMARCO Jeopardy QGen\nGold 89.6% 90.0%\nBART 70.7% 32.4%\nRAG-Token 77.8% 46.8%\nRAG-Seq. 83.5% 53.8%\nTable 6: Ablations on the dev set. As FEVER is a classiﬁcation task, both RAG models are equivalent.\nModel NQ TQA WQ CT Jeopardy-QGen MSMarco FVR-3 FVR-2\nExact Match B-1 QB-1 R-L B-1 Label Accuracy\nRAG-Token-BM25 29.7 41.5 32.1 33.1 17.5 22.3 55.5 48.4 75.1 91.6RAG-Sequence-BM25 31.8 44.1 36.6 33.8 11.1 19.5 56.5 46.9\nRAG-Token-Frozen 37.8 50.1 37.1 51.1 16.7 21.7 55.9 49.4 72.9 89.4RAG-Sequence-Frozen 41.2 52.1 41.8 52.6 11.8 19.6 56.7 47.3\nRAG-Token 43.5 54.8 46.5 51.9 17.9 22.6 56.2 49.4 74.5 90.6RAG-Sequence 44.0 55.8 44.9 53.4 15.3 21.5 57.2 47.5"
+        },
+        {
+          "rank": 7,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 7,
+          "score": 0.4241,
+          "chunk_id": "5692a5514787-p7-c2",
+          "text": "position of the [CLS] token. For prediction, we\ncompare the score of the no-answer span:snull =\nS·C +E·C to the score of the best non-null span\n12The TriviaQA data we used consists of paragraphs from\nTriviaQA-Wiki formed of the ﬁrst 400 tokens in documents,\nthat contain at least one of the provided possible answers.\nSystem Dev Test\nESIM+GloVe 51.9 52.7\nESIM+ELMo 59.1 59.2\nOpenAI GPT - 78.0\nBERTBASE 81.6 -\nBERTLARGE 86.6 86.3\nHuman (expert)† - 85.0\nHuman (5 annotations)† - 88.0\nTable 4: SW AG Dev and Test accuracies.†Human performance is measured with 100 samples, as reported in\nthe SW AG paper.\nˆsi,j = maxj≥iS·Ti +E·Tj. We predict a non-null\nanswer when ˆsi,j > snull +τ, where the threshold τ is selected on the dev set to maximize F1.\nWe did not use TriviaQA data for this model. We\nﬁne-tuned for 2 epochs with a learning rate of 5e-5\nand a batch size of 48.\nThe results compared to prior leaderboard entries and top published work (Sun et al., 2018;"
+        },
+        {
+          "rank": 8,
+          "source": "arxiv_2005.11401.pdf",
+          "page": 17,
+          "score": 0.4212,
+          "chunk_id": "23e3249e9a1e-p17-c2",
+          "text": "We train all RAG models and BART baselines using Fairseq [45].2 We train with mixed precision\nﬂoating point arithmetic [40], distributing training across 8, 32GB NVIDIA V100 GPUs, though\ntraining and inference can be run on one GPU. We ﬁnd that doing Maximum Inner Product Search\nwith FAISS is sufﬁciently fast on CPU, so we store document index vectors on CPU, requiring∼ 100\nGB of CPU memory for all of Wikipedia. After submission, We have ported our code to HuggingFace\nTransformers [66]3, which achieves equivalent performance to the previous version but is a cleaner\nand easier to use implementation. This version is also open-sourced. We also compress the document\nindex using FAISS’s compression tools, reducing the CPU memory requirement to 36GB. Scripts to\nrun experiments with RAG can be found athttps://github.com/huggingface/transformers/\nblob/master/examples/rag/README.md and an interactive demo of a RAG model can be found\nat https://huggingface.co/rag/"
+        }
+      ],
+      "actual_answer": "I could not find enough information in the uploaded documents to answer this question.",
+      "sources": [],
+      "abstained": true,
+      "latency_seconds": 11.2,
+      "error": null,
+      "expected_page_retrieved": null,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "U3",
+      "category": "unanswerable",
+      "question": "How many tonnes of CO2 were emitted when training the big Transformer model?",
+      "expected_answer": "Not in the documents - the system should abstain. (The paper gives training time/hardware and FLOPs, but no carbon or energy figures.)",
+      "expected_sources": [],
+      "notes": "Absence verified: regex 'carbon|emission|kWh|energy consumption|electricity' only matches an author name ('Carbonell') in an SBERT reference (p. 11); no CO2 figures anywhere. Related-but-insufficient context exists: '3.5 days on 8 P100 GPUs' (1706.03762 p. 8), so a partial answer must not invent an emission number.",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 8,
+          "score": 0.4047,
+          "chunk_id": "5692a5514787-p8-c4",
+          "text": "We can see that larger models lead to a strict accuracy improvement across all four datasets, even\nfor MRPC which only has 3,600 labeled training examples, and is substantially different from\nthe pre-training tasks. It is also perhaps surprising that we are able to achieve such signiﬁcant\nimprovements on top of models which are already quite large relative to the existing literature.\nFor example, the largest Transformer explored in\nVaswani et al. (2017) is (L=6, H=1024, A=16)\nwith 100M parameters for the encoder, and the\nlargest Transformer we have found in the literature\nis (L=64, H=512, A=2) with 235M parameters\n(Al-Rfou et al., 2018). By contrast, BERT BASE\ncontains 110M parameters and BERT LARGE contains 340M parameters.\nIt has long been known that increasing the\nmodel size will lead to continual improvements\non large-scale tasks such as machine translation\nand language modeling, which is demonstrated\nby the LM perplexity of held-out training data"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 8,
+          "score": 0.3866,
+          "chunk_id": "bdfaa68d8984-p8-c3",
+          "text": "inference to input length + 50, but terminate early when possible [38].\nTable 2 summarizes our results and compares our translation quality and training costs to other model\narchitectures from the literature. We estimate the number of floating point operations used to train a\nmodel by multiplying the training time, the number of GPUs used, and an estimate of the sustained\nsingle-precision floating-point capacity of each GPU 5.\n6.2 Model Variations\nTo evaluate the importance of different components of the Transformer, we varied our base model\nin different ways, measuring the change in performance on English-to-German translation on the\n5We used values of 2.8, 3.7, 6.0 and 9.5 TFLOPS for K80, K40, M40 and P100, respectively.\n8"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 8,
+          "score": 0.357,
+          "chunk_id": "bdfaa68d8984-p8-c1",
+          "text": "positional encodings in both the encoder and decoder stacks. For the base model, we use a rate of\nPdrop = 0.1.\nLabel Smoothing During training, we employed label smoothing of value ϵls = 0.1 [36]. This\nhurts perplexity, as the model learns to be more unsure, but improves accuracy and BLEU score.\n6 Results\n6.1 Machine Translation\nOn the WMT 2014 English-to-German translation task, the big transformer model (Transformer (big)\nin Table 2) outperforms the best previously reported models (including ensembles) by more than 2.0\nBLEU, establishing a new state-of-the-art BLEU score of 28.4. The configuration of this model is\nlisted in the bottom line of Table 3. Training took 3.5 days on 8 P100 GPUs. Even our base model\nsurpasses all previously published models and ensembles, at a fraction of the training cost of any of\nthe competitive models.\nOn the WMT 2014 English-to-French translation task, our big model achieves a BLEU score of 41.0,"
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 8,
+          "score": 0.3504,
+          "chunk_id": "bdfaa68d8984-p8-c0",
+          "text": "Table 2: The Transformer achieves better BLEU scores than previous state-of-the-art models on the\nEnglish-to-German and English-to-French newstest2014 tests at a fraction of the training cost.\nModel\nBLEU Training Cost (FLOPs)\nEN-DE EN-FR EN-DE EN-FR\nByteNet [18] 23.75\nDeep-Att + PosUnk [39] 39.2 1.0 · 1020\nGNMT + RL [38] 24.6 39.92 2.3 · 1019 1.4 · 1020\nConvS2S [9] 25.16 40.46 9.6 · 1018 1.5 · 1020\nMoE [32] 26.03 40.56 2.0 · 1019 1.2 · 1020\nDeep-Att + PosUnk Ensemble [39] 40.4 8.0 · 1020\nGNMT + RL Ensemble [38] 26.30 41.16 1.8 · 1020 1.1 · 1021\nConvS2S Ensemble [9] 26.36 41.29 7.7 · 1019 1.2 · 1021\nTransformer (base model) 27.3 38.1 3.3 · 1018\nTransformer (big) 28.4 41.8 2.3 · 1019\nResidual Dropout We apply dropout [33] to the output of each sub-layer, before it is added to the\nsub-layer input and normalized. In addition, we apply dropout to the sums of the embeddings and the\npositional encodings in both the encoder and decoder stacks. For the base model, we use a rate of\nPdrop = 0.1."
+        },
+        {
+          "rank": 5,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 8,
+          "score": 0.3065,
+          "chunk_id": "bdfaa68d8984-p8-c2",
+          "text": "the competitive models.\nOn the WMT 2014 English-to-French translation task, our big model achieves a BLEU score of 41.0,\noutperforming all of the previously published single models, at less than 1/4 the training cost of the\nprevious state-of-the-art model. The Transformer (big) model trained for English-to-French used\ndropout rate Pdrop = 0.1, instead of 0.3.\nFor the base models, we used a single model obtained by averaging the last 5 checkpoints, which\nwere written at 10-minute intervals. For the big models, we averaged the last 20 checkpoints. We\nused beam search with a beam size of 4 and length penalty α = 0.6 [38]. These hyperparameters\nwere chosen after experimentation on the development set. We set the maximum output length during\ninference to input length + 50, but terminate early when possible [38].\nTable 2 summarizes our results and compares our translation quality and training costs to other model"
+        },
+        {
+          "rank": 6,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 8,
+          "score": 0.3038,
+          "chunk_id": "5692a5514787-p8-c5",
+          "text": "model size will lead to continual improvements\non large-scale tasks such as machine translation\nand language modeling, which is demonstrated\nby the LM perplexity of held-out training data\nshown in Table 6. However, we believe that\nthis is the ﬁrst work to demonstrate convincingly that scaling to extreme model sizes also\nleads to large improvements on very small scale\ntasks, provided that the model has been sufﬁciently pre-trained. Peters et al. (2018b) presented"
+        },
+        {
+          "rank": 7,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 9,
+          "score": 0.3028,
+          "chunk_id": "bdfaa68d8984-p9-c0",
+          "text": "Table 3: Variations on the Transformer architecture. Unlisted values are identical to those of the base\nmodel. All metrics are on the English-to-German translation development set, newstest2013. Listed\nperplexities are per-wordpiece, according to our byte-pair encoding, and should not be compared to\nper-word perplexities.\nN d model dff h d k dv Pdrop ϵls train PPL BLEU paramssteps (dev) (dev) ×106\nbase 6 512 2048 8 64 64 0.1 0.1 100K 4.92 25.8 65\n(A)\n1 512 512 5.29 24.9\n4 128 128 5.00 25.5\n16 32 32 4.91 25.8\n32 16 16 5.01 25.4\n(B) 16 5.16 25.1 5832 5.01 25.4 60\n(C)\n2 6.11 23.7 36\n4 5.19 25.3 50\n8 4.88 25.5 80\n256 32 32 5.75 24.5 28\n1024 128 128 4.66 26.0 168\n1024 5.12 25.4 53\n4096 4.75 26.2 90\n(D)\n0.0 5.77 24.6\n0.2 4.95 25.5\n0.0 4.67 25.3\n0.2 5.47 25.7\n(E) positional embedding instead of sinusoids 4.92 25.7\nbig 6 1024 4096 16 0.3 300K 4.33 26.4 213\ndevelopment set, newstest2013. We used beam search as described in the previous section, but no"
+        },
+        {
+          "rank": 8,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 3,
+          "score": 0.3027,
+          "chunk_id": "5692a5514787-p3-c3",
+          "text": "the tensor2tensor library.1 Because the use\nof Transformers has become common and our implementation is almost identical to the original,\nwe will omit an exhaustive background description of the model architecture and refer readers to\nVaswani et al. (2017) as well as excellent guides\nsuch as “The Annotated Transformer.”2\nIn this work, we denote the number of layers\n(i.e., Transformer blocks) asL, the hidden size as\nH, and the number of self-attention heads as A.3\nWe primarily report results on two model sizes:\nBERTBASE (L=12, H=768, A=12, Total Parameters=110M) and BERTLARGE (L=24, H=1024,\nA=16, Total Parameters=340M).\nBERTBASE was chosen to have the same model\nsize as OpenAI GPT for comparison purposes.\nCritically, however, the BERT Transformer uses\nbidirectional self-attention, while the GPT Transformer uses constrained self-attention where every\ntoken can only attend to context to its left.4\n1https://github.com/tensorﬂow/tensor2tensor"
+        }
+      ],
+      "actual_answer": "I could not find enough information in the uploaded documents to answer this question.",
+      "sources": [],
+      "abstained": true,
+      "latency_seconds": 11.2,
+      "error": null,
+      "expected_page_retrieved": null,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "A1",
+      "category": "adversarial",
+      "question": "Why did the authors of 'Attention Is All You Need' use LSTM layers in the Transformer encoder?",
+      "expected_answer": "False premise: the Transformer does not use LSTM/recurrent layers; it relies entirely on attention, dispensing with recurrence and convolutions. The system should correct the premise (or abstain), not invent a rationale.",
+      "expected_sources": [
+        {
+          "source": "arxiv_1706.03762.pdf",
+          "pages": [
+            1,
+            2
+          ]
+        }
+      ],
+      "notes": "Evidence: 'based solely on attention mechanisms, dispensing with recurrence and convolutions entirely' (p. 1); 'a model architecture eschewing recurrence and instead relying entirely on an attention mechanism' (p. 2)",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 3,
+          "score": 0.6513,
+          "chunk_id": "bdfaa68d8984-p3-c0",
+          "text": "Figure 1: The Transformer - model architecture.\nThe Transformer follows this overall architecture using stacked self-attention and point-wise, fully\nconnected layers for both the encoder and decoder, shown in the left and right halves of Figure 1,\nrespectively.\n3.1 Encoder and Decoder Stacks\nEncoder: The encoder is composed of a stack of N = 6 identical layers. Each layer has two\nsub-layers. The first is a multi-head self-attention mechanism, and the second is a simple, positionwise fully connected feed-forward network. We employ a residual connection [11] around each of\nthe two sub-layers, followed by layer normalization [ 1]. That is, the output of each sub-layer is\nLayerNorm(x + Sublayer(x)), where Sublayer(x) is the function implemented by the sub-layer\nitself. To facilitate these residual connections, all sub-layers in the model, as well as the embedding\nlayers, produce outputs of dimension dmodel = 512."
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 5,
+          "score": 0.633,
+          "chunk_id": "bdfaa68d8984-p5-c1",
+          "text": "The Transformer uses multi-head attention in three different ways:\n• In \"encoder-decoder attention\" layers, the queries come from the previous decoder layer,\nand the memory keys and values come from the output of the encoder. This allows every\nposition in the decoder to attend over all positions in the input sequence. This mimics the\ntypical encoder-decoder attention mechanisms in sequence-to-sequence models such as\n[38, 2, 9].\n• The encoder contains self-attention layers. In a self-attention layer all of the keys, values\nand queries come from the same place, in this case, the output of the previous layer in the\nencoder. Each position in the encoder can attend to all positions in the previous layer of the\nencoder.\n• Similarly, self-attention layers in the decoder allow each position in the decoder to attend to\nall positions in the decoder up to and including that position. We need to prevent leftward"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 3,
+          "score": 0.6132,
+          "chunk_id": "bdfaa68d8984-p3-c1",
+          "text": "itself. To facilitate these residual connections, all sub-layers in the model, as well as the embedding\nlayers, produce outputs of dimension dmodel = 512.\nDecoder: The decoder is also composed of a stack of N = 6identical layers. In addition to the two\nsub-layers in each encoder layer, the decoder inserts a third sub-layer, which performs multi-head\nattention over the output of the encoder stack. Similar to the encoder, we employ residual connections\naround each of the sub-layers, followed by layer normalization. We also modify the self-attention\nsub-layer in the decoder stack to prevent positions from attending to subsequent positions. This\nmasking, combined with fact that the output embeddings are offset by one position, ensures that the\npredictions for position i can depend only on the known outputs at positions less than i.\n3.2 Attention\nAn attention function can be described as mapping a query and a set of key-value pairs to an output,"
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 6,
+          "score": 0.5717,
+          "chunk_id": "bdfaa68d8984-p6-c2",
+          "text": "P Epos.\nWe also experimented with using learned positional embeddings [9] instead, and found that the two\nversions produced nearly identical results (see Table 3 row (E)). We chose the sinusoidal version\nbecause it may allow the model to extrapolate to sequence lengths longer than the ones encountered\nduring training.\n4 Why Self-Attention\nIn this section we compare various aspects of self-attention layers to the recurrent and convolutional layers commonly used for mapping one variable-length sequence of symbol representations\n(x1, ..., xn) to another sequence of equal length (z1, ..., zn), with xi, zi ∈ Rd, such as a hidden\nlayer in a typical sequence transduction encoder or decoder. Motivating our use of self-attention we\nconsider three desiderata.\nOne is the total computational complexity per layer. Another is the amount of computation that can\nbe parallelized, as measured by the minimum number of sequential operations required."
+        },
+        {
+          "rank": 5,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 10,
+          "score": 0.5644,
+          "chunk_id": "bdfaa68d8984-p10-c2",
+          "text": "multi-headed self-attention.\nFor translation tasks, the Transformer can be trained significantly faster than architectures based\non recurrent or convolutional layers. On both WMT 2014 English-to-German and WMT 2014\nEnglish-to-French translation tasks, we achieve a new state of the art. In the former task our best\nmodel outperforms even all previously reported ensembles.\nWe are excited about the future of attention-based models and plan to apply them to other tasks. We\nplan to extend the Transformer to problems involving input and output modalities other than text and\nto investigate local, restricted attention mechanisms to efficiently handle large inputs and outputs\nsuch as images, audio and video. Making generation less sequential is another research goals of ours.\nThe code we used to train and evaluate our models is available at https://github.com/\ntensorflow/tensor2tensor.\nAcknowledgements We are grateful to Nal Kalchbrenner and Stephan Gouws for their fruitful"
+        },
+        {
+          "rank": 6,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 10,
+          "score": 0.5608,
+          "chunk_id": "bdfaa68d8984-p10-c1",
+          "text": "Dyer et al. (2016) [8] generative 93.3\nincreased the maximum output length to input length + 300. We used a beam size of 21 and α = 0.3\nfor both WSJ only and the semi-supervised setting.\nOur results in Table 4 show that despite the lack of task-specific tuning our model performs surprisingly well, yielding better results than all previously reported models with the exception of the\nRecurrent Neural Network Grammar [8].\nIn contrast to RNN sequence-to-sequence models [37], the Transformer outperforms the BerkeleyParser [29] even when training only on the WSJ training set of 40K sentences.\n7 Conclusion\nIn this work, we presented the Transformer, the first sequence transduction model based entirely on\nattention, replacing the recurrent layers most commonly used in encoder-decoder architectures with\nmulti-headed self-attention.\nFor translation tasks, the Transformer can be trained significantly faster than architectures based"
+        },
+        {
+          "rank": 7,
+          "source": "arxiv_1706.03762.pdf",
+          "page": 5,
+          "score": 0.5575,
+          "chunk_id": "bdfaa68d8984-p5-c2",
+          "text": "encoder.\n• Similarly, self-attention layers in the decoder allow each position in the decoder to attend to\nall positions in the decoder up to and including that position. We need to prevent leftward\ninformation flow in the decoder to preserve the auto-regressive property. We implement this\ninside of scaled dot-product attention by masking out (setting to −∞) all values in the input\nof the softmax which correspond to illegal connections. See Figure 2.\n3.3 Position-wise Feed-Forward Networks\nIn addition to attention sub-layers, each of the layers in our encoder and decoder contains a fully\nconnected feed-forward network, which is applied to each position separately and identically. This\nconsists of two linear transformations with a ReLU activation in between.\nFFN(x) = max(0, xW1 + b1)W2 + b2 (2)\nWhile the linear transformations are the same across different positions, they use different parameters"
+        },
+        {
+          "rank": 8,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 12,
+          "score": 0.5506,
+          "chunk_id": "5692a5514787-p12-c4",
+          "text": "word.\nThe advantage of this procedure is that the\nTransformer encoder does not know which words\nit will be asked to predict or which have been replaced by random words, so it is forced to keep\na distributional contextual representation of every input token. Additionally, because random\nreplacement only occurs for 1.5% of all tokens\n(i.e., 10% of 15%), this does not seem to harm\nthe model’s language understanding capability. In\nSection C.2, we evaluate the impact this procedure.\nCompared to standard langauge model training,\nthe masked LM only make predictions on 15% of\ntokens in each batch, which suggests that more\npre-training steps may be required for the model"
+        }
+      ],
+      "actual_answer": "I could not find enough information in the uploaded documents to answer this question.",
+      "sources": [],
+      "abstained": true,
+      "latency_seconds": 9.15,
+      "error": null,
+      "expected_page_retrieved": false,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "A2",
+      "category": "adversarial",
+      "question": "Why does Sentence-BERT use the [CLS] token output as its default pooling strategy?",
+      "expected_answer": "False premise: SBERT's default pooling strategy is MEAN (mean of all output vectors), not CLS; the paper also shows the raw BERT CLS vector gives poor sentence embeddings. The system should correct the premise.",
+      "expected_sources": [
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "pages": [
+            3
+          ]
+        }
+      ],
+      "notes": "Evidence: 'Using the output of the CLS-token, computing the mean of all output vectors (MEAN-strategy), and computing a max-over-time of the output vectors (MAX-strategy). The default configuration is MEAN.' (p. 3)",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 4,
+          "score": 0.6762,
+          "chunk_id": "5692a5514787-p4-c0",
+          "text": "Input/Output Representations To make BERT\nhandle a variety of down-stream tasks, our input\nrepresentation is able to unambiguously represent\nboth a single sentence and a pair of sentences\n(e.g.,⟨ Question, Answer⟩) in one token sequence.\nThroughout this work, a “sentence” can be an arbitrary span of contiguous text, rather than an actual\nlinguistic sentence. A “sequence” refers to the input token sequence to BERT, which may be a single sentence or two sentences packed together.\nWe use WordPiece embeddings (Wu et al.,\n2016) with a 30,000 token vocabulary. The ﬁrst\ntoken of every sequence is always a special classiﬁcation token ( [CLS]). The ﬁnal hidden state\ncorresponding to this token is used as the aggregate sequence representation for classiﬁcation\ntasks. Sentence pairs are packed together into a\nsingle sequence. We differentiate the sentences in\ntwo ways. First, we separate them with a special"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 16,
+          "score": 0.6403,
+          "chunk_id": "5692a5514787-p16-c3",
+          "text": "MASK means that we replace the target token with\nthe [MASK] symbol for MLM; S AME means that\nwe keep the target token as is; R ND means that\nwe replace the target token with another random\ntoken.\nThe numbers in the left part of the table represent the probabilities of the speciﬁc strategies used\nduring MLM pre-training (BERT uses 80%, 10%,\n10%). The right part of the paper represents the\nDev set results. For the feature-based approach,\nwe concatenate the last 4 layers of BERT as the\nfeatures, which was shown to be the best approach\nin Section 5.3.\nFrom the table it can be seen that ﬁne-tuning is\nsurprisingly robust to different masking strategies.\nHowever, as expected, using only the MASK strategy was problematic when applying the featurebased approach to NER. Interestingly, using only\nthe R ND strategy performs much worse than our\nstrategy as well."
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 5,
+          "score": 0.6344,
+          "chunk_id": "5692a5514787-p5-c2",
+          "text": "as Parikh et al. (2016); Seo et al. (2017). BERT\ninstead uses the self-attention mechanism to unify\nthese two stages, as encoding a concatenated text\npair with self-attention effectively includes bidirectional cross attention between two sentences.\nFor each task, we simply plug in the taskspeciﬁc inputs and outputs into BERT and ﬁnetune all the parameters end-to-end. At the input, sentence A and sentence B from pre-training\nare analogous to (1) sentence pairs in paraphrasing, (2) hypothesis-premise pairs in entailment, (3)\nquestion-passage pairs in question answering, and\n(4) a degenerate text- ∅ pair in text classiﬁcation\nor sequence tagging. At the output, the token representations are fed into an output layer for tokenlevel tasks, such as sequence tagging or question\nanswering, and the [CLS] representation is fed\ninto an output layer for classiﬁcation, such as entailment or sentiment analysis."
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 4,
+          "score": 0.6299,
+          "chunk_id": "5692a5514787-p4-c4",
+          "text": "are creating a mismatch between pre-training and\nﬁne-tuning, since the [MASK] token does not appear during ﬁne-tuning. To mitigate this, we do\nnot always replace “masked” words with the actual [MASK] token. The training data generator\nchooses 15% of the token positions at random for\nprediction. If the i-th token is chosen, we replace\nthei-th token with (1) the [MASK] token 80% of\nthe time (2) a random token 10% of the time (3)\nthe unchanged i-th token 10% of the time. Then,\nTi will be used to predict the original token with\ncross entropy loss. We compare variations of this\nprocedure in Appendix C.2.\nTask #2: Next Sentence Prediction (NSP)\nMany important downstream tasks such as Question Answering (QA) and Natural Language Inference (NLI) are based on understanding the relationship between two sentences, which is not directly captured by language modeling. In order"
+        },
+        {
+          "rank": 5,
+          "source": "arxiv_1908.10084.pdf",
+          "page": 3,
+          "score": 0.6082,
+          "chunk_id": "92366d22fc05-p3-c2",
+          "text": "Sentence A Sentence B\nBERT BERT\nu v\npooling pooling\ncosine-sim(u, v)\n-1 … 1\nFigure 2: SBERT architecture at inference, for example, to compute similarity scores. This architecture is\nalso used with the regression objective function.\ntraining data. We experiment with the following\nstructures and objective functions.\nClassiﬁcation Objective Function. We concatenate the sentence embeddings u and v with\nthe element-wise difference|u−v| and multiply it\nwith the trainable weightWt∈ R3n×k:\no = softmax(Wt(u,v,|u−v|))\nwhere n is the dimension of the sentence embeddings andk the number of labels. We optimize\ncross-entropy loss. This structure is depicted in\nFigure 1.\nRegression Objective Function. The cosinesimilarity between the two sentence embeddings\nu and v is computed (Figure 2). We use meansquared-error loss as the objective function.\nTriplet Objective Function. Given an anchor\nsentence a, a positive sentence p, and a negative\nsentencen, triplet loss tunes the network such that"
+        },
+        {
+          "rank": 6,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 4,
+          "score": 0.6072,
+          "chunk_id": "5692a5514787-p4-c1",
+          "text": "tasks. Sentence pairs are packed together into a\nsingle sequence. We differentiate the sentences in\ntwo ways. First, we separate them with a special\ntoken ([SEP]). Second, we add a learned embedding to every token indicating whether it belongs\nto sentence A or sentence B. As shown in Figure 1,\nwe denote input embedding asE, the ﬁnal hidden\nvector of the special [CLS] token as C ∈ RH,\nand the ﬁnal hidden vector for the ith input token\nasTi∈ RH.\nFor a given token, its input representation is\nconstructed by summing the corresponding token,\nsegment, and position embeddings. A visualization of this construction can be seen in Figure 2.\n3.1 Pre-training BERT\nUnlike Peters et al. (2018a) and Radford et al.\n(2018), we do not use traditional left-to-right or\nright-to-left language models to pre-train BERT.\nInstead, we pre-train BERT using two unsupervised tasks, described in this section. This step\nis presented in the left part of Figure 1."
+        },
+        {
+          "rank": 7,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 3,
+          "score": 0.6047,
+          "chunk_id": "5692a5514787-p3-c0",
+          "text": "BERT BERT\nE[CLS] E1 E[SEP]... EN E1’ ... EM’\nC\nT1\nT[SEP]...\nTN\nT1’ ...\nTM’\n[CLS] Tok 1 [SEP]... Tok N Tok 1 ... TokM\nQuestion Paragraph\nStart/End Span\nBERT\nE[CLS] E1 E[SEP]... EN E1’ ... EM’\nC\nT1\nT[SEP]...\nTN\nT1’ ...\nTM’\n[CLS] Tok 1 [SEP]... Tok N Tok 1 ... TokM\nMasked Sentence A Masked Sentence B\nPre-training Fine-Tuning\nNSP Mask LM Mask LM\nUnlabeled Sentence A and B Pair\nSQuAD\nQuestion Answer Pair\nNERMNLI\nFigure 1: Overall pre-training and ﬁne-tuning procedures for BERT. Apart from output layers, the same architectures are used in both pre-training and ﬁne-tuning. The same pre-trained model parameters are used to initialize\nmodels for different down-stream tasks. During ﬁne-tuning, all parameters are ﬁne-tuned. [CLS] is a special\nsymbol added in front of every input example, and [SEP] is a special separator token (e.g. separating questions/answers).\ning and auto-encoder objectives have been used\nfor pre-training such models (Howard and Ruder,"
+        },
+        {
+          "rank": 8,
+          "source": "arxiv_1810.04805.pdf",
+          "page": 5,
+          "score": 0.5913,
+          "chunk_id": "5692a5514787-p5-c1",
+          "text": "model pre-training. For the pre-training corpus we\nuse the BooksCorpus (800M words) (Zhu et al.,\n2015) and English Wikipedia (2,500M words).\nFor Wikipedia we extract only the text passages\nand ignore lists, tables, and headers. It is critical to use a document-level corpus rather than a\nshufﬂed sentence-level corpus such as the Billion\nWord Benchmark (Chelba et al., 2013) in order to\nextract long contiguous sequences.\n3.2 Fine-tuning BERT\nFine-tuning is straightforward since the selfattention mechanism in the Transformer allows BERT to model many downstream tasks—\nwhether they involve single text or text pairs—by\nswapping out the appropriate inputs and outputs.\nFor applications involving text pairs, a common\npattern is to independently encode text pairs before applying bidirectional cross attention, such\nas Parikh et al. (2016); Seo et al. (2017). BERT\ninstead uses the self-attention mechanism to unify\nthese two stages, as encoding a concatenated text"
+        }
+      ],
+      "actual_answer": "Sentence-BERT uses the [CLS] token output as its default pooling strategy because BERT already uses the self-attention mechanism to unify encoding a concatenated text pair, and the [CLS] representation is fed into an output layer for classification tasks.\n\n[3], [6]\n\nNote: The question \"Why does Sentence-BERT use the [CLS] token output as its default pooling strategy?\" is repeated in the context.",
+      "sources": [
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 4
+        },
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 16
+        },
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 5
+        },
+        {
+          "source": "arxiv_1908.10084.pdf",
+          "page": 3
+        },
+        {
+          "source": "arxiv_1810.04805.pdf",
+          "page": 3
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 14.05,
+      "error": null,
+      "expected_page_retrieved": true,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    }
+  ]
+}

@@ -8,16 +8,18 @@ which module owns each step, and why each design choice was made.
 ```mermaid
 flowchart TD
     subgraph Ingestion["Ingestion path (per uploaded file)"]
-        U[User uploads PDF in Streamlit sidebar] --> V{validate_pdf_bytes<br/>.pdf extension, %PDF- header,<br/>size <= MAX_FILE_MB, not encrypted}
+        U[User uploads PDF in Streamlit sidebar] --> V{validate_pdf_bytes<br/>.pdf extension, %PDF- header,<br/>non-empty, size <= MAX_FILE_MB}
         V -- invalid --> E1[IngestReport status=error<br/>user-facing message]
         V -- valid --> H[compute_file_hash sha256]
-        H --> D{store.has_file?}
-        D -- yes --> E2[IngestReport status=duplicate<br/>skip re-indexing]
-        D -- no --> L[PyPDFLoader / pypdf<br/>one Document per page, 1-based page]
+        H --> RD{pypdf opens it?<br/>not corrupted / not encrypted}
+        RD -- no --> E1
+        RD -- yes --> L[PyPDFLoader / pypdf<br/>one Document per page, 1-based page]
         L --> N[normalize_text<br/>re-join hyphenated breaks, collapse whitespace]
         N --> S{any page with text?}
         S -- no --> E3[error: likely scanned / image-only PDF<br/>OCR out of scope]
-        S -- yes --> C[split_documents<br/>RecursiveCharacterTextSplitter<br/>CHUNK_SIZE / CHUNK_OVERLAP, per page]
+        S -- yes --> D{store.has_file?}
+        D -- yes --> E2[IngestReport status=duplicate<br/>skip re-indexing]
+        D -- no --> C[split_documents<br/>RecursiveCharacterTextSplitter<br/>CHUNK_SIZE / CHUNK_OVERLAP, per page]
         C --> EM[get_embeddings<br/>all-MiniLM-L6-v2, normalized]
         EM --> DB[(Chroma persistent collection<br/>cosine space<br/>ids = chunk_id<br/>metadata: source, page, file_hash)]
     end

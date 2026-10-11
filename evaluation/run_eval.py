@@ -41,9 +41,12 @@ HUMAN_FIELDS = ("correct", "relevant", "supported", "abstention_correct", "failu
 # --------------------------------------------------------------------------- #
 # Helpers
 # --------------------------------------------------------------------------- #
-def eval_collection_name(settings: Settings) -> str:
+def eval_collection_name(settings: Settings, pdf_dir: Path | None = None) -> str:
     """Collection name derived from the parameters that change the index contents."""
     name = f"eval_cs{settings.chunk_size}_co{settings.chunk_overlap}"
+    if pdf_dir is not None and pdf_dir.resolve() != DEFAULT_PDF_DIR.resolve():
+        # Separate corpora (e.g. data/long_pdfs) get their own collection.
+        name += "_" + re.sub(r"[^a-zA-Z0-9]+", "_", pdf_dir.name)[:24]
     if settings.embedding_model != DEFAULT_EMBEDDING:
         name += "_emb" + hashlib.sha1(settings.embedding_model.encode()).hexdigest()[:8]
     return name
@@ -67,6 +70,7 @@ def load_questions(path: Path) -> list[dict]:
         q.setdefault("expected_answer", "")
         q.setdefault("expected_sources", [])
         q.setdefault("notes", "")
+        q.setdefault("evidence_snippets", [])
     return questions
 
 
@@ -80,6 +84,22 @@ def expected_page_retrieved(expected_sources: list[dict], chunks: list[dict]) ->
         return None
     retrieved = {(c["source"], int(c["page"])) for c in chunks}
     return bool(expected & retrieved)
+
+
+def _squash(text: str) -> str:
+    return re.sub(r"\s+", " ", text).strip().lower()
+
+
+def evidence_retrieved(snippets: list[str], chunks: list[dict]) -> str | None:
+    """Stricter hint than the page check: are the verbatim evidence snippets in the retrieved text?
+
+    Returns "all", "partial" or "none", or None when the question lists no snippets.
+    """
+    if not snippets:
+        return None
+    joined = " ".join(_squash(c["text"]) for c in chunks)
+    found = sum(1 for snip in snippets if _squash(snip) in joined)
+    return "all" if found == len(snippets) else ("partial" if found else "none")
 
 
 def ingest_corpus(store, settings: Settings, pdf_dir: Path) -> tuple[list[dict], list[str]]:
@@ -155,6 +175,7 @@ def run_question(pipeline, q: dict, file_hashes: list[str], top_k: int) -> dict:
             "error": error,
             # Automatic hint only - NOT a judgement of correctness.
             "expected_page_retrieved": expected_page_retrieved(q.get("expected_sources", []), chunks),
+            "evidence_retrieved": evidence_retrieved(q.get("evidence_snippets", []), chunks),
             "human_judgement": {field: "" for field in HUMAN_FIELDS},
         }
     )
@@ -227,16 +248,21 @@ def render_markdown(result: dict) -> str:
         f"- Expected page retrieved (answerable questions): "
         f"{sum(1 for q in qs if q['expected_page_retrieved'] is True)}"
         f" / {sum(1 for q in qs if q['expected_page_retrieved'] is not None)}",
+        f"- Evidence snippets retrieved (all / partial / none): "
+        f"{sum(1 for q in qs if q.get('evidence_retrieved') == 'all')} / "
+        f"{sum(1 for q in qs if q.get('evidence_retrieved') == 'partial')} / "
+        f"{sum(1 for q in qs if q.get('evidence_retrieved') == 'none')}",
         f"- Mean latency: {sum(lat) / len(lat):.2f}s" if lat else "- Mean latency: n/a",
         "",
         "## Overview",
         "",
-        "| ID | Category | Expected page retrieved? | Abstained | Latency (s) | Correct? | Relevant? | Supported? | Correct abstention? | Failure class |",
-        "|---|---|---|---|---|---|---|---|---|---|",
+        "| ID | Category | Expected page retrieved? | Evidence retrieved? | Abstained | Latency (s) | Correct? | Relevant? | Supported? | Correct abstention? | Failure class |",
+        "|---|---|---|---|---|---|---|---|---|---|---|",
     ]
     for q in qs:
         lines.append(
             f"| {q['id']} | {q['category']} | {_hint(q['expected_page_retrieved'])} | "
+            f"{q.get('evidence_retrieved') or 'N/A'} | "
             f"{'Y' if q['abstained'] else ('N' if q['abstained'] is False else 'error')} | "
             f"{q['latency_seconds']} |  |  |  |  |  |"
         )
@@ -279,7 +305,8 @@ def render_markdown(result: dict) -> str:
             f"**Sources shown:** {sources}  ",
             f"**Abstained:** {q['abstained']}  ",
             f"**Latency:** {q['latency_seconds']} s  ",
-            f"**Expected page retrieved (auto hint):** {_hint(q['expected_page_retrieved'])}",
+            f"**Expected page retrieved (auto hint):** {_hint(q['expected_page_retrieved'])}  ",
+            f"**Evidence snippets retrieved (auto hint):** {q.get('evidence_retrieved') or 'N/A'}",
             "",
             "**Human judgement (fill in):**",
             "",
@@ -332,7 +359,7 @@ def main(argv: list[str] | None = None) -> int:
         llm_model=args.llm_model,
         llm_provider=args.llm_provider,
     )
-    settings = get_settings(**{**base.as_report_dict(), "collection_name": eval_collection_name(base)})
+    settings = get_settings(**{**base.as_report_dict(), "collection_name": eval_collection_name(base, args.pdf_dir)})
 
     # Imported lazily so `--help` works even before heavy deps / all modules exist.
     from rag.generation import LLMInitError
@@ -366,6 +393,7 @@ def main(argv: list[str] | None = None) -> int:
         status = "ERROR" if rec["error"] else ("abstained" if rec["abstained"] else "answered")
         print(
             f"    -> {status}; expected page retrieved: {_hint(rec['expected_page_retrieved'])}; "
+            f"evidence: {rec['evidence_retrieved'] or 'N/A'}; "
             f"{rec['latency_seconds']}s"
         )
 

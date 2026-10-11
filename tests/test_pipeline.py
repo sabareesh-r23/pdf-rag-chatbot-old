@@ -6,7 +6,7 @@ from langchain_core.language_models.fake_chat_models import FakeListChatModel
 
 from rag import pipeline as pipeline_mod
 from rag.config import FALLBACK_ANSWER, get_settings
-from rag.pipeline import RAGPipeline, is_abstention, unique_sources
+from rag.pipeline import RAGPipeline, cited_indices, cited_sources, is_abstention, unique_sources
 from rag.retrieval import RetrievedChunk
 
 
@@ -46,6 +46,8 @@ def stub_retrieve(monkeypatch):
         "I couldn't find enough information in the provided documents.",
         "Sorry, I could not find any relevant information about that.",
         "",
+        # hedged fallback after an uncited preamble (seen for A2 at top-k 4) -> still an abstention
+        "The passages discuss pooling. " + FALLBACK_ANSWER,
     ],
 )
 def test_is_abstention_true(answer):
@@ -73,6 +75,26 @@ def test_unique_sources_dedupes_in_rank_order():
     ]
 
 
+def test_cited_indices_parses_single_and_grouped_markers():
+    assert cited_indices("A [2]. B [1, 3]. C [2], [4].") == [2, 1, 3, 4]
+    assert cited_indices("No citations here.") == []
+
+
+def test_cited_sources_lists_only_cited_passages():
+    chunks = [chunk("a.pdf", 1), chunk("b.pdf", 2), chunk("c.pdf", 3)]
+    assert cited_sources("Fact [3]. Other fact [1].", chunks) == [
+        {"source": "c.pdf", "page": 3},
+        {"source": "a.pdf", "page": 1},
+    ]
+
+
+def test_cited_sources_falls_back_when_no_valid_markers():
+    chunks = [chunk("a.pdf", 1), chunk("b.pdf", 2)]
+    # no markers, or only out-of-range markers -> all retrieved pages
+    assert cited_sources("Uncited answer.", chunks) == unique_sources(chunks)
+    assert cited_sources("Bad marker [9].", chunks) == unique_sources(chunks)
+
+
 # --- RAGPipeline.ask ----------------------------------------------------------------
 
 def test_blank_question_raises(stub_retrieve):
@@ -91,7 +113,8 @@ def test_answer_with_sources_and_config(stub_retrieve):
     assert r.answer == "The value is 7 [1]."
     assert r.question == "What is the value?"
     assert not r.abstained
-    assert r.sources == [{"source": "b.pdf", "page": 2}, {"source": "a.pdf", "page": 1}]
+    # Only the cited passage [1] is listed as a source; all chunks stay inspectable.
+    assert r.sources == [{"source": "b.pdf", "page": 2}]
     assert len(r.chunks) == 3
     assert r.config["top_k"] == 3 and r.config["llm_model"]
     assert stub_retrieve["calls"] == [{"question": "What is the value?", "k": 3, "file_hashes": ["h1"]}]
@@ -121,7 +144,7 @@ def test_model_abstention_clears_sources(stub_retrieve):
 
 def test_min_relevance_filters_chunks(stub_retrieve):
     stub_retrieve["chunks"] = [chunk("a.pdf", 1, 0.8), chunk("b.pdf", 2, 0.2), chunk("c.pdf", 3, 0.5)]
-    llm = CountingLLM(responses=["Answer [1]."])
+    llm = CountingLLM(responses=["Answer [1][2]."])
     r = RAGPipeline(get_settings(min_relevance=0.5), store=None, llm=llm).ask("q?")
     assert [c.source for c in r.chunks] == ["a.pdf", "c.pdf"]
     assert r.sources == [{"source": "a.pdf", "page": 1}, {"source": "c.pdf", "page": 3}]

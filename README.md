@@ -160,7 +160,8 @@ pdf-rag-chatbot/
 │   ├── architecture.md
 │   ├── evaluation_template.md
 │   ├── demo_walkthrough.md
-│   └── submission_checklist.md
+│   ├── submission_checklist.md
+│   └── audit_report.md       # independent audit (draft eval assessment, to be verified)
 ├── tests/                    # pytest suite (fixtures generated with reportlab)
 ├── requirements.txt
 ├── pytest.ini

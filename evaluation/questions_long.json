@@ -1,0 +1,163 @@
+[
+  {
+    "id": "LF1",
+    "category": "factual",
+    "question": "How many parameters and layers does GPT-3 175B have, and what context window do the GPT-3 models use?",
+    "expected_answer": "175.0B parameters with 96 layers (d_model 12288, 96 attention heads of dimension 128); all GPT-3 models use a context window of 2048 tokens.",
+    "expected_sources": [
+      {
+        "source": "arxiv_2005.14165.pdf",
+        "pages": [
+          8
+        ]
+      }
+    ],
+    "notes": "Evidence: Table 2.1 row 'GPT-3 175B or \"GPT-3\" 175.0B 96 12288 96 128 3.2M 0.6x10^-4' and 'All models use a context window of nctx = 2048 tokens.' (p. 8)",
+    "evidence_snippets": [
+      "175.0B 96 12288 96",
+      "nctx = 2048 tokens"
+    ]
+  },
+  {
+    "id": "LF2",
+    "category": "factual",
+    "question": "How many tokens of filtered Common Crawl data were used to train GPT-3, and what weight did it have in the training mix?",
+    "expected_answer": "410 billion tokens, with a 60% weight in the training mix.",
+    "expected_sources": [
+      {
+        "source": "arxiv_2005.14165.pdf",
+        "pages": [
+          9
+        ]
+      }
+    ],
+    "notes": "Evidence: Table 2.2 'Common Crawl (filtered) 410 billion 60% 0.44' (p. 9). Table data: column structure is flattened by extraction.",
+    "evidence_snippets": [
+      "Common Crawl (filtered) 410 billion 60%"
+    ]
+  },
+  {
+    "id": "LF3",
+    "category": "factual",
+    "question": "How accurately could human evaluators identify news articles written by GPT-3 175B?",
+    "expected_answer": "Mean human accuracy was about 52%, barely above chance (Table 3.11 reports 52% with a 49%-54% confidence interval).",
+    "expected_sources": [
+      {
+        "source": "arxiv_2005.14165.pdf",
+        "pages": [
+          26
+        ]
+      }
+    ],
+    "notes": "Evidence: 'human accuracy at detecting articles that were produced by the 175B parameter model was barely above chance at ~52% (see Table 3.11)' (p. 26).",
+    "evidence_snippets": [
+      "barely above chance",
+      "52%"
+    ]
+  },
+  {
+    "id": "LM1",
+    "category": "multi_chunk",
+    "question": "How many tokens was Llama 2 pretrained on, how much GPU compute did pretraining use, and what were the estimated carbon emissions?",
+    "expected_answer": "2 trillion tokens; a cumulative 3.3M GPU hours on A100-80GB hardware; estimated total emissions of 539 tCO2eq, 100% offset by Meta's sustainability program.",
+    "expected_sources": [
+      {
+        "source": "arxiv_2307.09288.pdf",
+        "pages": [
+          5,
+          7,
+          77
+        ]
+      }
+    ],
+    "notes": "Evidence: 'We trained on 2 trillion tokens of data' (p. 5); 'A cumulative of 3.3M GPU hours of computation was performed on hardware of type A100-80GB ... total emissions for training to be 539 tCO2eq, of which 100% were directly offset' (p. 7); restated in the model card (p. 77).",
+    "evidence_snippets": [
+      "trained on 2 trillion tokens",
+      "539 tCO2eq",
+      "3.3M GPU hours"
+    ]
+  },
+  {
+    "id": "LM2",
+    "category": "multi_chunk",
+    "question": "Compare the context window length of GPT-3 with that of Llama 2.",
+    "expected_answer": "GPT-3 uses a 2048-token context window; Llama 2 expanded the context window from 2048 tokens (Llama 1) to 4096 tokens, i.e. twice GPT-3's.",
+    "expected_sources": [
+      {
+        "source": "arxiv_2005.14165.pdf",
+        "pages": [
+          8
+        ]
+      },
+      {
+        "source": "arxiv_2307.09288.pdf",
+        "pages": [
+          5,
+          47
+        ]
+      }
+    ],
+    "notes": "Cross-document. Evidence: 'All models use a context window of nctx = 2048 tokens' (GPT-3 p. 8); 'We expand the context window for Llama 2 from 2048 tokens to 4096 tokens' (Llama 2 p. 47); 'doubled the context length' (Llama 2 p. 5).",
+    "evidence_snippets": [
+      "nctx = 2048 tokens",
+      "from 2048 tokens to 4096 tokens"
+    ]
+  },
+  {
+    "id": "LS1",
+    "category": "synthesis",
+    "question": "Summarise how Llama 2-Chat was aligned using reinforcement learning from human feedback.",
+    "expected_answer": "After supervised fine-tuning, Llama 2-Chat was iteratively refined with RLHF using reward models trained on human preference data and two algorithms - rejection sampling fine-tuning and Proximal Policy Optimization (PPO) - over successive versions (RLHF-V1 to V5); Ghost Attention (GAtt) was introduced to keep instructions consistent over multi-turn dialogue.",
+    "expected_sources": [
+      {
+        "source": "arxiv_2307.09288.pdf",
+        "pages": [
+          5,
+          13,
+          16
+        ]
+      }
+    ],
+    "notes": "Evidence: 'iteratively refined using Reinforcement Learning with Human Feedback (RLHF) methodologies, specifically through rejection sampling and Proximal Policy Optimization (PPO)' (p. 5); 'We explored RLHF fine-tuning with two main algorithms: Proximal Policy Optimization (PPO) ... Rejection Sampling fine-tuning' and 'RLHF-V1, ..., RLHF-V5' (p. 13); 'we propose Ghost Attention (GAtt)' (p. 16).",
+    "evidence_snippets": [
+      "rejection sampling and Proximal Policy Optimization (PPO)",
+      "Ghost Attention (GAtt)"
+    ]
+  },
+  {
+    "id": "LU1",
+    "category": "unanswerable",
+    "question": "How many US dollars did it cost to train GPT-3 175B?",
+    "expected_answer": "Not in the documents - the system should abstain. (GPT-3 reports compute, not a dollar cost.)",
+    "expected_sources": [],
+    "notes": "Absence verified: regex 'dollar|USD|$ followed by a digit' over both long PDFs only matches '$12' participant payments (GPT-3 pp. 46, 48) and '$43 billion' inside a generated news sample (p. 53); no training cost in dollars. Tempting distractors: the $12 figures.",
+    "evidence_snippets": []
+  },
+  {
+    "id": "LU2",
+    "category": "unanswerable",
+    "question": "What score does Llama 2 70B achieve on the MMLU-Pro benchmark?",
+    "expected_answer": "Not in the documents - the system should abstain. (MMLU results exist, but MMLU-Pro is never mentioned.)",
+    "expected_sources": [],
+    "notes": "Absence verified: 0 matches for 'MMLU-Pro' (and 0 for 'Llama 3' / 'GPT-5') across both long PDFs. Plain MMLU scores are reported, which tempts misattribution.",
+    "evidence_snippets": []
+  },
+  {
+    "id": "LA1",
+    "category": "adversarial",
+    "question": "Why did Meta pretrain Llama 2 on data from its own products such as Facebook and Instagram?",
+    "expected_answer": "False premise: the pretraining corpus is a new mix of publicly available data that does not include data from Meta's products or services. The system should correct the premise (or abstain), not invent a rationale.",
+    "expected_sources": [
+      {
+        "source": "arxiv_2307.09288.pdf",
+        "pages": [
+          5
+        ]
+      }
+    ],
+    "notes": "Evidence: 'Our training corpus includes a new mix of data from publicly available sources, which does not include data from Meta's products or services.' (p. 5)",
+    "evidence_snippets": [
+      "does not include data from Meta’s products or services"
+    ]
+  }
+]

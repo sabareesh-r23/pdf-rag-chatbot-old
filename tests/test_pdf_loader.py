@@ -138,6 +138,12 @@ def test_hash_is_deterministic(sample_pdf_bytes, second_pdf_bytes):
         ("well-known term", "well-known term"),
         ("line one   \n   line two", "line one\nline two"),
         ("", ""),
+        # Ligatures from LaTeX PDFs are expanded so the tokenizer sees whole words.
+        ("e\ufb03cient \ufb02exible \ufb01xed", "efficient flexible fixed"),
+        # Capitalised first part = real compound, keep the hyphen.
+        ("WMT 2014 English-\nto-German task", "WMT 2014 English-to-German task"),
+        # Hyphenated form used elsewhere on the page = keep the hyphen.
+        ("self-attention layers use self-\nattention", "self-attention layers use self-attention"),
     ],
 )
 def test_normalize_text(raw, expected):

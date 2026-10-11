@@ -140,3 +140,22 @@ def test_check_ollama_model_missing_and_present(monkeypatch):
     assert ok and "available" in msg
     ok, msg = check_ollama(get_settings(llm_model="mistral"))
     assert not ok and "ollama pull mistral" in msg
+
+
+def test_system_prompt_has_number_and_table_rule():
+    # Regression for the BLEU 38.1-vs-28.4 error: flattened tables must not be read blindly.
+    assert "Copy numbers exactly" in SYSTEM_PROMPT
+    assert "table" in SYSTEM_PROMPT.lower()
+
+
+def test_ollama_response_error_wrapped_with_pull_hint():
+    class ResponseError(Exception):  # same name as ollama._types.ResponseError
+        pass
+
+    class BrokenLLM:
+        def invoke(self, messages):
+            raise ResponseError("model 'llama9' not found")
+
+    chunks = [RetrievedChunk(text="t", source="a.pdf", page=1, score=0.9, chunk_id="c")]
+    with pytest.raises(LLMInitError, match="ollama pull"):
+        generate_answer(BrokenLLM(), "q?", chunks)

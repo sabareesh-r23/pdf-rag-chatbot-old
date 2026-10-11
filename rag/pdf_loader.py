@@ -69,10 +69,30 @@ def validate_pdf_bytes(filename: str, data: bytes, max_file_mb: int = 50) -> Non
         )
 
 
-_HYPHEN_BREAK = re.compile(r"(\w)-[ \t]*\n[ \t]*(\w)")
+_HYPHEN_BREAK = re.compile(r"(\w+)-[ \t]*\n[ \t]*(\w+)")
+# Typographic ligatures (common in LaTeX PDFs) split words for the embedding tokenizer.
+_LIGATURES = str.maketrans({"\ufb00": "ff", "\ufb01": "fi", "\ufb02": "fl", "\ufb03": "ffi", "\ufb04": "ffl"})
 _SPACES = re.compile(r"[ \t\f\v ]+")
 _SPACE_AROUND_NL = re.compile(r"[ \t]*\n[ \t]*")
 _MANY_NL = re.compile(r"\n{3,}")
+
+
+def _rejoin_hyphen_break(match: re.Match, text: str) -> str:
+    """Rejoin a word split across lines, keeping real compounds like "self-attention".
+
+    Uses the page itself as a dictionary: if the hyphenated form appears elsewhere
+    keep the hyphen; if the joined form appears, join. Otherwise join, unless the
+    first part is capitalised or numeric ("English-to-German", "BERT-base").
+    """
+    left, right = match.group(1), match.group(2)
+    hyphenated, joined = f"{left}-{right}", f"{left}{right}"
+    if hyphenated in text:
+        return hyphenated
+    if joined in text:
+        return joined
+    if left[0].isupper() or any(ch.isdigit() for ch in left):
+        return hyphenated
+    return joined
 
 
 def normalize_text(text: str) -> str:
@@ -80,7 +100,8 @@ def normalize_text(text: str) -> str:
     if not text:
         return ""
     text = text.replace("\x00", "").replace("\r\n", "\n").replace("\r", "\n")
-    text = _HYPHEN_BREAK.sub(r"\1\2", text)  # "embed-\nding" -> "embedding"
+    text = text.translate(_LIGATURES)  # "efﬁcient" -> "efficient"
+    text = _HYPHEN_BREAK.sub(lambda m: _rejoin_hyphen_break(m, text), text)  # "embed-\nding" -> "embedding"
     text = _SPACES.sub(" ", text)
     text = _SPACE_AROUND_NL.sub("\n", text)
     text = _MANY_NL.sub("\n\n", text)
