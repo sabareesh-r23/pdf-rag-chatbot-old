@@ -1,0 +1,18 @@
+# Core RAG stack
+langchain-core>=0.3
+langchain-community>=0.3
+langchain-text-splitters>=0.3
+langchain-chroma>=0.2
+langchain-huggingface>=0.1
+langchain-ollama>=0.2
+chromadb>=0.5
+sentence-transformers>=3.0
+pypdf>=4.0
+# UI + config
+streamlit>=1.38
+python-dotenv>=1.0
+# Optional: OpenAI-compatible API provider (LLM_PROVIDER=openai)
+langchain-openai>=0.2
+# Testing / fixtures
+pytest>=8.0
+reportlab>=4.0
