@@ -159,3 +159,9 @@ def test_ollama_response_error_wrapped_with_pull_hint():
     chunks = [RetrievedChunk(text="t", source="a.pdf", page=1, score=0.9, chunk_id="c")]
     with pytest.raises(LLMInitError, match="ollama pull"):
         generate_answer(BrokenLLM(), "q?", chunks)
+
+
+def test_system_prompt_has_false_premise_rule():
+    # Regression for A2 ("Why does SBERT use [CLS] as default?"): the model must not justify a premise
+    # that no passage states.
+    assert "do not explain or justify it" in SYSTEM_PROMPT
