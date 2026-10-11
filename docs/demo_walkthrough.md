@@ -44,37 +44,51 @@ In the browser, point to sidebar **3. LLM status** showing Ollama is ready with 
 4. Upload `arxiv_1706.03762.pdf` again and index -> reported as **duplicate**, not re-indexed.
 5. Show **Active corpus**: four files with chunk counts and checkboxes.
 
-### 3:00 – 4:15 Factual question with sources (F1 / F3)
+### 3:00 – 4:15 Factual question with sources (F1)
 Ask **F1**: *"How many identical layers make up the encoder stack of the Transformer in 'Attention Is
 All You Need', and what is the model dimension d_model?"*
 - Expected (verified): N = 6 layers, d_model = 512 — `arxiv_1706.03762.pdf` p. 3.
-- Point out the inline `[n]` citations and the **Sources** line (file + page).
+- Observed in the final evaluation run (top-k 4): "6 identical layers [1] ... d_model is 512 [2]".
+- Point out the inline `[n]` citations and the **Sources** line, which lists only the passages the
+  answer cites (here p. 3), not every retrieved chunk.
 - Open **Retrieved evidence**: show rank, similarity score, page and the chunk text containing
   "stack of N = 6 identical layers". "Every claim can be checked against the source page."
 
-Optional second factual: **F3** (RAG uses a Dec 2018 Wikipedia dump, 21M documents — 2005.11401 p. 4).
+Do **not** use F3 (RAG's Wikipedia index) as a success example: it is a confirmed retrieval failure.
+You can show it deliberately as a failure case: its evidence chunk (p. 4) ranks 22nd for this
+wording, so it is not retrieved at top-k 4 or 8.
 
-### 4:15 – 5:15 Multi-chunk question (M1 or M2)
+### 4:15 – 5:00 Multi-passage question (M1)
 Ask **M1**: *"What BLEU scores did the big Transformer model achieve on WMT 2014 English-to-German and
 English-to-French, and how long and on what hardware was it trained?"*
-- Expected: 28.4 (EN-DE), 41.8 (EN-FR), 3.5 days on 8 P100 GPUs — pages 1, 7, 8.
-- Open the evidence to show the facts came from different chunks/pages. If part is missing, say so
-  honestly and relate it to top-k (next step) — that is a retrieval limitation worth showing.
+- Observed: 28.4 (EN-DE), **41.0** (EN-FR), 3.5 days on 8 P100 GPUs.
+- Explain: the paper itself is inconsistent. The abstract and Table 2 say 41.8, while the results text
+  on p. 8 says 41.0. So 41.0 is supported by the passage that was retrieved. A good example of why
+  answers must be checked against the evidence panel.
 
-### 5:15 – 6:15 Unanswerable question -> fallback (U1), adversarial (A2)
+### 5:00 – 5:30 Partially answerable question (P1)
+Ask **P1**: *"How many identical layers are in the Transformer encoder, and how much did it cost in US
+dollars to train the big model?"*
+- Observed: "6 identical layers [1]" and then a statement that the dollar cost cannot be found.
+  This shows the partial-answer rule: answer the supported part, name the unsupported part.
+
+### 5:30 – 6:15 Unanswerable question -> fallback (U1), false premise (A2)
 Ask **U1**: *"How many parameters does GPT-4 have?"*
-- Expected: the fallback message "I could not find enough information in the uploaded documents to
-  answer this question." Explain: GPT-4 never appears in these papers; the prompt forbids outside
-  knowledge, so abstaining is the correct behaviour.
+- Expected and observed: the fallback message "I could not find enough information in the uploaded
+  documents to answer this question." GPT-4 never appears in these papers; the prompt forbids outside
+  knowledge, so abstaining is correct. No sources are shown for an abstention.
 
 Ask **A2** (false premise): *"Why does Sentence-BERT use the [CLS] token output as its default pooling strategy?"*
-- Expected: the app should correct the premise — the default is MEAN pooling (1908.10084 p. 3) — or abstain.
-  Show whatever actually happens; if the model accepts the premise, name it as a generation/abstention failure.
+- The true default is MEAN pooling (1908.10084 p. 3). At top-k 4 the final run abstains (acceptable);
+  it does not correct the premise because the "default configuration is MEAN" chunk is not retrieved.
+- Be honest if you show top-k 8: in the evaluation the model still produced a fabricated rationale for
+  A2 at top-k 8. Present it as a known abstention/hallucination failure (see `docs/evaluation_report.md`).
 
 ### 6:15 – 7:15 Change top-k
-Open **Settings** -> move **Top-k retrieved chunks** from 4 to 8. Re-ask M1 (or M2).
-- Show that **Retrieved evidence** now lists 8 chunks. Discuss the trade-off: more recall for
-  multi-part questions vs. longer prompts, more noise and slower answers on a 3B model.
+Open **Settings** -> move **Top-k retrieved chunks** from 4 to 8. Re-ask M2 (BERT pre-training tasks).
+- Show that **Retrieved evidence** now lists 8 chunks. In the evaluation, M2's masking details
+  (15%, 80/10/10) were only retrieved at top-k 8. Discuss the trade-off: more recall for multi-part
+  questions vs. longer prompts, more noise, slower answers, and (for A2) more room for a fabricated answer.
 - Mention chunk size/overlap are also configurable and apply on re-index
   (**Re-index with current settings**). Set top-k back to 4.
 - Optionally untick a paper in **Active corpus** and ask F2 (BERT parameters) to show that only selected
@@ -85,7 +99,9 @@ Tick **"I understand this deletes the whole index"** -> **Clear corpus**. Show t
 and the chat input is disabled again.
 
 ### 7:45 – 8:30 Wrap-up
-- Evaluation: `python -m evaluation.run_eval` runs the 14-question set and writes JSON/Markdown records;
-  judgements are filled in manually in `docs/evaluation_template.md` (refer to results only if completed).
+- Evaluation: `python -m evaluation.run_eval` runs the 15-question main set (plus a 9-question set on
+  two long papers via `--questions evaluation/questions_long.json --pdf-dir data/long_pdfs`) and writes
+  JSON/Markdown records; judged results are in `docs/evaluation_report.md`. Quote only numbers from
+  that report once you have confirmed them.
 - Limitations: no OCR for scanned PDFs, tables/figures, small local model quality, single-user.
 - Possible improvements: hybrid BM25 + dense retrieval, a re-ranker, larger model via `LLM_PROVIDER=openai`.

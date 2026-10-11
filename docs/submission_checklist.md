@@ -1,65 +1,52 @@
 # Submission Checklist
 
-Remaining steps for the academic submission. Tick each item only when it is actually done.
+Status as of 2026-10-11 (Version 1.1). `[x]` = done and verified in this repository; `[ ]` = still to do.
+Items marked **(you)** need the student; items marked **(professor)** need confirmation from the professor.
 
-## 1. Verify the code
-- [ ] `pip install -r requirements.txt` in a fresh Python 3.12 venv succeeds.
-- [ ] `pytest -m "not slow"` passes; `pytest` (incl. real-embedding tests) passes.
-- [ ] `streamlit run app.py` starts; upload, ask, sources, evidence, top-k change and clear corpus all work.
-- [ ] Ollama path works (`ollama pull llama3.2:3b`); optionally the `LLM_PROVIDER=openai` path.
-- [ ] No secrets in the repository (`.env` excluded; only `.env.example` shipped).
+## 1. Code
+- [x] All core requirements implemented (see `docs/requirements_matrix.md`).
+- [x] `.venv/bin/pytest -q`: 110 passed, including the slow real-embedding test.
+- [x] App starts headless (`streamlit run app.py`, health endpoint OK; the audit drove a real question through it).
+- [ ] **(you)** One manual browser pass: upload PDFs with the widget, ask F1, open evidence, untick a file,
+      re-index, clear corpus. The upload widget and re-index are not covered by automated tests.
+- [x] No secrets in the repo (`.env` git-ignored; audit checked the files and git history).
+- [ ] Optional: `pip freeze > requirements-lock.txt` for exact reproducibility.
 
-## 2. Run the evaluation and complete the report
-- [ ] `python -m evaluation.run_eval --questions evaluation/questions.json --reindex`
-- [ ] Keep the produced `evaluation/results/results_<timestamp>.json` and `.md`.
-- [ ] Fill every `TBD` in `docs/evaluation_template.md` from the actual results (judgement columns,
-      failure classes, observations, summary metrics with denominators).
-- [ ] Write the discussion: dominant failure classes, concrete examples, proposed improvements.
-- [ ] Remove the "NOT YET COMPLETED" banner only once everything is filled from real outputs.
-- [ ] README / slides refer to the completed report instead of quoting unobserved numbers.
+## 2. Evaluation
+- [x] 15 + 9 questions with ground truth verified against the PDFs (quotes and pages in the JSON files).
+- [x] Final runs at top-k 4 and 8 for both corpora (`evaluation/results/results_20261011_1217*`–`1224*`);
+      V1 baseline runs kept; intermediate runs in `results/superseded/` with an explanation.
+- [x] `docs/evaluation_report.md` written from the real outputs, with a rationale for each judgement.
+- [ ] **(you)** Confirm or correct every draft judgement (especially the rows marked ⚑), then change the
+      status banner from DRAFT to confirmed.
+- [ ] Optional: LLM comparison (e.g. `--llm-model llama3.1:8b` if RAM allows, or an API model). Not done.
+      The top-k 4 vs 8 comparison is a retrieval comparison, not an LLM comparison.
 
-## 3. Optional: configuration / model comparison
-- [ ] Top-k comparison (e.g. 2 / 4 / 8): `python -m evaluation.run_eval --top-k N`
-- [ ] Chunk-size comparison (e.g. 500/100, 1000/200, 1500/300) with `--chunk-size/--chunk-overlap --reindex`
-- [ ] Model comparison (e.g. `--llm-model llama3.1:8b` if RAM allows, or an OpenAI-compatible model)
-- [ ] Fill Section 6 of the evaluation report and discuss the trade-offs (quality vs. latency vs. memory).
+## 3. Presentation
+- [x] Draft deck: `docs/presentation/RAG_PDF_Chatbot_Capstone.pptx` (14 slides, speaker notes; numbers
+      taken from the evaluation report). Source: `docs/presentation/source/`.
+- [ ] **(you)** Open it in PowerPoint and review every slide visually. It was validated and text-fit
+      estimated, but not rendered slide by slide.
+- [ ] **(you)** Replace the dashed placeholder on slide 8 with a real app screenshot.
+- [ ] **(you)** If you change any judgement in the report, update the result slides 10–12.
 
-## 4. Presentation (suggested outline, ~10–12 slides)
-- [ ] 1. Title, problem statement: answer questions over private PDFs without hallucination.
-- [ ] 2. Requirements: upload, grounded answers with citations, abstention, local/free operation.
-- [ ] 3. Tech stack: Python 3.12, Streamlit, LangChain, PyPDF, RecursiveCharacterTextSplitter,
-      Sentence-Transformers all-MiniLM-L6-v2, Chroma, Ollama llama3.2:3b (OpenAI-compatible optional).
-- [ ] 4. Architecture diagram (from `docs/architecture.md`): ingestion path and query path.
-- [ ] 5. Implementation: module responsibilities, validation & error handling, file-hash dedupe,
-      active-corpus filter, grounded prompt and fallback.
-- [ ] 6. Model and tool choices with reasons (local/free/8 GB RAM, cosine on normalized embeddings,
-      chunk size 1000/200, top-k 4, temperature 0).
-- [ ] 7. Evaluation methodology: dataset, 14 questions in 5 categories, verified ground truth, metrics,
-      failure classes.
-- [ ] 8. Results: from the completed evaluation report only.
-- [ ] 9. Error analysis: representative failures and their class.
-- [ ] 10. Limitations and future work (OCR, tables, hybrid retrieval, re-ranking, larger model, multi-user).
-- [ ] 11. Live demo or video excerpt; 12. Q&A.
+## 4. Demo video (5–10 min)
+- [x] Script updated to V1.1 behaviour: `docs/demo_walkthrough.md`.
+- [ ] **(you)** Rehearse once (the first answer after `ollama serve` is slower), then record and export MP4.
 
-## 5. Demo video
-- [ ] Follow `docs/demo_walkthrough.md` (5–10 minutes).
-- [ ] Show: startup, upload + ingestion status incl. invalid/corrupted file, factual Q with sources
-      and evidence, multi-chunk Q, unanswerable Q with fallback, top-k change, clear corpus.
-- [ ] Check audio, resolution, and that terminal/browser text is readable; export as MP4.
+## 5. Dataset and packaging
+- [x] Corpus A (61 pp.) and corpus B (152 pp.) in `data/`; `data/download_datasets.sh` re-downloads them.
+- [ ] **(professor)** Does "50–200 pages" apply per document or per collection?
+- [ ] **(professor)** May the PDFs be included in the ZIP? Sentence-BERT is CC BY-SA 4.0; the other
+      five use the arXiv non-exclusive distribution licence, which only lets arXiv redistribute. If not
+      allowed, ship `download_datasets.sh` instead of the PDFs.
+- [ ] Create the archive without generated artefacts:
+      `zip -r pdf-rag-chatbot.zip . -x ".venv/*" "chroma_db/*" "*/__pycache__/*" ".pytest_cache/*" ".env" "docs/presentation/source/node_modules/*"`
+- [ ] Unzip into a clean folder and follow the README from scratch.
 
-## 6. Package code and dataset
-- [ ] Remove generated artefacts not needed for grading: `chroma_db/`, `__pycache__/`, `.venv/`,
-      `.pytest_cache/` (keep the final evaluation results files).
-- [ ] Include `data/sample_pdfs/` (4 public arXiv papers) with attribution (arXiv IDs 1706.03762,
-      1810.04805, 1908.10084, 2005.11401) — or a download script/instructions if size is a concern.
-- [ ] Include `evaluation/questions.json`, results files, and the completed evaluation report.
-- [ ] Include `README.md` and `docs/` (architecture, evaluation report, demo walkthrough).
-- [ ] Create the archive, e.g. `zip -r pdf-rag-chatbot.zip . -x ".venv/*" "chroma_db/*" "*/__pycache__/*" ".env"`.
-- [ ] Unzip into a clean folder and follow the README from scratch to confirm it works.
-
-## 7. Final submission
+## 6. Final submission
 - [ ] Code archive / repository link
-- [ ] Completed evaluation report
+- [ ] Confirmed evaluation report
 - [ ] Presentation slides
 - [ ] Demo video
-- [ ] Any required forms / declarations per the course instructions
+- [ ] Dataset (or download script, per the professor's answer)

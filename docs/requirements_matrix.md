@@ -85,8 +85,8 @@ Status as of 2026-10-11 (Version 1.1: V1 plus the audit fixes). Each status mean
 | D-1 | Working app plus README | Complete and verified | `streamlit run app.py` starts (audit health check); README commands verified by the audit |
 | D-2 | Architecture document and diagram | Complete | `docs/architecture.md` (Mermaid) |
 | D-3 | Manual evaluation report, about 10–15 questions | **Draft complete; needs student confirmation** | `docs/evaluation_report.md`: 15 main-corpus questions plus 9 long-corpus questions, with judgements and rationale. Judgements are marked as drafts until the student confirms them |
-| D-4 | Presentation | Incomplete | Phase 6 |
-| D-5 | 5–10 minute demo video | Incomplete | `docs/demo_walkthrough.md` exists but must be updated to V1.1 behaviour (Phase 6) and recorded |
+| D-4 | Presentation | Draft complete; needs student review | `docs/presentation/RAG_PDF_Chatbot_Capstone.pptx` (14 slides with speaker notes, numbers from the evaluation report). Validated, but not rendered slide by slide; the screenshot on slide 8 is still to be added |
+| D-5 | 5–10 minute demo video | Incomplete (recording) | Script updated to V1.1 observed behaviour: `docs/demo_walkthrough.md` |
 | D-6 | Dataset included with the submission | Needs professor clarification (licensing) | See A8 |
 
 ## Optional / out of scope (not prerequisites)

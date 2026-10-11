@@ -11,15 +11,15 @@ flowchart TD
         U[User uploads PDF in Streamlit sidebar] --> V{validate_pdf_bytes<br/>.pdf extension, %PDF- header,<br/>non-empty, size <= MAX_FILE_MB}
         V -- invalid --> E1[IngestReport status=error<br/>user-facing message]
         V -- valid --> H[compute_file_hash sha256]
-        H --> RD{pypdf opens it?<br/>not corrupted / not encrypted}
+        H --> D{store.has_file?}
+        D -- yes --> E2[IngestReport status=duplicate<br/>skip parsing and re-indexing]
+        D -- no --> RD{pypdf opens it?<br/>not corrupted / not encrypted}
         RD -- no --> E1
         RD -- yes --> L[PyPDFLoader / pypdf<br/>one Document per page, 1-based page]
-        L --> N[normalize_text<br/>re-join hyphenated breaks, collapse whitespace]
+        L --> N[normalize_text<br/>expand ligatures, re-join hyphenated breaks<br/>keeping real compounds, collapse whitespace]
         N --> S{any page with text?}
         S -- no --> E3[error: likely scanned / image-only PDF<br/>OCR out of scope]
-        S -- yes --> D{store.has_file?}
-        D -- yes --> E2[IngestReport status=duplicate<br/>skip re-indexing]
-        D -- no --> C[split_documents<br/>RecursiveCharacterTextSplitter<br/>CHUNK_SIZE / CHUNK_OVERLAP, per page]
+        S -- yes --> C[split_documents<br/>RecursiveCharacterTextSplitter<br/>CHUNK_SIZE / CHUNK_OVERLAP, per page]
         C --> EM[get_embeddings<br/>all-MiniLM-L6-v2, normalized]
         EM --> DB[(Chroma persistent collection<br/>cosine space<br/>ids = chunk_id<br/>metadata: source, page, file_hash)]
     end
@@ -35,7 +35,7 @@ flowchart TD
         CB --> P[grounded prompt<br/>SYSTEM_PROMPT rules + context + question]
         P --> LLM[LLM, temperature 0<br/>Ollama llama3.2:3b or OpenAI-compatible]
         LLM --> A[Answer with n citations]
-        A --> OUT[UI: answer + sources file/page<br/>+ expandable retrieved evidence with scores<br/>abstained flag if fallback]
+        A --> OUT[UI: answer + sources file/page of cited passages<br/>+ expandable retrieved evidence with scores<br/>abstained flag if fallback]
         FB --> OUT
     end
 ```
@@ -62,8 +62,11 @@ flowchart TD
 page so every chunk can be cited with a page number. It extracts the embedded text layer only (see
 limitations).
 
-**Text normalization.** PDF text often contains hyphenated line breaks (`embed-\nding`), stray null
-bytes and irregular whitespace / blank lines. Normalizing before chunking improves both embedding quality and how readable the quoted
+**Text normalization.** PDF text often contains hyphenated line breaks (`embed-\nding`), typographic
+ligatures from LaTeX (`ﬁ`, `ﬂ`), stray null bytes and irregular whitespace / blank lines. Ligatures are
+expanded because the embedding tokenizer otherwise splits words such as `efﬁcient`. Hyphenated breaks
+are re-joined unless the page itself uses the hyphenated form or the first part is capitalised/numeric,
+so real compounds (`self-attention`, `English-to-German`) survive. Normalizing before chunking improves both embedding quality and how readable the quoted
 evidence is in the UI.
 
 **RecursiveCharacterTextSplitter, 1000 characters / 200 overlap (default).** The splitter prefers
@@ -102,7 +105,15 @@ Adjustable in the UI and via `--top-k` for comparison.
 **Grounded prompt and explicit fallback.** The system prompt instructs the model to answer only from
 numbered passages, cite them as `[n]`, state which part is missing for partial answers, treat passage
 text as data (prompt-injection resistance) and otherwise reply with the exact `FALLBACK_ANSWER`
-sentence. If retrieval returns nothing the LLM is not called at all. The response's `abstained` flag is
+sentence. If retrieval returns nothing the LLM is not called at all. Two rules were added after
+evaluation (V1.1): rule 9 tells the model to prefer numbers stated in sentences over rows of flattened
+table text (root cause of a wrong BLEU value), and rule 10 tells it not to justify a premise that no
+passage states (root cause of a fabricated answer to a false-premise question).
+
+**Cited sources only.** The UI's Sources line lists the file/page of the passages the answer actually
+cites (`[n]` markers), not every retrieved chunk; if an answer carries no valid markers it falls back to
+all retrieved pages, and abstentions show no sources. All retrieved chunks remain inspectable in the
+"Retrieved evidence" panel. The response's `abstained` flag is
 derived from the fallback sentence, so abstention can be measured during evaluation.
 
 **Temperature 0.** Deterministic, least "creative" decoding minimizes hallucination and makes

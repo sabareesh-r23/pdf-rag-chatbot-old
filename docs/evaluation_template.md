@@ -1,6 +1,6 @@
 # Manual Evaluation Report — PDF RAG Chatbot
 
-> **NOT YET COMPLETED — fill in from actual run outputs.**
+> **SUPERSEDED BY docs/evaluation_report.md — kept as the blank template — fill in from actual run outputs.**
 > Every cell marked `TBD` must be filled from a real `evaluation/results/results_<timestamp>.md/.json`
 > file produced by `python -m evaluation.run_eval`. Do not estimate or invent results.
 
@@ -134,7 +134,7 @@ construction -> Generation/Abstention) and mention the others in *Observations*.
    machine-readable record.
 4. Compute the summary metrics. Report counts with denominators (e.g. "9/11"), not just percentages.
 5. Write a short discussion: dominant failure class, examples, and which improvement you would try first.
-6. Remove the "NOT YET COMPLETED" banner only when every `TBD` is replaced with observed data.
+6. Remove the "SUPERSEDED BY docs/evaluation_report.md — kept as the blank template" banner only when every `TBD` is replaced with observed data.
 
 ## 6. Optional: configuration comparison
 

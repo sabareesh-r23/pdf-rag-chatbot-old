@@ -1,0 +1,45 @@
+{
+  "corpusA": {"pages": 61, "questions": 15, "desc": "4 arXiv papers: Transformer, BERT, Sentence-BERT, RAG (11–19 pages each)"},
+  "corpusB": {"pages": 152, "questions": 9, "desc": "2 long arXiv papers: GPT-3 (75 pages) and Llama 2 (77 pages)"},
+  "retrieval": {
+    "labels": ["Corpus A (61 pp.)", "Corpus B (152 pp.)"],
+    "k4": [70, 33],
+    "k8": [80, 83],
+    "notes": [
+      "Full evidence retrieved: A 7 → 8 of 10, B 2 → 5 of 6 answerable questions",
+      "Long documents gain most from a larger top-k",
+      "Persistent misses: F3 (wording mismatch) and a cross-document comparison (LM2)"
+    ],
+    "speaker": "Bars show the share of answerable questions whose full evidence was in the retrieved chunks, judged from the chunk text (final V1.1 runs; A n=10, B n=6). Small samples: one question is 10 to 17 points. F3's evidence ranks 22nd for its wording but 1st when the question says 'Wikipedia dump'."
+  },
+  "quality": {
+    "labels": ["A · top-k 4", "A · top-k 8", "B · top-k 4", "B · top-k 8"],
+    "correct": [7, 6, 2, 3],
+    "partial": [2, 3, 1, 1],
+    "incorrect": [1, 1, 3, 2],
+    "abstainBig": "10 / 10",
+    "abstainLabel": "unanswerable responses correctly abstained (5 questions × 2 settings)",
+    "note": "False premises: never corrected; abstained in 5 of 6 responses, fabricated once (A2 at top-k 8). More context did not always help the 3B model.",
+    "speaker": "Judged outcomes for answerable questions in the final runs. Top-k 8 retrieves more evidence but corpus A correct answers went 7 to 6, latency roughly doubled (7 s to 13 s), and the only hallucination appeared at top-k 8. These are draft judgements to be confirmed; see docs/evaluation_report.md."
+  },
+  "failures": [
+    {"cls": "Retrieval", "title": "F3: RAG's Wikipedia index", "what": "The evidence on p. 4 ranks 22nd: the question says 'non-parametric memory', the passage says 'Wikipedia dump', and the chunk mixes two sections.", "status": "Unresolved. Chunk sizes and a second embedding model didn't fix it; hybrid BM25 or a reranker is next."},
+    {"cls": "Context + generation", "title": "BLEU 38.1 vs 28.4", "what": "Table 2 is flattened into bare numbers; 38.1 is the base model's EN-FR score, read from the wrong row and column.", "status": "Mitigated: rule 9. No wrong number in 8 test phrasings; one phrasing now abstains instead."},
+    {"cls": "Hallucination", "title": "A2: false premise", "what": "'Why does SBERT use [CLS] by default?' (it uses MEAN). The model justified the premise from BERT passages.", "status": "Partly fixed: rule 10 makes top-k 4 abstain; top-k 8 still fabricates."}
+  ],
+  "failuresSpeaker": "Each failure was root-caused before any change. Only prompt-level fixes were made; their verification is limited to the tested questions with llama3.2:3b at temperature 0.",
+  "limitations": [
+    "No OCR: scanned PDFs are rejected with an explanation",
+    "Tables and figures lose structure in text extraction",
+    "Dense retrieval misses passages worded differently from the question",
+    "3B local model: occasional omissions, contradictions and one fabrication",
+    "Single-user local prototype; 24-question evaluation, one run per setting"
+  ],
+  "improvements": [
+    "Hybrid BM25 + dense search, or a cross-encoder reranker (F3, LM2, premise chunks)",
+    "Query decomposition for cross-document comparisons (LM2)",
+    "Stronger LLM via the existing OpenAI-compatible setting (S2, M2, A2)",
+    "Table-aware extraction for numeric questions (BLEU case)"
+  ],
+  "conclusion": "A working local RAG chatbot that cites file and page and abstained on every unanswerable test question. Evaluation shows retrieval is the main bottleneck, with false premises the main hallucination risk."
+}

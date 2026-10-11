@@ -15,7 +15,7 @@ Built as an academic capstone project.
 - Duplicate detection by SHA-256 file hash (re-uploads are not re-indexed).
 - Persistent local vector store (Chroma) — the index survives app restarts.
 - Active-corpus selection: only ticked documents are searched; remove single files or clear the corpus.
-- Grounded answers with `[n]` citations, a **Sources** list (file + page) and an expandable
+- Grounded answers with `[n]` citations, a **Sources** list (file + page of the passages the answer cites) and an expandable
   **Retrieved evidence** panel with similarity scores.
 - Explicit fallback ("I could not find enough information in the uploaded documents to answer this
   question.") when the context does not contain the answer.
@@ -124,17 +124,21 @@ python -m evaluation.run_eval --top-k 8                                        #
 python -m evaluation.run_eval --chunk-size 500 --chunk-overlap 100 --reindex   # vary chunking
 python -m evaluation.run_eval --llm-model llama3.1:8b                          # vary model
 python -m evaluation.run_eval --ids F1,U1                                      # subset / smoke test
+python -m evaluation.run_eval --questions evaluation/questions_long.json --pdf-dir data/long_pdfs   # long-document corpus
 ```
 
-The script indexes `data/sample_pdfs/` into a separate collection per chunk configuration
-(`eval_cs<size>_co<overlap>`), runs all questions in `evaluation/questions.json` (14 questions:
-factual, multi-chunk, synthesis, unanswerable, adversarial — ground truth verified against the PDF
-text with page numbers) and writes `evaluation/results/results_<timestamp>.json` and `.md` with the
-configuration, retrieved chunks, answers, sources, abstention flag and latency. Human judgement fields
-are left blank; complete them in [docs/evaluation_template.md](docs/evaluation_template.md).
+The script indexes the PDF folder into a separate collection per chunk configuration and corpus
+(`eval_cs<size>_co<overlap>[_<folder>]`), runs every question and writes
+`evaluation/results/results_<timestamp>.json` and `.md`. Each record holds the configuration, retrieved
+chunks, answer, sources, abstention flag, latency and two automatic hints (expected page retrieved;
+verbatim evidence snippets retrieved). Human judgement fields are left blank by the script.
 
-**Results:** see the evaluation report (`docs/evaluation_template.md`) once completed. No results are
-claimed in this README.
+Question sets (ground truth verified against the PDF text, with quotes and page numbers):
+- `evaluation/questions.json`: 15 questions on `data/sample_pdfs/` (4 papers, 61 pages)
+- `evaluation/questions_long.json`: 9 questions on `data/long_pdfs/` (GPT-3 and Llama 2 papers, 152 pages)
+
+**Results:** see [docs/evaluation_report.md](docs/evaluation_report.md). Its judgements are drafts
+until the student confirms them. No results are claimed in this README.
 
 ## Project structure
 
@@ -152,16 +156,23 @@ pdf-rag-chatbot/
 │   ├── generation.py         # grounded prompt, LLM factory, answer generation
 │   └── pipeline.py           # RAGPipeline.ask -> RAGResponse
 ├── evaluation/
-│   ├── questions.json        # verified evaluation questions
+│   ├── questions.json        # 15 verified questions (corpus A)
+│   ├── questions_long.json   # 9 verified questions (corpus B, long documents)
 │   ├── run_eval.py           # batch evaluation CLI
-│   └── results/              # generated results (JSON + Markdown)
-├── data/sample_pdfs/         # 4 public arXiv papers (dataset)
+│   └── results/              # final run files (+ superseded/ intermediate runs)
+├── data/
+│   ├── sample_pdfs/          # corpus A: 4 public arXiv papers, 61 pages
+│   ├── long_pdfs/            # corpus B: GPT-3 + Llama 2 papers, 152 pages
+│   └── download_datasets.sh  # re-download all six PDFs from arXiv
 ├── docs/
 │   ├── architecture.md
-│   ├── evaluation_template.md
+│   ├── evaluation_report.md  # evaluation with draft judgements (confirm before submitting)
+│   ├── requirements_matrix.md
+│   ├── evaluation_template.md  # blank template (superseded by evaluation_report.md)
 │   ├── demo_walkthrough.md
 │   ├── submission_checklist.md
-│   └── audit_report.md       # independent audit (draft eval assessment, to be verified)
+│   ├── audit_report.md       # independent audit of V1
+│   └── presentation/         # RAG_PDF_Chatbot_Capstone.pptx + source/
 ├── tests/                    # pytest suite (fixtures generated with reportlab)
 ├── requirements.txt
 ├── pytest.ini
@@ -192,8 +203,12 @@ Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks (2005.11401).
 - No OCR: scanned/image-only PDFs are rejected; image-only pages are skipped.
 - Tables, figures and equations are extracted as flat (sometimes garbled) text; multi-column layouts may interleave.
 - Chunks never span pages, so sentences across a page break are split.
-- A 3B local model can miss multi-part answers or occasionally ignore grounding instructions.
-- Dense retrieval only (no keyword/BM25 hybrid or re-ranker).
+- A 3B local model can miss multi-part answers or occasionally ignore grounding instructions. In the
+  evaluation it never corrected a false premise and once fabricated a rationale (see the evaluation report).
+- Dense retrieval only (no keyword/BM25 hybrid or re-ranker): passages worded differently from the
+  question can be missed (evaluation question F3).
+- Some PDFs extract with words glued together (e.g. parts of the Llama 2 paper), which normalisation
+  cannot repair.
 - Single-user, local application (one shared index, no authentication).
 
 ## Troubleshooting

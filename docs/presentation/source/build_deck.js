@@ -1,0 +1,320 @@
+// Builds docs/presentation/RAG_PDF_Chatbot_Capstone.pptx from deck_data.json (numbers come from the
+// judged evaluation runs, never typed into this file).
+const path = require("path");
+const fs = require("fs");
+const pptxgen = require("pptxgenjs");
+const { applyTheme } = require(process.env.PPTX_SKILL + "/scripts/apply_theme.js");
+
+const REPO = process.env.REPO;
+const D = JSON.parse(fs.readFileSync(path.join(__dirname, "deck_data.json"), "utf8"));
+const OUT = path.join(REPO, "docs", "presentation", "RAG_PDF_Chatbot_Capstone.pptx");
+
+// "Ink & highlighter": research-paper ink, a highlighter accent, green = supported, coral = failure.
+const THEME = {
+  name: "Ink and Highlighter",
+  headFontFace: "Cambria",
+  bodyFontFace: "Calibri",
+  colors: {
+    dk1: "1B2A3A", lt1: "FFFFFF", dk2: "33465C", lt2: "EEF2F6",
+    accent1: "F2B134", accent2: "2A9D8F", accent3: "E76F51", accent4: "5C7A99",
+    accent5: "B8C4D2", accent6: "8A6D1D", hlink: "2A9D8F", folHlink: "5C7A99",
+  },
+};
+const HEX = THEME.colors;
+
+const pres = new pptxgen();
+pres.layout = "LAYOUT_16x9"; // 10 x 5.625 in
+pres.title = "AI-Powered PDF Chatbot Using RAG";
+pres.author = "Capstone project";
+pres.theme = { headFontFace: THEME.headFontFace, bodyFontFace: THEME.bodyFontFace };
+const C = pres.SchemeColor;
+
+pres.defineSlideMaster({
+  title: "DARK",
+  background: { color: C.text1 },
+  objects: [
+    { placeholder: { options: { name: "title", type: "title", x: 0.6, y: 1.55, w: 8.8, h: 1.3, fontSize: 36, bold: true, color: C.background1, fontFace: THEME.headFontFace, valign: "bottom", align: "left" }, text: "" } },
+    { placeholder: { options: { name: "body", type: "body", x: 0.6, y: 2.95, w: 8.8, h: 1.2, fontSize: 18, color: C.background2, valign: "top", align: "left" }, text: "" } },
+  ],
+});
+pres.defineSlideMaster({
+  title: "CONTENT",
+  background: { color: C.background1 },
+  margin: [0.5, 0.5, 0.45, 0.5],
+  slideNumber: { x: 9.2, y: 5.25, w: 0.5, h: 0.25, fontSize: 10, color: C.accent4, align: "right" },
+  objects: [
+    { text: { text: "PDF RAG Chatbot · Capstone", options: { x: 0.5, y: 5.25, w: 4, h: 0.25, fontSize: 10, color: C.accent4 } } },
+    { placeholder: { options: { name: "title", type: "title", x: 0.5, y: 0.3, w: 9.0, h: 0.75, fontSize: 28, bold: true, color: C.text1, fontFace: THEME.headFontFace, valign: "middle", align: "left" }, text: "" } },
+  ],
+});
+
+// Motif: a citation badge "[n]" in a rounded square, echoing the chatbot's own citations.
+function badge(slide, x, y, label, fill, name) {
+  slide.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w: 0.46, h: 0.46, rectRadius: 0.08, fill: { color: fill }, line: { color: fill }, objectName: name + "-badge" });
+  slide.addText(label, { x, y, w: 0.46, h: 0.46, fontSize: 13, bold: true, color: C.text1, align: "center", valign: "middle", margin: 0, isTextBox: true, objectName: name + "-badge-text" });
+}
+function card(slide, x, y, w, h, name, fill) {
+  slide.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h, rectRadius: 0.08, fill: { color: fill || C.background2 }, line: { color: fill || C.background2 }, objectName: name });
+}
+function textBox(slide, text, opts) {
+  slide.addText(text, Object.assign({ isTextBox: true, margin: 0, valign: "top", fontSize: 14, color: C.text1 }, opts));
+}
+function bullets(items, size) {
+  return items.map((t, i) => ({ text: t, options: { bullet: true, fontSize: size || 14, color: C.text1, paraSpaceAfter: 6, breakLine: i < items.length - 1 } }));
+}
+const chartText = { catAxisLabelFontFace: "+mn-lt", valAxisLabelFontFace: "+mn-lt", dataLabelFontFace: "+mn-lt", legendFontFace: "+mn-lt", titleFontFace: "+mn-lt" };
+
+// ---------------------------------------------------------------- 1. Title
+pres.addSection({ title: "Introduction" });
+let s = pres.addSlide({ masterName: "DARK", sectionTitle: "Introduction" });
+s.addText("AI-Powered PDF Chatbot Using RAG", { placeholder: "title" });
+s.addText("Grounded, cited answers from your own PDFs, running locally with LangChain, Chroma and Llama 3.2", { placeholder: "body" });
+badge(s, 0.6, 0.7, "[1]", C.accent1, "title-b1");
+badge(s, 1.16, 0.7, "[2]", C.accent2, "title-b2");
+badge(s, 1.72, 0.7, "[3]", C.accent5, "title-b3");
+textBox(s, "Academic capstone · Version 1.1", { x: 0.6, y: 4.7, w: 6, h: 0.35, fontSize: 14, color: C.accent5 });
+s.addNotes("Introduce the project: a chatbot that answers questions about uploaded PDFs using Retrieval-Augmented Generation, citing file and page, and refusing to answer when the documents do not contain the information.");
+
+// ---------------------------------------------------------------- 2. Problem
+s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Introduction" });
+s.addText("Problem: trustworthy answers from your PDFs", { placeholder: "title" });
+card(s, 0.5, 1.25, 4.3, 3.7, "problem-card");
+textBox(s, "The problem", { x: 0.75, y: 1.45, w: 3.8, h: 0.4, fontSize: 18, bold: true, fontFace: THEME.headFontFace });
+s.addText(bullets([
+  "Generic chatbots answer from general knowledge and can invent facts",
+  "Keyword search finds words, not meaning, and gives no answer",
+  "Users need to verify where an answer came from",
+]), { x: 0.75, y: 1.95, w: 3.85, h: 2.8, isTextBox: true, margin: 0, valign: "top" });
+textBox(s, "Objectives", { x: 5.2, y: 1.25, w: 4.3, h: 0.4, fontSize: 18, bold: true, fontFace: THEME.headFontFace });
+const objectives = [
+  ["Upload PDFs", "Validate, extract and index one or more documents"],
+  ["Ask in English", "Semantic retrieval of the relevant passages"],
+  ["Grounded answers", "LLM answers only from retrieved context, with file and page"],
+  ["Abstain honestly", "Clear fallback when the documents don't say"],
+];
+objectives.forEach(([h, d], i) => {
+  const y = 1.8 + i * 0.78;
+  badge(s, 5.2, y, String(i + 1), i === 3 ? C.accent3 : C.accent1, "obj" + i);
+  textBox(s, h, { x: 5.8, y: y - 0.02, w: 3.7, h: 0.3, fontSize: 15, bold: true });
+  textBox(s, d, { x: 5.8, y: y + 0.27, w: 3.7, h: 0.4, fontSize: 12, color: C.text2 });
+});
+s.addNotes("State the problem and the four objectives from the assignment brief. Emphasise that grounding and honest abstention are the core requirements, not a fancy UI.");
+
+// ---------------------------------------------------------------- 3. Architecture
+pres.addSection({ title: "Architecture" });
+s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Architecture" });
+s.addText("RAG architecture: two paths, one vector store", { placeholder: "title" });
+function flow(slide, y, label, steps, fill, name) {
+  textBox(slide, label, { x: 0.5, y: y - 0.38, w: 6, h: 0.3, fontSize: 13, bold: true, color: C.text2 });
+  const gap = 0.18, w = (9.0 - gap * (steps.length - 1)) / steps.length;
+  steps.forEach((t, i) => {
+    const x = 0.5 + i * (w + gap);
+    slide.addShape(pres.shapes.ROUNDED_RECTANGLE, { x, y, w, h: 0.78, rectRadius: 0.08, fill: { color: fill }, line: { color: fill }, objectName: `${name}-${i}` });
+    slide.addText(t, { x: x + 0.06, y, w: w - 0.12, h: 0.78, fontSize: 11.5, color: C.text1, align: "center", valign: "middle", margin: 0, isTextBox: true, objectName: `${name}-${i}-t` });
+    if (i < steps.length - 1) {
+      slide.addShape(pres.shapes.ISOSCELES_TRIANGLE, { x: x + w + 0.02, y: y + 0.32, w: 0.14, h: 0.14, rotate: 90, fill: { color: C.accent4 }, line: { color: C.accent4 }, objectName: `${name}-arrow-${i}` });
+    }
+  });
+}
+flow(s, 1.55, "Ingestion path (per uploaded PDF)", ["Upload + validate\n(type, header, size)", "Hash +\nduplicate check", "PyPDFLoader\nper page", "Normalise\ntext", "Chunk\n1000 / 200", "Embed\nMiniLM-L6"], C.background2, "ing");
+flow(s, 3.3, "Query path (per question)", ["Question", "Embed\n(same model)", "Top-k search\nactive files only", "Numbered\ncontext", "Grounded prompt\nLlama 3.2 3B", "Answer + cited\nfile/page"], C.accent5, "qry");
+// shared store
+s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 7.0, y: 2.45, w: 2.5, h: 0.6, rectRadius: 0.08, fill: { color: C.accent1 }, line: { color: C.accent1 }, objectName: "store" });
+textBox(s, "Chroma vector store\n(cosine, file + page metadata)", { x: 7.05, y: 2.45, w: 2.4, h: 0.6, fontSize: 11, bold: true, align: "center", valign: "middle" });
+textBox(s, "No passages retrieved → fixed fallback answer, LLM not called", { x: 0.5, y: 4.45, w: 9, h: 0.35, fontSize: 12, italic: true, color: C.text2 });
+s.addNotes("Walk the ingestion path left to right, then the query path. The same embedding model is used for chunks and questions. Retrieval is filtered by file hash so only the selected documents can be cited. Full diagram: docs/architecture.md.");
+
+// ---------------------------------------------------------------- 4. Stack
+s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Architecture" });
+s.addText("Technology stack and why each piece", { placeholder: "title" });
+const stack = [
+  ["Streamlit", "UI", "Chat, upload and evidence panel in pure Python; quick to build"],
+  ["LangChain", "Orchestration", "Standard loaders, splitter and vector-store interfaces"],
+  ["PyPDFLoader", "Extraction", "Text per page with page numbers; no system dependencies"],
+  ["all-MiniLM-L6-v2", "Embeddings", "Local, 384-dim, ~90 MB, strong for its size, no API key"],
+  ["Chroma", "Vector DB", "Embedded and persistent, metadata filters, no server"],
+  ["Llama 3.2 3B · Ollama", "LLM", "Free, private, fits an 8 GB laptop; swappable via config"],
+];
+stack.forEach(([name, role, why], i) => {
+  const col = i % 3, row = Math.floor(i / 3);
+  const x = 0.5 + col * 3.05, y = 1.3 + row * 1.85;
+  card(s, x, y, 2.85, 1.65, "stack-" + i);
+  textBox(s, role.toUpperCase(), { x: x + 0.2, y: y + 0.17, w: 2.45, h: 0.25, fontSize: 10, bold: true, color: C.accent6, charSpacing: 1 });
+  textBox(s, name, { x: x + 0.2, y: y + 0.42, w: 2.45, h: 0.35, fontSize: 16, bold: true, fontFace: THEME.headFontFace });
+  textBox(s, why, { x: x + 0.2, y: y + 0.82, w: 2.45, h: 0.75, fontSize: 12, color: C.text2 });
+});
+s.addNotes("Justify each choice: everything except the optional API LLM runs locally on the student's 8 GB M1 laptop. The LLM provider can be switched to any OpenAI-compatible API by setting LLM_PROVIDER=openai, with no code change.");
+
+// ---------------------------------------------------------------- 5. Ingestion
+pres.addSection({ title: "Implementation" });
+s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Implementation" });
+s.addText("PDF ingestion: reject bad files, keep pages", { placeholder: "title" });
+textBox(s, "Handled gracefully", { x: 0.5, y: 1.2, w: 4.3, h: 0.35, fontSize: 18, bold: true, fontFace: THEME.headFontFace });
+const checks = ["Wrong type or renamed non-PDF", "Corrupted or password-protected", "Empty or oversized file", "Duplicate upload, even renamed (SHA-256)", "Blank pages: skipped and listed", "No text at all: scanned, OCR not supported"];
+checks.forEach((t, i) => {
+  const y = 1.7 + i * 0.52;
+  s.addShape(pres.shapes.OVAL, { x: 0.5, y: y + 0.06, w: 0.22, h: 0.22, fill: { color: C.accent2 }, line: { color: C.accent2 }, objectName: "chk-" + i });
+  textBox(s, t, { x: 0.88, y, w: 3.9, h: 0.36, fontSize: 14, valign: "middle" });
+});
+textBox(s, "Normalisation examples", { x: 5.2, y: 1.2, w: 4.3, h: 0.35, fontSize: 18, bold: true, fontFace: THEME.headFontFace });
+const norm = [["efﬁcient", "efficient", "ligatures expanded"], ["embed-↵ding", "embedding", "line-break hyphen joined"], ["English-↵to-German", "English-to-German", "real compound kept"]];
+norm.forEach(([a, b, why], i) => {
+  const y = 1.7 + i * 1.0;
+  card(s, 5.2, y, 4.3, 0.85, "norm-" + i);
+  textBox(s, a, { x: 5.4, y: y + 0.12, w: 1.75, h: 0.35, fontSize: 14, color: C.accent3, fontFace: "Courier New" });
+  textBox(s, "→", { x: 7.1, y: y + 0.1, w: 0.3, h: 0.35, fontSize: 16, color: C.accent4 });
+  textBox(s, b, { x: 7.45, y: y + 0.12, w: 1.95, h: 0.35, fontSize: 14, color: C.accent2, fontFace: "Courier New" });
+  textBox(s, why, { x: 5.4, y: y + 0.5, w: 3.9, h: 0.28, fontSize: 11, color: C.text2 });
+});
+textBox(s, "Each chunk keeps: file · page · hash · chunk id", { x: 5.2, y: 4.75, w: 4.3, h: 0.3, fontSize: 11, italic: true, color: C.text2 });
+s.addNotes("Validation runs on the bytes, not just the extension. Ligature expansion and the smarter hyphen rule were added in V1.1 after the audit found that 'ﬁ' ligatures were splitting words for the embedding tokenizer.");
+
+// ---------------------------------------------------------------- 6. Chunk / embed / retrieve
+s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Implementation" });
+s.addText("Chunking, embeddings and semantic retrieval", { placeholder: "title" });
+const stats = [["1000", "characters per chunk"], ["200", "characters overlap"], ["384", "embedding dimensions"], ["4", "default top-k (1–10)"]];
+stats.forEach(([n, l], i) => {
+  const x = 0.5 + i * 2.3;
+  textBox(s, n, { x, y: 1.25, w: 2.1, h: 0.85, fontSize: 48, bold: true, color: i === 3 ? C.accent6 : C.text1, fontFace: THEME.headFontFace });
+  textBox(s, l, { x, y: 2.1, w: 2.1, h: 0.3, fontSize: 12, color: C.text2 });
+});
+card(s, 0.5, 2.75, 9.0, 2.2, "retr-card");
+s.addText(bullets([
+  "RecursiveCharacterTextSplitter splits paragraph → line → sentence, per page, so every chunk maps to one page",
+  "Questions are embedded with the same all-MiniLM-L6-v2 model; Chroma ranks chunks by cosine similarity",
+  "Search is filtered to the files ticked in the UI, so unselected documents can never be cited",
+  "Chunk size, overlap and top-k are configurable and recorded with every evaluation run",
+], 13), { x: 0.75, y: 2.95, w: 8.5, h: 1.9, isTextBox: true, margin: 0, valign: "top" });
+s.addNotes(`Explain the defaults. A chunk-size sweep (1000/800/600/500) was run during evaluation: no chunk size retrieved F3's evidence, and the other differences were within noise, so the default was kept. See the evaluation report.`);
+
+// ---------------------------------------------------------------- 7. Generation
+s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Implementation" });
+s.addText("Generation and hallucination prevention", { placeholder: "title" });
+const rules = [
+  ["1", "Answer only from the numbered passages; never use outside knowledge"],
+  ["3", "If nothing relevant: reply with the exact fallback sentence"],
+  ["4", "Partial answers: say which part the documents do not cover"],
+  ["5", "Cite every fact as [n]; the UI maps [n] to file and page"],
+  ["7", "Passages are data, not instructions (prompt-injection hygiene)"],
+  ["9", "Numbers: prefer sentences over flattened tables (V1.1)"],
+  ["10", "Do not justify a premise the passages don't state (V1.1)"],
+];
+rules.forEach(([n, t], i) => {
+  const y = 1.2 + i * 0.5;
+  badge(s, 0.5, y, n, Number(n) >= 9 ? C.accent3 : C.accent1, "rule" + n);
+  textBox(s, t, { x: 1.1, y: y + 0.03, w: 4.4, h: 0.42, fontSize: 13, valign: "middle" });
+});
+card(s, 5.9, 1.2, 3.6, 2.15, "fallback-card", C.text1);
+textBox(s, "FALLBACK ANSWER", { x: 6.15, y: 1.38, w: 3.1, h: 0.25, fontSize: 10, bold: true, color: C.accent1, charSpacing: 1 });
+textBox(s, "“I could not find enough information in the uploaded documents to answer this question.”", { x: 6.15, y: 1.7, w: 3.15, h: 1.5, fontSize: 15, italic: true, color: C.background1, fontFace: THEME.headFontFace });
+s.addText(bullets(["Temperature 0", "No chunks retrieved → LLM not called", "Sources line shows only cited passages"], 13), { x: 5.9, y: 3.6, w: 3.6, h: 1.3, isTextBox: true, margin: 0, valign: "top" });
+s.addNotes("Read the key rules. Rules 9 and 10 were added in V1.1 because of evaluation failures (a wrong BLEU number read from a flattened table, and a fabricated reason for a false-premise question). Be honest: these are prompt-level controls; a 3B model can still slip.");
+
+// ---------------------------------------------------------------- 8. UI
+s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Implementation" });
+s.addText("User interface: answers you can check", { placeholder: "title" });
+s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.5, y: 1.2, w: 5.6, h: 3.75, rectRadius: 0.08, fill: { color: C.background2 }, line: { color: C.accent4, dashType: "dash", width: 1 }, objectName: "screenshot-frame" });
+textBox(s, "Insert screenshot: a chat answer with the Sources line and the Retrieved evidence panel open", { x: 0.8, y: 2.75, w: 5.0, h: 0.7, fontSize: 13, italic: true, color: C.accent4, align: "center" });
+const ui = [["Sidebar", "Upload, indexing status per file, active-corpus checkboxes, clear / re-index"], ["Chat", "Question, answer with [n] citations, Sources: file (p. N)"], ["Evidence", "Rank, page, similarity score and full text of every retrieved chunk"], ["Settings", "Top-k slider, chunk size/overlap, LLM status check"]];
+ui.forEach(([h, d], i) => {
+  const y = 1.2 + i * 0.95;
+  textBox(s, h, { x: 6.45, y, w: 3.05, h: 0.3, fontSize: 15, bold: true });
+  textBox(s, d, { x: 6.45, y: y + 0.32, w: 3.05, h: 0.55, fontSize: 12, color: C.text2 });
+});
+s.addNotes("Replace the dashed frame with a real screenshot from the running app (streamlit run app.py) before presenting.");
+
+// ---------------------------------------------------------------- 9. Evaluation method
+pres.addSection({ title: "Evaluation" });
+s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Evaluation" });
+s.addText("Evaluation: manual and evidence-checked", { placeholder: "title" });
+const corp = [[`Corpus A · ${D.corpusA.pages} pages`, D.corpusA.desc, `${D.corpusA.questions} questions`], [`Corpus B · ${D.corpusB.pages} pages`, D.corpusB.desc, `${D.corpusB.questions} questions`]];
+corp.forEach(([h, d, q], i) => {
+  const x = 0.5 + i * 4.6;
+  card(s, x, 1.2, 4.4, 1.55, "corp-" + i);
+  textBox(s, h, { x: x + 0.2, y: 1.35, w: 4.0, h: 0.35, fontSize: 16, bold: true, fontFace: THEME.headFontFace });
+  textBox(s, d, { x: x + 0.2, y: 1.75, w: 4.0, h: 0.6, fontSize: 12, color: C.text2 });
+  textBox(s, q, { x: x + 0.2, y: 2.35, w: 4.0, h: 0.3, fontSize: 12, bold: true, color: C.accent6 });
+});
+textBox(s, "Question types", { x: 0.5, y: 3.0, w: 4, h: 0.3, fontSize: 15, bold: true });
+textBox(s, "Factual · multi-passage · synthesis · partially answerable · unanswerable · false premise", { x: 0.5, y: 3.32, w: 9, h: 0.3, fontSize: 13, color: C.text2 });
+textBox(s, "For every answer", { x: 0.5, y: 3.8, w: 4, h: 0.3, fontSize: 15, bold: true });
+textBox(s, "Was the evidence retrieved? Is the answer correct, relevant and supported? Correct abstention? Failure class: retrieval · context · generation · abstention", { x: 0.5, y: 4.12, w: 9, h: 0.6, fontSize: 13, color: C.text2 });
+s.addNotes("Expected answers were verified against the PDF text with a verbatim quote and page number. Each question was run at top-k 4 and 8. Judgements are the student's, informed by a draft from the review; see docs/evaluation_report.md.");
+
+// ---------------------------------------------------------------- 10. Retrieval results (chart)
+s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Evaluation" });
+s.addText("Retrieval: was the evidence in the top-k?", { placeholder: "title" });
+s.addChart(pres.charts.BAR, [
+  { name: "Top-k 4", labels: D.retrieval.labels, values: D.retrieval.k4 },
+  { name: "Top-k 8", labels: D.retrieval.labels, values: D.retrieval.k8 },
+], Object.assign({
+  x: 0.5, y: 1.15, w: 5.8, h: 3.85, barDir: "col", barGrouping: "clustered",
+  chartColors: [HEX.accent4, HEX.accent1], showValue: true, dataLabelPosition: "outEnd", dataLabelFontSize: 11, dataLabelColor: HEX.dk1,
+  showLegend: true, legendPos: "b", legendFontSize: 11, legendColor: HEX.dk2,
+  catAxisLabelColor: HEX.dk2, catAxisLabelFontSize: 11, valAxisLabelColor: HEX.dk2, valAxisLabelFontSize: 10,
+  valAxisMaxVal: 100, valAxisMinVal: 0, valAxisLabelFormatCode: "0\"%\"", dataLabelFormatCode: "0\"%\"",
+  valGridLine: { color: HEX.lt2, size: 0.75 }, catGridLine: { style: "none" },
+  showTitle: true, title: "Answerable questions with evidence retrieved (%)", titleFontSize: 12, titleColor: HEX.dk1,
+}, chartText));
+D.retrieval.notes.forEach((t, i) => {
+  textBox(s, t, { x: 6.6, y: 1.25 + i * 1.25, w: 2.9, h: 1.1, fontSize: 13, color: C.text1 });
+});
+s.addNotes(D.retrieval.speaker);
+
+// ---------------------------------------------------------------- 11. Answer quality (chart)
+s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Evaluation" });
+s.addText("Answers: correctness and honest abstention", { placeholder: "title" });
+s.addChart(pres.charts.BAR, [
+  { name: "Correct", labels: D.quality.labels, values: D.quality.correct },
+  { name: "Partial", labels: D.quality.labels, values: D.quality.partial },
+  { name: "Incorrect", labels: D.quality.labels, values: D.quality.incorrect },
+], Object.assign({
+  x: 0.5, y: 1.15, w: 5.8, h: 3.85, barDir: "bar", barGrouping: "stacked",
+  chartColors: [HEX.accent2, HEX.accent1, HEX.accent3], showValue: true, dataLabelPosition: "ctr", dataLabelFontSize: 11, dataLabelColor: HEX.dk1,
+  showLegend: true, legendPos: "b", legendFontSize: 11, legendColor: HEX.dk2,
+  catAxisLabelColor: HEX.dk2, catAxisLabelFontSize: 11, valAxisLabelColor: HEX.dk2, valAxisLabelFontSize: 10,
+  valGridLine: { color: HEX.lt2, size: 0.75 }, catGridLine: { style: "none" },
+  showTitle: true, title: "Answerable questions by judged outcome (count)", titleFontSize: 12, titleColor: HEX.dk1,
+}, chartText));
+textBox(s, D.quality.abstainBig, { x: 6.6, y: 1.2, w: 2.9, h: 0.9, fontSize: 44, bold: true, color: C.accent2, fontFace: THEME.headFontFace });
+textBox(s, D.quality.abstainLabel, { x: 6.6, y: 2.1, w: 2.9, h: 0.6, fontSize: 12, color: C.text2 });
+textBox(s, D.quality.note, { x: 6.6, y: 2.9, w: 2.9, h: 2.0, fontSize: 13, color: C.text1 });
+s.addNotes(D.quality.speaker);
+
+// ---------------------------------------------------------------- 12. Failure analysis
+s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Evaluation" });
+s.addText("Confirmed failure cases and root causes", { placeholder: "title" });
+D.failures.forEach((f, i) => {
+  const x = 0.5 + i * 3.05;
+  card(s, x, 1.2, 2.85, 3.75, "fail-" + i);
+  textBox(s, f.cls.toUpperCase(), { x: x + 0.2, y: 1.37, w: 2.45, h: 0.25, fontSize: 10, bold: true, color: C.accent3, charSpacing: 1 });
+  textBox(s, f.title, { x: x + 0.2, y: 1.65, w: 2.45, h: 0.6, fontSize: 15, bold: true, fontFace: THEME.headFontFace });
+  textBox(s, f.what, { x: x + 0.2, y: 2.3, w: 2.45, h: 1.2, fontSize: 12, color: C.text2 });
+  textBox(s, f.status, { x: x + 0.2, y: 3.6, w: 2.45, h: 1.25, fontSize: 12, color: C.text1 });
+});
+s.addNotes(D.failuresSpeaker);
+
+// ---------------------------------------------------------------- 13. Limitations & improvements
+pres.addSection({ title: "Conclusion" });
+s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Conclusion" });
+s.addText("Limitations and next improvements", { placeholder: "title" });
+textBox(s, "Limitations", { x: 0.5, y: 1.2, w: 4.3, h: 0.35, fontSize: 18, bold: true, fontFace: THEME.headFontFace });
+s.addText(bullets(D.limitations, 13), { x: 0.5, y: 1.65, w: 4.3, h: 3.3, isTextBox: true, margin: 0, valign: "top" });
+card(s, 5.2, 1.2, 4.3, 3.75, "improve-card");
+textBox(s, "Improvements (evidence-based)", { x: 5.45, y: 1.35, w: 3.9, h: 0.35, fontSize: 18, bold: true, fontFace: THEME.headFontFace });
+s.addText(bullets(D.improvements, 13), { x: 5.45, y: 1.8, w: 3.85, h: 3.05, isTextBox: true, margin: 0, valign: "top" });
+s.addNotes("Every improvement listed is tied to a failure observed in the evaluation. None of them has been implemented or measured yet.");
+
+// ---------------------------------------------------------------- 14. Conclusion
+s = pres.addSlide({ masterName: "DARK", sectionTitle: "Conclusion" });
+s.addText("Conclusion", { placeholder: "title" });
+s.addText(D.conclusion, { placeholder: "body" });
+badge(s, 0.6, 0.7, "[✓]", C.accent2, "end-b1");
+s.addNotes("Close by restating what works (grounded, cited answers; consistent abstention on unanswerable questions) and what doesn't yet (dense retrieval misses some short facts; a 3B model sometimes misreads or fabricates). Invite questions.");
+
+(async () => {
+  fs.mkdirSync(path.dirname(OUT), { recursive: true });
+  await pres.writeFile({ fileName: OUT });
+  await applyTheme(OUT, THEME);
+  console.log("Wrote " + OUT);
+})();
