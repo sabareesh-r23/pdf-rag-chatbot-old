@@ -60,6 +60,11 @@ def test_is_abstention_true(answer):
         "The reactor runs at 451 degrees [1].",
         # partial answer: supported fact first, then the missing part -> not an abstention
         "Mira Vance founded it [1]. I could not find enough information in the uploaded documents about the budget.",
+        # long uncited partial answer ending with the fallback (seen for M2 in V1.1) -> not an abstention
+        "BERT's two pre-training tasks are masked language modelling, where some input tokens are randomly "
+        "masked and the model predicts the original token, and next sentence prediction, where two sentences "
+        "are packed into one sequence separated by a special token and the model predicts whether they are "
+        "adjacent. " + FALLBACK_ANSWER,
     ],
 )
 def test_is_abstention_false(answer):

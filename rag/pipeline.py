@@ -36,6 +36,8 @@ _PARAPHRASE_RE = re.compile(
 )
 
 
+# Words allowed around an uncited fallback for it to still count as an abstention.
+_MAX_HEDGE_WORDS = 30
 _CITATION_RE = re.compile(r"\[(\d+(?:\s*,\s*\d+)*)\]")
 
 
@@ -54,7 +56,7 @@ def is_abstention(answer: str) -> bool:
     """True if the answer is the fallback (or a close paraphrase of it).
 
     The answer abstains when it starts with the fallback, or when it contains the
-    fallback anywhere but cites no passage (a hedged non-answer). A partial answer
+    fallback, cites no passage and adds only a short hedge around it. A partial answer
     that cites supported facts and then notes a missing part is NOT an abstention.
     """
     norm = _normalize(answer)
@@ -62,7 +64,12 @@ def is_abstention(answer: str) -> bool:
         return True
     if norm.startswith(_FALLBACK_NORM) or _PARAPHRASE_RE.match(norm):
         return True
-    return _FALLBACK_NORM in norm and not cited_indices(answer)
+    if _FALLBACK_NORM in norm and not cited_indices(answer):
+        # Only a short hedge around the fallback is a non-answer; a long uncited
+        # answer that ends with the fallback is a (poorly cited) partial answer.
+        remainder = norm.replace(_FALLBACK_NORM, " ").split()
+        return len(remainder) <= _MAX_HEDGE_WORDS
+    return False
 
 
 def unique_sources(chunks: list[RetrievedChunk]) -> list[dict]:
