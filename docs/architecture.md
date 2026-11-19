@@ -26,14 +26,14 @@ flowchart TD
 
     subgraph Query["Query path (per question)"]
         Q[User question in chat input] --> QE[embed question<br/>same embedding model]
-        QE --> SS[similarity_search top-k<br/>filter: file_hash IN active corpus]
+        QE --> SS[similarity or MMR search, top-k<br/>filter: file_hash IN active corpus]
         DB -.-> SS
         SS --> G{MIN_RELEVANCE guard<br/>optional}
         G --> R{any chunks left?}
         R -- no --> FB[FALLBACK_ANSWER<br/>LLM not called]
         R -- yes --> CB[format_context<br/>numbered blocks: n, source, page]
         CB --> P[grounded prompt<br/>SYSTEM_PROMPT rules + context + question]
-        P --> LLM[LLM, temperature 0<br/>Ollama llama3.2:3b or OpenAI-compatible]
+        P --> LLM[LLM, temperature 0, top-p 0.9, num_ctx 4096<br/>Ollama llama3.2:3b or OpenAI-compatible]
         LLM --> A[Answer with n citations]
         A --> OUT[UI: answer + sources file/page of cited passages<br/>+ expandable retrieved evidence with scores<br/>abstained flag if fallback]
         FB --> OUT
@@ -50,10 +50,10 @@ flowchart TD
 | `rag/embeddings.py` | Load and cache the local Sentence-Transformers model with normalized vectors; actionable errors on download/load failure | `get_embeddings(model_name)`, `EmbeddingInitError` |
 | `rag/vectorstore.py` | Persistent Chroma collection (cosine); add/upsert chunks, list/remove files, reset corpus, filtered similarity search returning cosine similarity | `VectorStoreManager` |
 | `rag/ingest.py` | Orchestrate validate -> load -> dedupe -> chunk -> index; never raises for bad PDFs | `ingest_file(...) -> IngestReport` |
-| `rag/retrieval.py` | Embed the question, top-k search restricted to the active corpus, typed results | `retrieve(...) -> list[RetrievedChunk]` |
+| `rag/retrieval.py` | Embed the question, top-k similarity or MMR search restricted to the active corpus, typed results | `retrieve(...) -> list[RetrievedChunk]` |
 | `rag/generation.py` | Grounded system prompt, context formatting, LLM construction (Ollama / OpenAI-compatible), Ollama health check, answer generation with fallback | `SYSTEM_PROMPT`, `get_llm`, `check_ollama`, `format_context`, `generate_answer`, `LLMInitError` |
 | `rag/pipeline.py` | End-to-end `ask`: retrieve -> relevance guard -> generate -> sources & abstention flag | `RAGPipeline.ask(...) -> RAGResponse` |
-| `app.py` | Streamlit UI: upload & ingestion status, active-corpus selection, settings (top-k, chunk size/overlap), LLM status, chat with sources and evidence, clear corpus | — |
+| `app.py` | Streamlit UI: upload & ingestion status, active-corpus selection, settings (top-k, search type and MMR parameters, temperature, top-p, context window, chunk size/overlap), LLM status, chat with sources and evidence, clear corpus | — |
 | `evaluation/run_eval.py` | Batch evaluation over `evaluation/questions.json`, writes JSON + Markdown records for manual grading | CLI |
 
 ## 3. Design decisions and rationale
@@ -102,6 +102,14 @@ deselected documents can never leak into answers. "Clear corpus" deletes and rec
 3B-parameter model (long contexts dilute small models' attention and slow generation on 8 GB machines).
 Adjustable in the UI and via `--top-k` for comparison.
 
+**Similarity search by default, MMR as an option (V1.2).** MMR (Maximal Marginal Relevance) fetches the
+20 most similar chunks and then picks k that are relevant but not near-duplicates of each other
+(`VectorStoreManager.mmr_search`, lambda 0.5). It is implemented on the raw Chroma query so that every
+returned chunk keeps its cosine similarity for the evidence panel. In the evaluation (report §8b) MMR
+helped on the long-document corpus, where similarity search fills k with repeats of the same topic,
+but hurt on the short papers: with 200-character chunk overlap, the continuation of a passage is in a
+neighbouring chunk that MMR treats as redundant. Similarity therefore stays the default.
+
 **Grounded prompt and explicit fallback.** The system prompt instructs the model to answer only from
 numbered passages, cite them as `[n]`, state which part is missing for partial answers, treat passage
 text as data (prompt-injection resistance) and otherwise reply with the exact `FALLBACK_ANSWER`
@@ -116,8 +124,11 @@ all retrieved pages, and abstentions show no sources. All retrieved chunks remai
 "Retrieved evidence" panel. The response's `abstained` flag is
 derived from the fallback sentence, so abstention can be measured during evaluation.
 
-**Temperature 0.** Deterministic, least "creative" decoding minimizes hallucination and makes
-evaluation runs reproducible.
+**Temperature 0, top-p 0.9, context window 4096.** Deterministic, least "creative" decoding minimizes
+hallucination and makes evaluation runs reproducible. With temperature 0 decoding is greedy, so top-p
+(kept at Ollama's default) only matters if the temperature is raised. The context window is set
+explicitly: Ollama cuts prompts to 4096 tokens by default on this machine, and the largest evaluated
+prompt (top-k 8) is 2,545 tokens, so nothing is silently truncated. All three are adjustable in the UI.
 
 **Ollama llama3.2:3b by default; any OpenAI-compatible API optionally.** The 3B model (~2 GB quantized)
 runs comfortably on an 8 GB Apple-Silicon laptop, is free and private. `LLM_PROVIDER=openai` swaps in a

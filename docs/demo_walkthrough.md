@@ -91,6 +91,12 @@ Open **Settings** -> move **Top-k retrieved chunks** from 4 to 8. Re-ask M2 (BER
   questions vs. longer prompts, more noise, slower answers, and (for A2) more room for a fabricated answer.
 - Mention chunk size/overlap are also configurable and apply on re-index
   (**Re-index with current settings**). Set top-k back to 4.
+- Switch **Search type** to **MMR (diverse)** and re-ask LF3 on the long corpus if it is loaded
+  ("How accurately could human evaluators identify news articles written by GPT-3 175B?"): in the evaluation, MMR
+  reached the 52% table that similarity search missed. Say honestly that MMR hurt on the short papers
+  (it drops the neighbouring chunk that continues a passage), so similarity stays the default.
+- Point at the **LLM** settings: temperature 0 (faithful, repeatable), top-p 0.9 (no effect at
+  temperature 0), context window 4096 tokens (largest prompt measured: about 2,500 tokens).
 - Optionally untick a paper in **Active corpus** and ask F2 (BERT parameters) to show that only selected
   files are searched (the answer should fall back if BERT is unticked).
 

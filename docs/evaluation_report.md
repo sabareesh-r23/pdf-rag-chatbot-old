@@ -56,7 +56,7 @@ snippet is "28.4 BLEU". The judgements below are therefore based on the chunk te
 | Embeddings / store | `sentence-transformers/all-MiniLM-L6-v2`, Chroma (cosine) |
 | LLM | `llama3.2:3b` (Ollama, Q4_K_M), temperature 0 |
 | Hardware | Apple M1, 8 GB RAM |
-| Automated tests | `.venv/bin/pytest -q` → **110 passed** (V1.1, including the slow real-embedding test) |
+| Automated tests | `.venv/bin/pytest -q` → **110 passed** (V1.1); **123 passed** (V1.2, adds MMR and LLM-parameter tests) |
 
 | Corpus | Documents | Pages | Chunks | Questions |
 |---|---|---|---|---|
@@ -76,6 +76,14 @@ sources longer than 70 pages are included (see §9 on the dataset-size question)
 | `results_20261011_121920` | **V1.1 (final)** | A | 8 | 15 | 13.4 s |
 | `results_20261011_122254` | **V1.1 (final)** | B | 4 | 9 | 6.7 s |
 | `results_20261011_122408` | **V1.1 (final)** | B | 8 | 9 | 13.0 s |
+| `results_20261119_222304` | V1.2 (MMR) | A | 4 (MMR) | 15 | 6.7 s |
+| `results_20261119_222609` | V1.2 (MMR) | A | 8 (MMR) | 15 | 11.6 s |
+| `results_20261119_222457` | V1.2 (MMR) | B | 4 (MMR) | 9 | 6.5 s |
+| `results_20261119_222916` | V1.2 (MMR) | B | 8 (MMR) | 9 | 12.2 s |
+
+The V1.2 runs use MMR retrieval (`--retrieval-mode mmr`, fetch_k 20, lambda 0.5). Everything else is
+unchanged (same prompt, chunking, embeddings, LLM, temperature 0, context window 4096). They are
+compared with the similarity runs in §8b.
 
 Intermediate runs from partly fixed code are kept in `evaluation/results/superseded/` with an
 explanation; they are not used for the figures below. V1's recorded `abstained` flag for A2 at k=4 is
@@ -273,6 +281,85 @@ for that k, with the same judgement.
 
 This is a retrieval-configuration comparison, **not** an LLM comparison. No second LLM was evaluated.
 
+## 8b. Similarity vs MMR retrieval (V1.2; draft judgements)
+
+**What MMR does.** Maximal Marginal Relevance fetches the 20 most similar chunks, then picks k of them
+one at a time, scoring each candidate as `0.5 × similarity to the question − 0.5 × similarity to the
+chunks already picked`. The aim is less redundancy, so more distinct passages reach the LLM.
+
+### Summary (answerable questions; same judging rules as §1)
+
+| Corpus, k | Search | Evidence full / partial / none | Correct / partial / incorrect | Faithful | False premise OK | Latency |
+|---|---|---|---|---|---|---|
+| A, 4 | Similarity | 7 / 2 / 1 | **7 / 2 / 1** | 9 / 10 | 2 / 2 | 7.2 s |
+| A, 4 | MMR | 4 / 4 / 2 | **4 / 3 / 3** | 8 / 9 | 2 / 2 | 6.7 s |
+| A, 8 | Similarity | 8 / 1 / 1 | **6 / 3 / 1** | 10 / 11 | 1 / 2 | 13.4 s |
+| A, 8 | MMR | 4 / 5 / 1 | **4 / 5 / 1** | 9 / 10 | **2 / 2** | 11.6 s |
+| B, 4 | Similarity | 2 / 1 / 3 | **2 / 1 / 3** | 4 / 4 | 1 / 1 | 6.7 s |
+| B, 4 | MMR | 3 / 3 / 0 | **3 / 2 / 1** | 4 / 5 | 1 / 1 | 6.5 s |
+| B, 8 | Similarity | 5 / 0 / 1 | **3 / 1 / 2** | 3 / 4 | 1 / 1 | 13.0 s |
+| B, 8 | MMR | 4 / 2 / 0 | **3 / 3 / 0** | 4 / 6 | 1 / 1 | 12.2 s |
+
+All 5 unanswerable questions still abstained with MMR at both k values (10 of 10 responses).
+
+### Per-question changes (only questions whose judgement changed)
+
+| ID | k | Similarity | MMR | Why (from the chunk text) |
+|---|---|---|---|---|
+| F3 | 4 | Incorrect | Incorrect | Still a retrieval miss. Now **unfaithful in a new way**: calls BART-large (the generator) the "knowledge source" |
+| F3 | 8 | Incorrect | Partial ⚑ review | First time F3 gets anything: "Wikipedia … 21M … vectors" from the p. 19 memory passage (21M 728-dim vectors). The p. 4 dump passage is still not retrieved, so "December 2018" is missing |
+| F4 | 4 | Correct | **Incorrect** | MMR kept the p. 1 "65 hours" chunk but dropped the p. 2 / p. 8 chunks with "~5 seconds", which are close in meaning to the p. 1 chunk. The model then abstained, even though the BERT half was in its context |
+| F4 | 8 | Correct | Partial | Same loss of the "5 seconds" chunks; this time it gives the 65 hours and says the SBERT figure is missing |
+| M2 | 4 / 8 | Partial | Partial | Unchanged outcome. At k=8 the self-contradicting trailing fallback has gone; 15% is retrieved but still omitted |
+| M3 | 4 / 8 | Correct | **Incorrect** | The definition is split over two **neighbouring** chunks on p. 3 (200-character overlap). MMR treats the second one as redundant with the first and drops it, so the "same document vs. different document per token" text never reaches the model |
+| S1 | 4 | Correct ⚑ | Partial | The "how SBERT fixes it" part is vague ("a different setup"); the siamese/triplet passage was not retrieved |
+| A2 | 8 | **Fabricated rationale** | **Abstained** | With fewer near-identical BERT [CLS] passages in the context, the model no longer builds a false rationale. This is the only false-premise hallucination in the final runs, and MMR removes it |
+| LF1 | 4 | Incorrect (abstained) | Partial | MMR brings in the p. 8 Table 2.1 chunk: 96 layers correct. But "12288 parameters" (that is d_model) and "context window of one Reuters article" are misreadings, so **unfaithful** |
+| LF3 | 4 | Incorrect | **Correct** | MMR reaches the p. 27 Table 3.12 chunk: 52% vs 88% for the control model |
+| LF3 | 8 | Incorrect (wrongly abstained) | **Correct** | Same passage; this time the model uses it |
+| LM2 | 8 | Incorrect (abstained) | Partial ⚑ review | The cross-document question now gets an answer: "GPT-3 2048, Llama 2 4096". Both numbers are right, but the GPT-3 figure is cited to the Llama 2 sentence "from 2048 [Llama 1] to 4096 tokens". The GPT-3 n_ctx chunk was not retrieved, so the GPT-3 part is **right by coincidence and unfaithful** |
+| LS1 | 4 | Partial | Partial | Swapped gaps: similarity had rejection sampling + PPO but no Ghost Attention; MMR has Ghost Attention but not rejection sampling + PPO |
+| LS1 | 8 | Correct | Partial | Rejection sampling, PPO and Ghost Attention are all missing from the answer, although the GAtt passage (p. 8) was retrieved |
+
+Other details: F1 at k=8 with MMR is correct, but its citations came out as section titles
+("[3.1 Encoder and Decoder Stacks]") instead of [n], so Sources falls back to all retrieved pages.
+LF2 at k=4 adds an unrequested, muddled remark about WebText2's weight.
+
+### Observations
+
+- **MMR hurts on the short-paper corpus and helps on the long one.** Corpus A: correct answers 7 → 4
+  (k=4) and 6 → 4 (k=8). Corpus B: incorrect answers 3 → 1 (k=4) and 2 → 0 (k=8).
+- **Root cause of the losses: chunk overlap.** With 1000/200 chunking, the continuation of a passage is
+  in the neighbouring chunk, and the two chunks are similar. MMR reads that similarity as redundancy and
+  drops the neighbour (M3, F4). In the short papers, the needed facts are often spread across such
+  neighbours.
+- **Why it helps on long documents.** A 75–77-page paper has many near-duplicate passages on the same
+  topic (abstract, introduction, results, appendix). Similarity search fills k with these; MMR spreads
+  the k slots across more sections (LF3, LF1 and LM2 each reached a passage similarity search missed).
+- **Less redundancy reduced one hallucination but added misattributions.** A2's fabricated rationale
+  disappeared at k=8, but LF1 (k=4) and LM2 (k=8) built answers from loosely related numbers. More
+  diverse context gives a 3B model more unrelated numbers to confuse.
+- **Decision.** **Similarity stays the default** (it is better on corpus A, and the default is what most
+  users of a few short PDFs will hit). MMR is available as a setting in the UI and in `RETRIEVAL_MODE`.
+  It is the better choice for long reports, where the evidence is spread across many sections. A sweep
+  of `MMR_LAMBDA` (for example 0.7) and of smaller chunk overlap with MMR was **not** done and would be
+  the next experiment.
+- Same caveats as §8: 10 + 6 answerable questions, one run per setting, draft judgements.
+
+## 8c. LLM parameters (V1.2)
+
+The generation settings are now explicit and visible in the UI:
+
+| Parameter | Value | Why |
+|---|---|---|
+| Model | `llama3.2:3b` via Ollama | Runs on an 8 GB laptop; no API cost; data stays local |
+| Temperature | 0.0 | Deterministic, most literal use of the context. Grounded QA needs faithfulness, not variety |
+| Top-p | 0.9 | Ollama's default. With temperature 0 decoding is greedy, so top-p has no effect; it matters only if temperature is raised |
+| Context window (`num_ctx`) | 4096 tokens | Measured: Ollama 0.17.4 cuts prompts to 4096 tokens by default on this machine. The largest prompt in any run (S1, top-k 8) is **2,545 tokens**, so prompt and answer fit and no evaluated run was truncated. Raise it for chunk sizes above 1000 or top-k above 10 |
+| Retrieval top-k | 4 (UI 1–10) | §8 |
+| Retrieval mode | similarity (MMR optional) | §8b |
+| Chunk size / overlap | 1000 / 200 characters | §7.1 sweep |
+
 ## 9. Limitations of this evaluation
 
 - Small sample: 10 + 6 answerable questions, one run per configuration. Temperature 0 makes runs largely
@@ -300,7 +387,10 @@ This is a retrieval-configuration comparison, **not** an LLM comparison. No seco
    - one over-cautious abstention (LF3 at k=8)
 4. **False premises remain the main hallucination risk.** The system never corrected a premise. It
    abstained in 5 of 6 false-premise responses and fabricated once (A2, k=8).
-5. **V1.1 fixes:**
+5. **MMR (V1.2) is corpus-dependent.** It helped on the long documents (no incorrect answers at k=8,
+   LF3 fixed at both k) and removed the A2 hallucination, but hurt on the short papers (M3, F4) by
+   dropping neighbouring chunks. Similarity stays the default (§8b).
+6. **V1.1 fixes:**
    - **Measured on these questions:** A2 at k=4 (fabrication → abstention), S1 at k=4 (partial →
      correct), citations limited to cited pages, P1 partial-answer behaviour.
    - **Not demonstrated:** a general accuracy gain.
@@ -309,7 +399,8 @@ This is a retrieval-configuration comparison, **not** an LLM comparison. No seco
 
 | Issue | Evidence | Suggested improvement (not implemented) |
 |---|---|---|
-| Wording-mismatch retrieval misses | F3, LF3 (k=4), LM2, A2/A1/LA1 premise chunks | Hybrid BM25 + dense retrieval, or a cross-encoder reranker over the top 20 |
+| Wording-mismatch retrieval misses | F3, LF3 (k=4), LM2, A2/A1/LA1 premise chunks | Hybrid BM25 + dense retrieval, or a cross-encoder reranker over the top 20. (MMR, tried in §8b, helps on the long corpus but does not fix F3 and hurts the short-paper corpus) |
+| MMR drops neighbouring chunks that continue a passage | M3, F4 (§8b) | Merge adjacent chunks after retrieval, or tune `MMR_LAMBDA` / chunk overlap |
 | Cross-document comparisons | LM2 | Query decomposition (one sub-query per document) |
 | False-premise handling | A2 (k=8) | Stronger LLM, or a premise-check step |
 | Omitted retrieved details; contradictions | S2, M2 (k=8) | Stronger LLM (OpenAI-compatible path is already supported), or answer/claim verification |
@@ -323,6 +414,8 @@ This is a retrieval-configuration comparison, **not** an LLM comparison. No seco
 .venv/bin/python -m evaluation.run_eval --questions evaluation/questions.json --top-k 8
 .venv/bin/python -m evaluation.run_eval --questions evaluation/questions_long.json --pdf-dir data/long_pdfs --top-k 4 --reindex
 .venv/bin/python -m evaluation.run_eval --questions evaluation/questions_long.json --pdf-dir data/long_pdfs --top-k 8
+# V1.2: MMR retrieval (repeat with --top-k 8, and with the long corpus)
+.venv/bin/python -m evaluation.run_eval --questions evaluation/questions.json --top-k 4 --retrieval-mode mmr
 ```
 
 New runs write new timestamped files. With temperature 0, individual answers are usually but not always

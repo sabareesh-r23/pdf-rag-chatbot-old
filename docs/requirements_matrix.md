@@ -47,6 +47,7 @@ Status as of 2026-10-11 (Version 1.1: V1 plus the audit fixes). Each status mean
 | D1 | Store chunks, embeddings and metadata in a vector DB | Complete and verified | Persistent Chroma, cosine space (`rag/vectorstore.py`); `tests/test_vectorstore.py` |
 | D2 | Semantic (not keyword-only) search | Complete and verified | Slow test with the real model retrieves paraphrased queries (`tests/test_retrieval.py`, marked `slow`) |
 | D3 | Configurable top-k | Complete and verified | `TOP_K`, UI slider (1–10), `--top-k`; evaluated at k=4 and k=8 |
+| D3b | Search type: similarity or MMR (V1.2) | Complete and verified | `RETRIEVAL_MODE`, UI radio + MMR sliders, `--retrieval-mode`; `tests/test_vectorstore.py` (MMR tests); evaluated on both corpora at k=4 and k=8 (evaluation report §8b) |
 | D4 | Retrieval restricted to the active corpus | Complete and verified | `file_hash` filter (`VectorStoreManager.similarity_search`); filter-isolation tests; the audit live-checked deselected documents (the system correctly fell back) |
 | D5 | Reset / re-index without mixing documents | Complete and verified | `reset()`, `remove_file()`, UI "Clear corpus" (confirm-gated) and "Re-index with current settings"; V1.1 fix: a second store instance survives another instance's reset (`tests/test_vectorstore.py::test_second_instance_survives_reset_by_another`). Separate eval corpora use separate collections |
 | D6 | Local store, no unnecessary infrastructure | Complete and verified | Chroma on local disk (`chroma_db/`, git-ignored) |
@@ -57,6 +58,7 @@ Status as of 2026-10-11 (Version 1.1: V1 plus the audit fixes). Each status mean
 |---|---|---|---|
 | E1 | Question plus retrieved context passed to the LLM | Complete and verified | `rag/generation.py::build_messages`; pipeline tests |
 | E2 | Explicit system prompt restricting answers to the context | Complete and verified | `SYSTEM_PROMPT` (9 numbered rules, including prompt-injection hygiene and, since V1.1, a rule about numbers in tables) |
+| E2b | LLM parameters explicit and adjustable (V1.2) | Complete and verified | Temperature, top-p and context window (`num_ctx`) in `rag/config.py`, the UI sidebar and `run_eval.py` flags; `tests/test_generation.py::test_get_llm_passes_sampling_and_context_settings`; rationale in evaluation report §8c |
 | E3 | No silent use of general knowledge | Implemented, partially verified: a **known residual risk** | Enforced only by the prompt. The 3 unanswerable questions abstained in every run, but the A2 false premise produced a fabricated rationale at k=8 in V1 (see the evaluation report for V1.1 behaviour). A 3B model cannot guarantee this |
 | E4 | Exact fallback when the context is insufficient | Complete and verified | `FALLBACK_ANSWER`; returned without calling the LLM when nothing is retrieved; observed for U1–U3 / LU1–LU2 |
 | E5 | Partial answers say which part is unsupported | Implemented, partially verified | Prompt rule 4; question P1 was added to test this (see evaluation report); S1/S2 in V1 omitted parts without saying so |
@@ -85,7 +87,7 @@ Status as of 2026-10-11 (Version 1.1: V1 plus the audit fixes). Each status mean
 | D-1 | Working app plus README | Complete and verified | `streamlit run app.py` starts (audit health check); README commands verified by the audit |
 | D-2 | Architecture document and diagram | Complete | `docs/architecture.md` (Mermaid) |
 | D-3 | Manual evaluation report, about 10–15 questions | **Draft complete; needs student confirmation** | `docs/evaluation_report.md`: 15 main-corpus questions plus 9 long-corpus questions, with judgements and rationale. Judgements are marked as drafts until the student confirms them |
-| D-4 | Presentation | Draft complete; needs student review | `docs/presentation/RAG_PDF_Chatbot_Capstone.pptx` (14 slides with speaker notes, numbers from the evaluation report). Validated, but not rendered slide by slide; the screenshot on slide 8 is still to be added |
+| D-4 | Presentation | Draft complete; needs student review | `docs/presentation/RAG_PDF_Chatbot_Capstone.pptx` (15 slides with speaker notes; slide 12 added in V1.2 for MMR and LLM parameters, numbers from the evaluation report). Validated, but not rendered slide by slide; the screenshot on slide 8 is still to be added |
 | D-5 | 5–10 minute demo video | Incomplete (recording) | Script updated to V1.1 observed behaviour: `docs/demo_walkthrough.md` |
 | D-6 | Dataset included with the submission | Needs professor clarification (licensing) | See A8 |
 
@@ -94,6 +96,7 @@ Status as of 2026-10-11 (Version 1.1: V1 plus the audit fixes). Each status mean
 | Item | Status | Note |
 |---|---|---|
 | Comparing 2–3 LLMs | Optional enhancement | Not done. The top-k 4 vs 8 comparison is **not** an LLM comparison. A retrieval-only embedding comparison (MiniLM vs bge-small) was run |
-| Reranker / hybrid BM25 search | Optional enhancement | Evidence suggests it would help F3-type misses, but it was not implemented (out of scope for V1) |
+| MMR retrieval | Done (V1.2) | Implemented and evaluated (report §8b); similarity stays the default |
+| Reranker / hybrid BM25 search | Optional enhancement | Evidence suggests it would help F3-type misses, but it was not implemented. MMR did not fix F3 |
 | Cloud deployment, authentication, multi-user, persistent chat memory | Out of scope | A local demo was accepted by the professor |
 | LLM-as-a-judge / automatic metrics | Optional enhancement | Manual evaluation was requested; no pass-rate threshold was specified |

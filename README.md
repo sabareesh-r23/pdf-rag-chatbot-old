@@ -19,7 +19,8 @@ Built as an academic capstone project.
   **Retrieved evidence** panel with similarity scores.
 - Explicit fallback ("I could not find enough information in the uploaded documents to answer this
   question.") when the context does not contain the answer.
-- Adjustable top-k, chunk size and chunk overlap in the UI (with re-index).
+- Retrieval by similarity or **MMR** (Maximal Marginal Relevance), switchable in the UI.
+- Adjustable top-k, chunk size / overlap and LLM parameters (temperature, top-p, context window) in the UI.
 - Batch evaluation script producing JSON + Markdown records for manual grading.
 
 ## Architecture (summary)
@@ -83,6 +84,9 @@ All settings are environment variables (or entries in `.env`), defined in `rag/c
 | `CHUNK_SIZE` | `1000` | Chunk size in characters |
 | `CHUNK_OVERLAP` | `200` | Overlap between consecutive chunks (must be < `CHUNK_SIZE`) |
 | `TOP_K` | `4` | Number of chunks retrieved per question |
+| `RETRIEVAL_MODE` | `similarity` | `similarity` (plain top-k) or `mmr` (Maximal Marginal Relevance: relevant but non-redundant chunks) |
+| `MMR_FETCH_K` | `20` | MMR candidate pool size |
+| `MMR_LAMBDA` | `0.5` | MMR trade-off: 1 = relevance only, 0 = diversity only |
 | `MIN_RELEVANCE` | `0.0` | Drop retrieved chunks with cosine similarity below this (0 = disabled) |
 | `EMBEDDING_MODEL` | `sentence-transformers/all-MiniLM-L6-v2` | Local Sentence-Transformers model |
 | `CHROMA_DIR` | `./chroma_db` | Directory of the persistent Chroma store |
@@ -91,6 +95,8 @@ All settings are environment variables (or entries in `.env`), defined in `rag/c
 | `LLM_PROVIDER` | `ollama` | `ollama` or `openai` (any OpenAI-compatible API) |
 | `LLM_MODEL` | `llama3.2:3b` | Model name for the chosen provider |
 | `LLM_TEMPERATURE` | `0.0` | Sampling temperature (0 = deterministic) |
+| `LLM_TOP_P` | `0.9` | Nucleus sampling; only has an effect when temperature > 0 |
+| `LLM_NUM_CTX` | `4096` | Ollama context window in tokens (prompt + answer); ignored for `openai` |
 | `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server URL |
 | `OPENAI_API_KEY` | — | Required when `LLM_PROVIDER=openai` (read from env only, never stored) |
 | `OPENAI_BASE_URL` | — | Optional: base URL of an OpenAI-compatible server |
@@ -104,7 +110,8 @@ OPENAI_API_KEY=sk-...
 # OPENAI_BASE_URL=https://your-compatible-endpoint/v1
 ```
 
-Top-k, chunk size and chunk overlap can also be changed at runtime in the sidebar **Settings**
+Top-k, search type (similarity / MMR and its parameters), temperature, top-p, context window, chunk
+size and chunk overlap can also be changed at runtime in the sidebar **Settings**
 (chunk changes apply to newly indexed files or via **Re-index with current settings**).
 
 ## Tests
@@ -121,6 +128,7 @@ Tests use generated fixture PDFs and fake embeddings / chat models; no LLM is re
 ```bash
 python -m evaluation.run_eval --questions evaluation/questions.json            # default config
 python -m evaluation.run_eval --top-k 8                                        # vary top-k
+python -m evaluation.run_eval --retrieval-mode mmr --mmr-lambda 0.5             # MMR retrieval
 python -m evaluation.run_eval --chunk-size 500 --chunk-overlap 100 --reindex   # vary chunking
 python -m evaluation.run_eval --llm-model llama3.1:8b                          # vary model
 python -m evaluation.run_eval --ids F1,U1                                      # subset / smoke test
@@ -152,7 +160,7 @@ pdf-rag-chatbot/
 │   ├── embeddings.py         # local Sentence-Transformers embeddings (cached)
 │   ├── vectorstore.py        # Chroma wrapper (cosine, dedupe, filtered search)
 │   ├── ingest.py             # validate -> load -> chunk -> index orchestration
-│   ├── retrieval.py          # top-k retrieval over the active corpus
+│   ├── retrieval.py          # top-k similarity or MMR retrieval over the active corpus
 │   ├── generation.py         # grounded prompt, LLM factory, answer generation
 │   └── pipeline.py           # RAGPipeline.ask -> RAGResponse
 ├── evaluation/
@@ -187,8 +195,9 @@ pdf-rag-chatbot/
 | Chunking | `RecursiveCharacterTextSplitter`, 1000 / 200 | Respects paragraph/sentence boundaries; one fact + context per chunk; overlap protects boundary facts |
 | Embeddings | `all-MiniLM-L6-v2` | Small (~90 MB), fast on CPU/Apple Silicon, free, strong for semantic search |
 | Similarity | Cosine on normalized vectors | Matches how the model was trained; scores comparable across queries |
+| Search type | Similarity (default); MMR optional | Similarity was better on the short-paper corpus; MMR was better on the long-document corpus (evaluation report §8b) |
 | Vector store | Chroma (persistent, embedded) | No server, metadata filtering, LangChain integration |
-| LLM | Ollama `llama3.2:3b`, temperature 0 | Runs locally on 8 GB RAM, private, free; deterministic output reduces hallucination |
+| LLM | Ollama `llama3.2:3b`, temperature 0, top-p 0.9, context 4096 tokens | Runs locally on 8 GB RAM, private, free; deterministic output reduces hallucination |
 | LLM (optional) | Any OpenAI-compatible API | Larger models for comparison without code changes |
 | UI | Streamlit | Fast to build an interactive upload + chat interface in Python |
 

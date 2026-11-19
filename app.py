@@ -103,7 +103,37 @@ st.caption("Ask questions answered only from the PDFs you upload. Answers cite f
 
 with st.sidebar:
     with st.expander("Settings", expanded=False):
+        st.markdown("**Retrieval**")
         top_k = st.slider("Top-k retrieved chunks", 1, 10, value=min(max(base_settings.top_k, 1), 10))
+        modes = ["similarity", "mmr"]
+        retrieval_mode = st.radio(
+            "Search type", modes, index=modes.index(base_settings.retrieval_mode), horizontal=True,
+            format_func=lambda m: {"similarity": "Similarity", "mmr": "MMR (diverse)"}[m],
+            help="Similarity returns the k closest chunks. MMR (Maximal Marginal Relevance) first "
+                 "fetches more candidates, then picks k that are relevant but not near-duplicates.",
+        )
+        mmr_fetch_k, mmr_lambda = base_settings.mmr_fetch_k, base_settings.mmr_lambda
+        if retrieval_mode == "mmr":
+            mmr_fetch_k = st.slider("MMR candidates (fetch_k)", 5, 50, value=min(max(mmr_fetch_k, 5), 50))
+            mmr_lambda = st.slider(
+                "MMR lambda (1 = relevance, 0 = diversity)", 0.0, 1.0, value=float(mmr_lambda), step=0.1
+            )
+        st.markdown("**LLM**")
+        llm_temperature = st.slider(
+            "Temperature", 0.0, 1.0, value=min(float(base_settings.llm_temperature), 1.0), step=0.1,
+            help="0 = deterministic, most faithful to the context. Higher values add variety and risk.",
+        )
+        llm_top_p = st.slider(
+            "Top-p (nucleus sampling)", 0.1, 1.0, value=float(base_settings.llm_top_p), step=0.05,
+            help="Only has an effect when temperature > 0.",
+        )
+        ctx_options = [2048, 4096, 8192, 16384]
+        llm_num_ctx = st.select_slider(
+            "Context window (tokens, Ollama)", ctx_options,
+            value=base_settings.llm_num_ctx if base_settings.llm_num_ctx in ctx_options else 4096,
+            help="Prompt + answer must fit. Larger windows allow higher top-k but use more memory.",
+        )
+        st.markdown("**Chunking**")
         chunk_size = st.number_input(
             "Chunk size (characters)", min_value=100, max_value=8000, step=100,
             value=base_settings.chunk_size,
@@ -118,7 +148,11 @@ with st.sidebar:
         )
 
 try:
-    settings = get_settings(top_k=int(top_k), chunk_size=int(chunk_size), chunk_overlap=int(chunk_overlap))
+    settings = get_settings(
+        top_k=int(top_k), chunk_size=int(chunk_size), chunk_overlap=int(chunk_overlap),
+        retrieval_mode=retrieval_mode, mmr_fetch_k=int(mmr_fetch_k), mmr_lambda=float(mmr_lambda),
+        llm_temperature=float(llm_temperature), llm_top_p=float(llm_top_p), llm_num_ctx=int(llm_num_ctx),
+    )
 except ValueError as exc:
     st.sidebar.error(f"Invalid settings: {exc}")
     settings = base_settings
@@ -127,9 +161,11 @@ with st.sidebar.expander("Effective configuration", expanded=False):
     st.markdown(
         f"- **Chunk size / overlap:** {settings.chunk_size} / {settings.chunk_overlap}\n"
         f"- **Embedding model:** `{settings.embedding_model}`\n"
-        f"- **Top-k:** {settings.top_k}\n"
+        f"- **Retrieval:** {settings.retrieval_mode}, top-k {settings.top_k}"
+        + (f" (MMR fetch_k {settings.mmr_fetch_k}, lambda {settings.mmr_lambda})" if settings.retrieval_mode == "mmr" else "")
+        + "\n"
         f"- **Min relevance:** {settings.min_relevance}\n"
-        f"- **LLM:** {settings.llm_provider} / `{settings.llm_model}` (temp {settings.llm_temperature})\n"
+        f"- **LLM:** {settings.llm_provider} / `{settings.llm_model}` (temperature {settings.llm_temperature}, top-p {settings.llm_top_p}, context {settings.llm_num_ctx} tokens)\n"
         f"- **Vector store:** `{settings.chroma_dir}` (collection `{settings.collection_name}`)"
     )
 
@@ -330,7 +366,7 @@ def render_assistant(msg: dict) -> None:
         src = "; ".join(f"{s['source']} (p. {s['page']})" for s in msg["sources"])
         st.caption(f"**Sources:** {src}")
     chunks = msg.get("chunks", [])
-    with st.expander(f"Retrieved evidence ({len(chunks)} chunks, top-k={msg.get('top_k')})"):
+    with st.expander(f"Retrieved evidence ({len(chunks)} chunks, top-k={msg.get('top_k')}, {msg.get('mode', 'similarity')})"):
         if not chunks:
             st.write("No chunks retrieved.")
         for i, c in enumerate(chunks, start=1):
@@ -365,10 +401,10 @@ if question:
     with st.chat_message("user"):
         st.markdown(question)
     with st.chat_message("assistant"):
-        entry: dict = {"role": "assistant", "top_k": settings.top_k}
+        entry: dict = {"role": "assistant", "top_k": settings.top_k, "mode": settings.retrieval_mode}
         try:
             with st.spinner("Retrieving and generating..."):
-                pipeline = get_pipeline(base_settings)
+                pipeline = get_pipeline(settings)
                 resp = pipeline.ask(question, file_hashes=selected_hashes, top_k=settings.top_k)
             entry.update(
                 answer=resp.answer,

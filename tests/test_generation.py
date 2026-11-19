@@ -165,3 +165,15 @@ def test_system_prompt_has_false_premise_rule():
     # Regression for A2 ("Why does SBERT use [CLS] as default?"): the model must not justify a premise
     # that no passage states.
     assert "do not explain or justify it" in SYSTEM_PROMPT
+
+
+def test_get_llm_passes_sampling_and_context_settings(monkeypatch):
+    from langchain_ollama import ChatOllama
+
+    llm = get_llm(get_settings(llm_provider="ollama", llm_temperature=0.2, llm_top_p=0.8, llm_num_ctx=8192))
+    assert isinstance(llm, ChatOllama)
+    assert (llm.temperature, llm.top_p, llm.num_ctx) == (0.2, 0.8, 8192)
+
+    monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
+    api = get_llm(get_settings(llm_provider="openai", llm_model="gpt-4o-mini", llm_top_p=0.7))
+    assert api.top_p == 0.7

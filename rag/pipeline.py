@@ -119,7 +119,15 @@ class RAGPipeline:
         if k <= 0:
             raise ValueError("top_k must be positive")
 
-        chunks = retrieve(self.store, question, k, file_hashes)
+        chunks = retrieve(
+            self.store,
+            question,
+            k,
+            file_hashes,
+            mode=self.settings.retrieval_mode,
+            fetch_k=self.settings.mmr_fetch_k,
+            lambda_mult=self.settings.mmr_lambda,
+        )
 
         # Optional relevance guard (MIN_RELEVANCE; 0 disables it).
         threshold = self.settings.min_relevance

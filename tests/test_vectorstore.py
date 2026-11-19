@@ -134,3 +134,45 @@ def test_second_instance_survives_reset_by_another(test_settings, fake_embedding
     a.reset()
     assert b.count() == 0
     assert b.similarity_search("reactor", k=2) == []
+
+
+# --- MMR --------------------------------------------------------------------------
+
+DUPES = [
+    _chunk(HASH_A, "alpha.pdf", 1, i, "Photosynthesis converts sunlight into chemical energy in plants.")
+    for i in range(3)
+] + [_chunk(HASH_A, "alpha.pdf", 2, 0, "Photosynthesis needs chlorophyll, which absorbs red light.")]
+
+
+def test_mmr_search_returns_scores_and_respects_filters(test_settings, fake_embeddings):
+    store = _store(test_settings, fake_embeddings)
+    assert store.mmr_search("photosynthesis", k=2) == []
+    store.add_chunks(DOC_A + DOC_B)
+    results = store.mmr_search("photosynthesis sunlight", k=2, fetch_k=5)
+    assert len(results) == 2
+    assert all(-1.0 <= score <= 1.0 for _, score in results)
+    assert all(doc.metadata["source"] for doc, _ in results)
+    only_b = store.mmr_search("photosynthesis", k=5, fetch_k=10, file_hashes=[HASH_B])
+    assert {d.metadata["file_hash"] for d, _ in only_b} == {HASH_B}
+    assert store.mmr_search("photosynthesis", k=3, file_hashes=[]) == []
+
+
+def test_mmr_with_lambda_one_matches_similarity_ranking(test_settings, fake_embeddings):
+    store = _store(test_settings, fake_embeddings)
+    store.add_chunks(DOC_A + DOC_B)
+    q = "When was the Treaty of Versailles signed?"
+    sim = [d.metadata["chunk_id"] for d, _ in store.similarity_search(q, k=3)]
+    mmr = [d.metadata["chunk_id"] for d, _ in store.mmr_search(q, k=3, fetch_k=5, lambda_mult=1.0)]
+    assert mmr == sim
+
+
+def test_mmr_skips_near_duplicates(test_settings, fake_embeddings):
+    store = _store(test_settings, fake_embeddings)
+    store.add_chunks(DUPES + DOC_B)
+    q = "photosynthesis sunlight chemical energy plants"
+    sim = store.similarity_search(q, k=2)
+    mmr = store.mmr_search(q, k=2, fetch_k=6, lambda_mult=0.3)
+    sim_texts = [d.page_content for d, _ in sim]
+    mmr_texts = [d.page_content for d, _ in mmr]
+    assert sim_texts[0] == sim_texts[1]  # plain top-k returns the duplicate twice
+    assert len(set(mmr_texts)) == 2  # MMR picks two different passages

@@ -74,6 +74,8 @@ def get_llm(settings: Settings) -> "BaseChatModel":
             model=settings.llm_model,
             base_url=settings.ollama_base_url,
             temperature=settings.llm_temperature,
+            top_p=settings.llm_top_p,
+            num_ctx=settings.llm_num_ctx,
         )
 
     if provider == "openai":
@@ -89,7 +91,8 @@ def get_llm(settings: Settings) -> "BaseChatModel":
             from langchain_openai import ChatOpenAI
         except ImportError as exc:  # pragma: no cover
             raise LLMInitError("langchain-openai is not installed. Run `pip install langchain-openai`.") from exc
-        kwargs = {"model": settings.llm_model, "temperature": settings.llm_temperature, "api_key": api_key}
+        kwargs = {"model": settings.llm_model, "temperature": settings.llm_temperature,
+                  "top_p": settings.llm_top_p, "api_key": api_key}
         base_url = os.getenv("OPENAI_BASE_URL", "").strip()
         if base_url:
             kwargs["base_url"] = base_url

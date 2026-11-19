@@ -4,11 +4,13 @@ from __future__ import annotations
 import functools
 from collections import OrderedDict
 
+import numpy as np
 from chromadb.errors import NotFoundError
 
 from langchain_chroma import Chroma
 from langchain_core.documents import Document
 from langchain_core.embeddings import Embeddings
+from langchain_core.vectorstores.utils import maximal_marginal_relevance
 
 from rag.config import Settings
 from rag.embeddings import get_embeddings
@@ -127,9 +129,64 @@ class VectorStoreManager:
             return []
         if self.count() == 0:
             return []
-        where = None
-        if file_hashes:
-            where = {"file_hash": file_hashes[0]} if len(file_hashes) == 1 else {"file_hash": {"$in": list(file_hashes)}}
+        where = self._where(file_hashes)
         results = self._store.similarity_search_with_score(query, k=k, filter=where)
         # Chroma returns cosine *distance*; convert to similarity (higher = better).
         return [(doc, 1.0 - float(distance)) for doc, distance in results]
+
+    @staticmethod
+    def _where(file_hashes: list[str] | None) -> dict | None:
+        if not file_hashes:
+            return None
+        if len(file_hashes) == 1:
+            return {"file_hash": file_hashes[0]}
+        return {"file_hash": {"$in": list(file_hashes)}}
+
+    @_reopen_on_missing
+    def mmr_search(
+        self,
+        query: str,
+        k: int,
+        fetch_k: int = 20,
+        lambda_mult: float = 0.5,
+        file_hashes: list[str] | None = None,
+    ) -> list[tuple[Document, float]]:
+        """Maximal Marginal Relevance search, returning (document, cosine similarity) pairs.
+
+        Fetches the `fetch_k` most similar chunks, then greedily picks `k` of them that
+        balance similarity to the query (weight `lambda_mult`) against similarity to the
+        chunks already picked (weight 1 - `lambda_mult`). This avoids filling the context
+        with near-duplicate chunks (e.g. overlapping neighbours from one page).
+        Pairs are returned in MMR selection order; the score is the query similarity,
+        so it is comparable with `similarity_search`.
+        """
+        if file_hashes is not None and len(file_hashes) == 0:
+            return []
+        if self.count() == 0:
+            return []
+        query_embedding = self.embeddings.embed_query(query)
+        result = self._collection.query(
+            query_embeddings=[query_embedding],
+            n_results=max(fetch_k, k),
+            where=self._where(file_hashes),
+            include=["documents", "metadatas", "distances", "embeddings"],
+        )
+        ids = result["ids"][0]
+        if not ids:
+            return []
+        embeddings = result["embeddings"][0]
+        selected = maximal_marginal_relevance(
+            np.asarray(query_embedding, dtype=np.float32),
+            [list(e) for e in embeddings],
+            lambda_mult=lambda_mult,
+            k=min(k, len(ids)),
+        )
+        out: list[tuple[Document, float]] = []
+        for i in selected:
+            doc = Document(
+                page_content=result["documents"][0][i] or "",
+                metadata=dict(result["metadatas"][0][i] or {}),
+                id=ids[i],
+            )
+            out.append((doc, 1.0 - float(result["distances"][0][i])))
+        return out

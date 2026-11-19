@@ -183,7 +183,8 @@ s.addText(bullets([
   "RecursiveCharacterTextSplitter splits paragraph → line → sentence, per page, so every chunk maps to one page",
   "Questions are embedded with the same all-MiniLM-L6-v2 model; Chroma ranks chunks by cosine similarity",
   "Search is filtered to the files ticked in the UI, so unselected documents can never be cited",
-  "Chunk size, overlap and top-k are configurable and recorded with every evaluation run",
+  "Similarity search by default; MMR (relevant + non-redundant) selectable in the UI (V1.2)",
+  "Chunk size, overlap, top-k and search type are configurable and recorded with every run",
 ], 13), { x: 0.75, y: 2.95, w: 8.5, h: 1.9, isTextBox: true, margin: 0, valign: "top" });
 s.addNotes(`Explain the defaults. A chunk-size sweep (1000/800/600/500) was run during evaluation: no chunk size retrieved F3's evidence, and the other differences were within noise, so the default was kept. See the evaluation report.`);
 
@@ -207,7 +208,7 @@ rules.forEach(([n, t], i) => {
 card(s, 5.9, 1.2, 3.6, 2.15, "fallback-card", C.text1);
 textBox(s, "FALLBACK ANSWER", { x: 6.15, y: 1.38, w: 3.1, h: 0.25, fontSize: 10, bold: true, color: C.accent1, charSpacing: 1 });
 textBox(s, "“I could not find enough information in the uploaded documents to answer this question.”", { x: 6.15, y: 1.7, w: 3.15, h: 1.5, fontSize: 15, italic: true, color: C.background1, fontFace: THEME.headFontFace });
-s.addText(bullets(["Temperature 0", "No chunks retrieved → LLM not called", "Sources line shows only cited passages"], 13), { x: 5.9, y: 3.6, w: 3.6, h: 1.3, isTextBox: true, margin: 0, valign: "top" });
+s.addText(bullets(["Temperature 0 · top-p 0.9 · context 4096", "No chunks retrieved → LLM not called", "Sources line shows only cited passages"], 13), { x: 5.9, y: 3.6, w: 3.6, h: 1.3, isTextBox: true, margin: 0, valign: "top" });
 s.addNotes("Read the key rules. Rules 9 and 10 were added in V1.1 because of evaluation failures (a wrong BLEU number read from a flattened table, and a fabricated reason for a false-premise question). Be honest: these are prompt-level controls; a 3B model can still slip.");
 
 // ---------------------------------------------------------------- 8. UI
@@ -280,6 +281,34 @@ textBox(s, D.quality.abstainBig, { x: 6.6, y: 1.2, w: 2.9, h: 0.9, fontSize: 44,
 textBox(s, D.quality.abstainLabel, { x: 6.6, y: 2.1, w: 2.9, h: 0.6, fontSize: 12, color: C.text2 });
 textBox(s, D.quality.note, { x: 6.6, y: 2.9, w: 2.9, h: 2.0, fontSize: 13, color: C.text1 });
 s.addNotes(D.quality.speaker);
+
+// ---------------------------------------------------------------- 11b. Retrieval mode + LLM parameters (V1.2)
+s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Evaluation" });
+s.addText("Similarity vs MMR search, and LLM settings", { placeholder: "title" });
+s.addChart(pres.charts.BAR, [
+  { name: "Correct · similarity", labels: D.mmr.labels, values: D.mmr.simCorrect },
+  { name: "Correct · MMR", labels: D.mmr.labels, values: D.mmr.mmrCorrect },
+  { name: "Incorrect · similarity", labels: D.mmr.labels, values: D.mmr.simIncorrect },
+  { name: "Incorrect · MMR", labels: D.mmr.labels, values: D.mmr.mmrIncorrect },
+], Object.assign({
+  x: 0.5, y: 1.15, w: 4.7, h: 2.35, barDir: "col", barGrouping: "clustered",
+  chartColors: [HEX.accent2, "8FD3CA", HEX.accent3, "F2B8A7"], showValue: true, dataLabelFontSize: 9, dataLabelColor: HEX.dk1,
+  showLegend: true, legendPos: "b", legendFontSize: 9, legendColor: HEX.dk2,
+  catAxisLabelColor: HEX.dk2, catAxisLabelFontSize: 10, valAxisLabelColor: HEX.dk2, valAxisLabelFontSize: 9,
+  valGridLine: { color: HEX.lt2, size: 0.75 }, catGridLine: { style: "none" },
+  showTitle: true, title: "Answerable questions (A n=10, B n=6)", titleFontSize: 11, titleColor: HEX.dk1,
+}, chartText));
+s.addText(bullets(D.mmr.points, 11), { x: 0.5, y: 3.6, w: 4.8, h: 1.55, isTextBox: true, margin: 0, valign: "top" });
+card(s, 5.5, 1.15, 4.0, 3.9, "params-card");
+textBox(s, "LLM and retrieval settings", { x: 5.7, y: 1.3, w: 3.6, h: 0.35, fontSize: 16, bold: true, fontFace: THEME.headFontFace });
+D.mmr.params.forEach(([k, v, why], i) => {
+  const y = 1.8 + i * 0.62;
+  textBox(s, k, { x: 5.7, y, w: 1.7, h: 0.3, fontSize: 12, bold: true });
+  textBox(s, v, { x: 7.4, y, w: 1.9, h: 0.3, fontSize: 12, color: C.accent6, bold: true, fontFace: "Courier New" });
+  textBox(s, why, { x: 5.7, y: y + 0.27, w: 3.6, h: 0.28, fontSize: 10, color: C.text2 });
+});
+textBox(s, "All adjustable in the sidebar; recorded in every run", { x: 5.7, y: 4.75, w: 3.6, h: 0.25, fontSize: 10, italic: true, color: C.text2 });
+s.addNotes(D.mmr.speaker);
 
 // ---------------------------------------------------------------- 12. Failure analysis
 s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Evaluation" });

@@ -62,11 +62,22 @@ class Settings:
     top_k: int = field(default_factory=lambda: _env_int("TOP_K", 4))
     # Optional relevance guard: drop retrieved chunks with cosine similarity below this (0 = disabled)
     min_relevance: float = field(default_factory=lambda: _env_float("MIN_RELEVANCE", 0.0))
+    # "similarity" = plain top-k cosine search; "mmr" = Maximal Marginal Relevance
+    # (fetch MMR_FETCH_K candidates, then pick top_k that are relevant but not redundant).
+    retrieval_mode: str = field(default_factory=lambda: os.getenv("RETRIEVAL_MODE", "similarity").lower())
+    mmr_fetch_k: int = field(default_factory=lambda: _env_int("MMR_FETCH_K", 20))
+    # 1.0 = pure relevance (same as similarity), 0.0 = maximum diversity.
+    mmr_lambda: float = field(default_factory=lambda: _env_float("MMR_LAMBDA", 0.5))
 
     # LLM
     llm_provider: str = field(default_factory=lambda: os.getenv("LLM_PROVIDER", "ollama").lower())
     llm_model: str = field(default_factory=lambda: os.getenv("LLM_MODEL", "llama3.2:3b"))
     llm_temperature: float = field(default_factory=lambda: _env_float("LLM_TEMPERATURE", 0.0))
+    # Nucleus sampling; only matters when temperature > 0 (temperature 0 is greedy decoding).
+    llm_top_p: float = field(default_factory=lambda: _env_float("LLM_TOP_P", 0.9))
+    # Ollama context window in tokens (prompt + answer). 4096 is Ollama's effective default for
+    # llama3.2:3b on this machine; a top-k 8 prompt uses well under it. Ignored by the OpenAI provider.
+    llm_num_ctx: int = field(default_factory=lambda: _env_int("LLM_NUM_CTX", 4096))
     ollama_base_url: str = field(
         default_factory=lambda: os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
     )
@@ -82,6 +93,18 @@ class Settings:
             raise ValueError("CHUNK_OVERLAP must be >= 0 and smaller than CHUNK_SIZE")
         if self.top_k <= 0:
             raise ValueError("TOP_K must be positive")
+        if self.retrieval_mode not in {"similarity", "mmr"}:
+            raise ValueError("RETRIEVAL_MODE must be 'similarity' or 'mmr'")
+        if self.mmr_fetch_k <= 0:
+            raise ValueError("MMR_FETCH_K must be positive")
+        if not 0.0 <= self.mmr_lambda <= 1.0:
+            raise ValueError("MMR_LAMBDA must be between 0 and 1")
+        if not 0.0 <= self.llm_temperature <= 2.0:
+            raise ValueError("LLM_TEMPERATURE must be between 0 and 2")
+        if not 0.0 < self.llm_top_p <= 1.0:
+            raise ValueError("LLM_TOP_P must be greater than 0 and at most 1")
+        if self.llm_num_ctx < 512:
+            raise ValueError("LLM_NUM_CTX must be at least 512")
         if self.llm_provider not in {"ollama", "openai"}:
             raise ValueError("LLM_PROVIDER must be 'ollama' or 'openai'")
 

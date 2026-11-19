@@ -27,8 +27,9 @@ def stub_retrieve(monkeypatch):
     """Replace rag.pipeline.retrieve; returns a dict to configure results / inspect calls."""
     state = {"chunks": [], "calls": []}
 
-    def fake(store, question, k, file_hashes=None):
+    def fake(store, question, k, file_hashes=None, mode="similarity", fetch_k=20, lambda_mult=0.5):
         state["calls"].append({"question": question, "k": k, "file_hashes": file_hashes})
+        state["opts"] = (mode, fetch_k, lambda_mult)
         return list(state["chunks"])[:k]
 
     monkeypatch.setattr(pipeline_mod, "retrieve", fake)
@@ -194,3 +195,11 @@ def test_end_to_end_with_real_store(test_settings, fake_embeddings, sample_pdf_b
     assert not r.abstained
     assert r.chunks and r.chunks[0].source == name
     assert {"source": name, "page": 2} in r.sources
+
+
+def test_pipeline_passes_retrieval_mode_settings(stub_retrieve):
+    stub_retrieve["chunks"] = [chunk("a.pdf", 1)]
+    settings = get_settings(retrieval_mode="mmr", mmr_fetch_k=12, mmr_lambda=0.3)
+    resp = RAGPipeline(settings, store=None, llm=FakeListChatModel(responses=["Fact [1]."])).ask("Q?")
+    assert stub_retrieve["opts"] == ("mmr", 12, 0.3)
+    assert resp.config["retrieval_mode"] == "mmr"

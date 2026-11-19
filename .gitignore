@@ -6,3 +6,6 @@ __pycache__/
 chroma_db/
 chroma_test*/
 .DS_Store
+
+# Deck build dependencies
+docs/presentation/source/node_modules/

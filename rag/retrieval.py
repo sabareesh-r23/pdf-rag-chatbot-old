@@ -18,15 +18,32 @@ class RetrievedChunk:
 
 
 def retrieve(
-    store: "VectorStoreManager", question: str, k: int, file_hashes: list[str] | None = None
+    store: "VectorStoreManager",
+    question: str,
+    k: int,
+    file_hashes: list[str] | None = None,
+    mode: str = "similarity",
+    fetch_k: int = 20,
+    lambda_mult: float = 0.5,
 ) -> list[RetrievedChunk]:
-    """Embed the question and return the top-k chunks, highest cosine similarity first."""
+    """Embed the question and return k chunks, highest cosine similarity first.
+
+    mode="similarity" returns the k most similar chunks; mode="mmr" uses Maximal
+    Marginal Relevance over the `fetch_k` most similar chunks to reduce redundancy.
+    """
     if question is None or not question.strip():
         raise ValueError("Question must not be empty.")
     if k <= 0:
         raise ValueError("k must be a positive integer.")
 
-    results = store.similarity_search(question.strip(), k=k, file_hashes=file_hashes)
+    if mode == "similarity":
+        results = store.similarity_search(question.strip(), k=k, file_hashes=file_hashes)
+    elif mode == "mmr":
+        results = store.mmr_search(
+            question.strip(), k=k, fetch_k=fetch_k, lambda_mult=lambda_mult, file_hashes=file_hashes
+        )
+    else:
+        raise ValueError(f"Unknown retrieval mode {mode!r}; use 'similarity' or 'mmr'.")
     chunks = [
         RetrievedChunk(
             text=doc.page_content,

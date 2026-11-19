@@ -13,6 +13,7 @@ failure_class / observations) are deliberately left blank for the evaluator.
 Usage:
     python -m evaluation.run_eval --questions evaluation/questions.json
     python -m evaluation.run_eval --top-k 6 --chunk-size 500 --chunk-overlap 100 --reindex
+    python -m evaluation.run_eval --retrieval-mode mmr --mmr-lambda 0.5 --mmr-fetch-k 20
 """
 from __future__ import annotations
 
@@ -218,8 +219,9 @@ def render_markdown(result: dict) -> str:
         "|---|---|",
     ]
     for key in (
-        "llm_provider", "llm_model", "llm_temperature", "embedding_model", "chunk_size",
-        "chunk_overlap", "top_k", "min_relevance", "collection_name", "chroma_dir",
+        "llm_provider", "llm_model", "llm_temperature", "llm_top_p", "llm_num_ctx", "embedding_model",
+        "chunk_size", "chunk_overlap", "retrieval_mode", "top_k", "mmr_fetch_k", "mmr_lambda",
+        "min_relevance", "collection_name", "chroma_dir",
     ):
         lines.append(f"| {key} | `{cfg.get(key)}` |")
     lines += [
@@ -331,6 +333,13 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--top-k", type=int, default=None, help="chunks to retrieve (default: TOP_K env / 4)")
     p.add_argument("--chunk-size", type=int, default=None, help="chunk size in characters (default: CHUNK_SIZE / 1000)")
     p.add_argument("--chunk-overlap", type=int, default=None, help="chunk overlap (default: CHUNK_OVERLAP / 200)")
+    p.add_argument("--retrieval-mode", choices=["similarity", "mmr"], default=None,
+                   help="similarity or mmr (default: RETRIEVAL_MODE / similarity)")
+    p.add_argument("--mmr-fetch-k", type=int, default=None, help="MMR candidate pool (default: MMR_FETCH_K / 20)")
+    p.add_argument("--mmr-lambda", type=float, default=None, help="MMR relevance weight 0-1 (default: MMR_LAMBDA / 0.5)")
+    p.add_argument("--temperature", type=float, default=None, help="override LLM_TEMPERATURE")
+    p.add_argument("--top-p", type=float, default=None, help="override LLM_TOP_P")
+    p.add_argument("--num-ctx", type=int, default=None, help="override LLM_NUM_CTX (Ollama context window)")
     p.add_argument("--llm-model", default=None, help="override LLM_MODEL (for model comparisons)")
     p.add_argument("--llm-provider", choices=["ollama", "openai"], default=None, help="override LLM_PROVIDER")
     p.add_argument("--ids", default=None, help="comma-separated question ids to run (default: all)")
@@ -358,6 +367,12 @@ def main(argv: list[str] | None = None) -> int:
         top_k=args.top_k,
         llm_model=args.llm_model,
         llm_provider=args.llm_provider,
+        retrieval_mode=args.retrieval_mode,
+        mmr_fetch_k=args.mmr_fetch_k,
+        mmr_lambda=args.mmr_lambda,
+        llm_temperature=args.temperature,
+        llm_top_p=args.top_p,
+        llm_num_ctx=args.num_ctx,
     )
     settings = get_settings(**{**base.as_report_dict(), "collection_name": eval_collection_name(base, args.pdf_dir)})
 
