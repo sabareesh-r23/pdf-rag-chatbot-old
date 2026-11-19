@@ -23,19 +23,24 @@ def retrieve(
     question: str,
     k: int,
     file_hashes: list[str] | None = None,
-    mode: str = "similarity",
+    mode: str = "hybrid",
     fetch_k: int = 20,
     lambda_mult: float = 0.5,
     rerank_model: str | None = None,
     rerank_candidates: int = 30,
 ) -> list[RetrievedChunk]:
-    """Embed the question and return k chunks, highest cosine similarity first.
+    """Return k chunks for the question from the active corpus.
 
     mode="similarity" returns the k most similar chunks; mode="mmr" uses Maximal
     Marginal Relevance over the `fetch_k` most similar chunks to reduce redundancy;
     mode="hybrid" fuses BM25 keyword and embedding rankings (top `fetch_k` of each).
-    With `rerank_model`, `rerank_candidates` chunks are retrieved first and reordered by a
-    cross-encoder; the best k are returned in that order.
+
+    With `rerank_model` (similarity / hybrid): `rerank_candidates` chunks are retrieved
+    (the hybrid pool grows to that size too), scored by a cross-encoder, and the best k
+    are returned in rerank order. With MMR the diverse selection of k is kept and the
+    cross-encoder only reorders it; widening MMR to the whole candidate pool would make
+    it select every candidate and lose its diversity. Without reranking, chunks are
+    returned highest cosine similarity first.
     """
     if question is None or not question.strip():
         raise ValueError("Question must not be empty.")
@@ -43,7 +48,7 @@ def retrieve(
         raise ValueError("k must be a positive integer.")
 
     final_k = k
-    if rerank_model:
+    if rerank_model and mode != "mmr":
         k = max(k, rerank_candidates)
     if mode == "similarity":
         results = store.similarity_search(question.strip(), k=k, file_hashes=file_hashes)

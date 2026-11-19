@@ -83,6 +83,9 @@ class Settings:
     llm_temperature: float = field(default_factory=lambda: _env_float("LLM_TEMPERATURE", 0.0))
     # Nucleus sampling; only matters when temperature > 0 (temperature 0 is greedy decoding).
     llm_top_p: float = field(default_factory=lambda: _env_float("LLM_TOP_P", 0.9))
+    # Sampling top-k (Ollama): sample only from the K most likely next tokens. Ollama's default
+    # is 40; like top-p it has no effect at temperature 0. Not the same as retrieval TOP_K.
+    llm_top_k: int = field(default_factory=lambda: _env_int("LLM_TOP_K", 40))
     # Ollama context window in tokens (prompt + answer). 4096 is Ollama's effective default for
     # llama3.2:3b on this machine; a top-k 8 prompt uses well under it. Ignored by the OpenAI provider.
     llm_num_ctx: int = field(default_factory=lambda: _env_int("LLM_NUM_CTX", 4096))
@@ -113,6 +116,8 @@ class Settings:
             raise ValueError("LLM_TEMPERATURE must be between 0 and 2")
         if not 0.0 < self.llm_top_p <= 1.0:
             raise ValueError("LLM_TOP_P must be greater than 0 and at most 1")
+        if self.llm_top_k <= 0:
+            raise ValueError("LLM_TOP_K must be positive")
         if self.llm_num_ctx < 512:
             raise ValueError("LLM_NUM_CTX must be at least 512")
         if self.llm_provider not in {"ollama", "openai"}:

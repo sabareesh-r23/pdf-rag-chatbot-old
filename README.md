@@ -19,17 +19,22 @@ Built as an academic capstone project. **Submission index:** [SUBMISSION.md](SUB
   **Retrieved evidence** panel with similarity scores.
 - Explicit fallback ("I could not find enough information in the uploaded documents to answer this
   question.") when the context does not contain the answer.
-- Retrieval by similarity or **MMR** (Maximal Marginal Relevance), switchable in the UI.
+- **Hybrid retrieval with reranking (default):** BM25 keyword search and embedding search merged with
+  Reciprocal Rank Fusion, then a cross-encoder reranks 30 candidates and keeps the best top-k.
+  Similarity-only and MMR (Maximal Marginal Relevance) are selectable in the UI.
+- Running page headers/footers and page numbers are stripped during PDF loading, so they do not
+  distort retrieval.
 - Adjustable top-k, chunk size / overlap and LLM parameters (temperature, top-p, context window) in the UI.
 - Batch evaluation script producing JSON + Markdown records for manual grading.
 
 ## Architecture (summary)
 
 ```
-Ingestion: upload -> validate -> PyPDF (per page, 1-based) -> normalize -> chunk (1000/200)
-           -> embed (all-MiniLM-L6-v2) -> Chroma (cosine, metadata: source/page/file_hash)
-Query:     question -> embed -> top-k similarity search filtered to active corpus
-           -> numbered context -> grounded prompt -> LLM (temperature 0) -> answer + sources | fallback
+Ingestion: upload -> validate -> PyPDF (per page, 1-based) -> normalize + strip running headers
+           -> chunk (1000/200) -> embed (all-MiniLM-L6-v2) -> Chroma (cosine, metadata: source/page/file_hash)
+Query:     question -> BM25 + embedding search over the active corpus, fused (RRF) -> 30 candidates
+           -> cross-encoder rerank -> top-4 -> numbered context -> grounded prompt
+           -> LLM (llama3.2:3b, temperature 0) -> answer + cited sources | fallback
 ```
 
 See [docs/architecture.md](docs/architecture.md) for the Mermaid diagram, module responsibilities,
@@ -84,8 +89,11 @@ All settings are environment variables (or entries in `.env`), defined in `rag/c
 | `CHUNK_SIZE` | `1000` | Chunk size in characters |
 | `CHUNK_OVERLAP` | `200` | Overlap between consecutive chunks (must be < `CHUNK_SIZE`) |
 | `TOP_K` | `4` | Number of chunks retrieved per question |
-| `RETRIEVAL_MODE` | `similarity` | `similarity` (plain top-k) or `mmr` (Maximal Marginal Relevance: relevant but non-redundant chunks) |
-| `MMR_FETCH_K` | `20` | MMR candidate pool size |
+| `RETRIEVAL_MODE` | `hybrid` | `hybrid` (BM25 + embeddings, RRF), `similarity` (embeddings only) or `mmr` (Maximal Marginal Relevance) |
+| `RERANK` | `true` | Rerank `RERANK_CANDIDATES` retrieved chunks with a cross-encoder and keep the best `TOP_K` |
+| `RERANK_MODEL` | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Cross-encoder used for reranking (~90 MB, downloaded on first use) |
+| `RERANK_CANDIDATES` | `30` | Candidates passed to the reranker |
+| `MMR_FETCH_K` | `20` | Candidate pool for MMR, and for each ranking in hybrid search |
 | `MMR_LAMBDA` | `0.5` | MMR trade-off: 1 = relevance only, 0 = diversity only |
 | `MIN_RELEVANCE` | `0.0` | Drop retrieved chunks with cosine similarity below this (0 = disabled) |
 | `EMBEDDING_MODEL` | `sentence-transformers/all-MiniLM-L6-v2` | Local Sentence-Transformers model |
@@ -110,7 +118,7 @@ OPENAI_API_KEY=sk-...
 # OPENAI_BASE_URL=https://your-compatible-endpoint/v1
 ```
 
-Top-k, search type (similarity / MMR and its parameters), temperature, top-p, context window, chunk
+Top-k, search type (hybrid / similarity / MMR), reranking, temperature, top-p, context window, chunk
 size and chunk overlap can also be changed at runtime in the sidebar **Settings**
 (chunk changes apply to newly indexed files or via **Re-index with current settings**).
 
@@ -128,7 +136,8 @@ Tests use generated fixture PDFs and fake embeddings / chat models; no LLM is re
 ```bash
 python -m evaluation.run_eval --questions evaluation/questions.json            # default config
 python -m evaluation.run_eval --top-k 8                                        # vary top-k
-python -m evaluation.run_eval --retrieval-mode mmr --mmr-lambda 0.5             # MMR retrieval
+python -m evaluation.run_eval --retrieval-mode mmr --mmr-lambda 0.5 --no-rerank # MMR retrieval
+python -m evaluation.run_eval --retrieval-mode similarity --no-rerank            # V1.1 baseline retrieval
 python -m evaluation.run_eval --chunk-size 500 --chunk-overlap 100 --reindex   # vary chunking
 python -m evaluation.run_eval --llm-model llama3.1:8b                          # vary model
 python -m evaluation.run_eval --ids F1,U1                                      # subset / smoke test
@@ -162,7 +171,8 @@ pdf-rag-chatbot/
 │   ├── embeddings.py         # local Sentence-Transformers embeddings (cached)
 │   ├── vectorstore.py        # Chroma wrapper (cosine, dedupe, filtered search)
 │   ├── ingest.py             # validate -> load -> chunk -> index orchestration
-│   ├── retrieval.py          # top-k similarity or MMR retrieval over the active corpus
+│   ├── retrieval.py          # hybrid / similarity / MMR retrieval over the active corpus, optional rerank
+│   ├── reranker.py           # cross-encoder reranking (cached model)
 │   ├── generation.py         # grounded prompt, LLM factory, answer generation
 │   └── pipeline.py           # RAGPipeline.ask -> RAGResponse
 ├── evaluation/
@@ -194,13 +204,14 @@ pdf-rag-chatbot/
 
 | Component | Choice | Why |
 |---|---|---|
-| PDF extraction | PyPDF (`PyPDFLoader`) | Pure Python, per-page output for page citations |
+| PDF extraction | PyPDF (`PyPDFLoader`) | Pure Python, per-page output for page citations; running headers stripped |
 | Chunking | `RecursiveCharacterTextSplitter`, 1000 / 200 | Respects paragraph/sentence boundaries; one fact + context per chunk; overlap protects boundary facts |
+| Reranker | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Small (~90 MB), CPU-friendly; reads question and chunk together, which fixed most retrieval misses |
 | Embeddings | `all-MiniLM-L6-v2` | Small (~90 MB), fast on CPU/Apple Silicon, free, strong for semantic search |
 | Similarity | Cosine on normalized vectors | Matches how the model was trained; scores comparable across queries |
-| Search type | Similarity (default); MMR optional | Similarity was better on the short-paper corpus; MMR was better on the long-document corpus (evaluation report §8b) |
+| Search type | Hybrid BM25 + embeddings, then cross-encoder rerank (default) | Cut wrong answers from 7 to 2 of 22 across three corpora (evaluation report §8e); MMR and similarity-only remain selectable |
 | Vector store | Chroma (persistent, embedded) | No server, metadata filtering, LangChain integration |
-| LLM | Ollama `llama3.2:3b`, temperature 0, top-p 0.9, context 4096 tokens | Runs locally on 8 GB RAM, private, free; deterministic output reduces hallucination |
+| LLM | Ollama `llama3.2:3b`, temperature 0, top-p 0.9, context 4096 tokens | Runs locally on 8 GB RAM, private, free; deterministic output reduces hallucination. Compared with `qwen2.5:3b` (far more over-cautious with this prompt) and `llama3.1:8b` (reads better but ~4× slower and exceeds an 8 GB M1's GPU memory); see report §8e |
 | LLM (optional) | Any OpenAI-compatible API | Larger models for comparison without code changes |
 | UI | Streamlit | Fast to build an interactive upload + chat interface in Python |
 

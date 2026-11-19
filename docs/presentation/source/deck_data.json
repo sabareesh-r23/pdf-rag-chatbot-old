@@ -63,39 +63,37 @@
   {
    "cls": "Retrieval",
    "title": "F3: RAG's Wikipedia index",
-   "what": "The evidence on p. 4 ranks 22nd: the question says 'non-parametric memory', the passage says 'Wikipedia dump', and the chunk mixes two sections.",
-   "status": "Unresolved. Chunk sizes and a second embedding model didn't fix it; hybrid BM25 or a reranker is next."
+   "what": "The evidence on p. 4 ranked 22nd: the question says 'non-parametric memory', the passage says 'Wikipedia dump'.",
+   "status": "Partly fixed (V1.3): hybrid + rerank now gives Wikipedia and 21M; the p. 4 dump passage is still missed."
   },
   {
-   "cls": "Context + generation",
-   "title": "BLEU 38.1 vs 28.4",
-   "what": "Table 2 is flattened into bare numbers; 38.1 is the base model's EN-FR score, read from the wrong row and column.",
-   "status": "Mitigated: rule 9. No wrong number in 8 test phrasings; one phrasing now abstains instead."
+   "cls": "Retrieval",
+   "title": "D1: NIST six Functions",
+   "what": "Evidence ranked 55th: the running page header made every chunk look alike, and the list was a small part of its chunk.",
+   "status": "Fixed (V1.3): headers stripped + reranker; now answered correctly."
   },
   {
    "cls": "Hallucination",
    "title": "A2: false premise",
-   "what": "'Why does SBERT use [CLS] by default?' (it uses MEAN). The model justified the premise from BERT passages.",
-   "status": "Partly fixed: rule 10 makes top-k 4 abstain; top-k 8 still fabricates."
+   "what": "'Why does SBERT use [CLS] by default?' (it uses MEAN). V1 justified the premise from BERT passages.",
+   "status": "Fixed: rule 10, then V1.3 retrieval; now says MEAN is the default."
   }
  ],
- "failuresSpeaker": "Each failure was root-caused before any change. Only prompt-level fixes were made; their verification is limited to the tested questions with llama3.2:3b at temperature 0.",
+ "failuresSpeaker": "Each failure was root-caused before any change. F3 and D1 were retrieval failures with verified causes, which is what V1.3 targeted. A2 was a hallucination fixed by a prompt rule; with better retrieval the model now corrects the premise. The BLEU table case (prompt rule 9) is in the report.",
  "limitations": [
   "No OCR: scanned PDFs are rejected with an explanation",
-  "Tables and figures lose structure in text extraction",
-  "Repeated page headers skew retrieval (NIST D1)",
-  "Dense retrieval misses passages worded differently from the question",
-  "3B local model: occasional omissions, contradictions and one fabrication",
+  "Tables lose structure in extraction (D4: 3 of 4 rows)",
+  "3B model misreads some retrieved text (D5, D6, S1)",
+  "Cross-document comparisons still missed (LM2)",
   "Single-user local prototype; 33 questions, one run per setting"
  ],
  "improvements": [
-  "Hybrid BM25 + dense search, or a reranker (F3, LM2, D1). MMR did not fix F3",
-  "Strip running page headers before chunking (D1)",
-  "Merge neighbouring chunks after MMR (M3, F4)",
-  "Stronger LLM via the OpenAI-compatible setting (S2, A2, D5)",
-  "Table-aware extraction (BLEU, D4)"
+  "Stronger LLM: 16 GB+ machine or the OpenAI-compatible setting (8B tested: better reading)",
+  "Table-aware extraction (BLEU, D4, LF1)",
+  "Query decomposition for cross-document questions (LM2)",
+  "Premise check before answering (A1, LA1, DA1)"
  ],
- "conclusion": "A working local RAG chatbot that cites file and page and abstained on every unanswerable test question, including on a government policy document from a different domain. Evaluation shows retrieval is the main bottleneck, with false premises and tables the main hallucination risks.",
+ "conclusion": "A working local RAG chatbot that cites file and page and declines when the answer is not in the PDFs, tested on research papers and a government policy document. Evaluation found retrieval was the bottleneck; hybrid search and a reranker cut wrong answers from 7 to 2 of 22. The next limit is the 3B model's reading.",
  "mmr": {
   "labels": [
    "A · k4",
@@ -131,7 +129,7 @@
    "Short papers: MMR worse; drops the chunk that continues a passage",
    "Long papers: MMR better; incorrect 3 → 1 (k4), 2 → 0 (k8)",
    "Fixed A2's hallucination at k8; added 2 misattributed numbers",
-   "Similarity stays default; MMR is a UI option"
+   "MMR kept as a UI option; V1.3 default is hybrid + rerank"
   ],
   "params": [
    [
@@ -166,5 +164,52 @@
   "pages": 32,
   "questions": 9,
   "desc": "Different domain: NIST Cybersecurity Framework 2.0 (government policy, public domain)"
+ },
+ "v13": {
+  "labels": [
+   "Final: hybrid + rerank",
+   "+ hybrid only",
+   "Start: similarity"
+  ],
+  "correct": [
+   12,
+   11,
+   11
+  ],
+  "partial": [
+   8,
+   5,
+   4
+  ],
+  "incorrect": [
+   2,
+   6,
+   7
+  ],
+  "points": [
+   "Fixes target verified causes: running headers stripped; BM25 for exact terms; cross-encoder for buried sentences",
+   "Evidence in the top 4: 9 → 16 of 26 questions (retrieval-only test)",
+   "All 7 unanswerable questions still declined; +1.5 s per answer"
+  ],
+  "big": "7 → 2",
+  "bigLabel": "wrong answers out of 22 (correct 11 → 12)",
+  "llms": [
+   [
+    "llama3.2:3b",
+    "12 / 8 / 2",
+    "default: best on this laptop"
+   ],
+   [
+    "qwen2.5:3b",
+    "6 / 1 / 15",
+    "declines most questions with this prompt"
+   ],
+   [
+    "llama3.1:8b",
+    "4 / 1 / 1 (C)",
+    "reads better, ~4× slower, exceeds 8 GB GPU"
+   ]
+  ],
+  "speaker": "The evaluation showed retrieval misses were the main failure, with two verified causes: wording mismatch and repeated page headers. V1.3 targets exactly those: headers are stripped, BM25 keyword search is merged with embedding search, and a cross-encoder reranks 30 candidates. Retrieval alone: the full evidence reached the top 4 for 16 of 26 questions instead of 9. With the LLM: wrong answers fell from 7 to 2 of 22, correct rose from 11 to 12, and every unanswerable question was still declined. The reranker gave most of the gain; hybrid alone did not help on the NIST document. Top-k 6 was also tested and was not better. LLM comparison with the same retrieval: Qwen 2.5 3B declined most questions with this prompt; Llama 3.1 8B read tables better but was four times slower and overflowed the 8 GB GPU, so Llama 3.2 3B stays. See evaluation report section 8e."
  }
 }

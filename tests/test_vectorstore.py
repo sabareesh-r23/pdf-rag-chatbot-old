@@ -208,4 +208,5 @@ def test_hybrid_search_keyword_rescues_exact_term(test_settings, fake_embeddings
 def test_bm25_tokens_keep_identifiers():
     from rag.vectorstore import _tokens
 
-    assert _tokens("What is RS.MA and GPT-3's 2048 context?") == ["rs.ma", "gpt-3", "s", "2048", "context"]
+    assert _tokens("What is RS.MA and GPT-3's 2048 context?") == ["rs.ma", "gpt-3", "2048", "context"]
+    assert _tokens("company's income in 5 years") == ["company", "income", "5", "years"]

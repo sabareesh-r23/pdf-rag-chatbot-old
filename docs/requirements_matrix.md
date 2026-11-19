@@ -14,12 +14,12 @@ Status as of 2026-10-11 (Version 1.1: V1 plus the audit fixes). Each status mean
 
 | # | Requirement | Status | Evidence |
 |---|---|---|---|
-| A1 | Upload one or more PDFs | Complete and verified (backend); UI upload widget implemented, not verified | `app.py` (`st.file_uploader(..., accept_multiple_files=True)`); multi-file ingest in `tests/test_ingest.py::test_multiple_files`; `AppTest` cannot drive the upload widget, so do one manual browser check before recording the demo |
+| A1 | Upload one or more PDFs | Complete and verified | `app.py` (`st.file_uploader(..., accept_multiple_files=True)`); multi-file ingest in `tests/test_ingest.py::test_multiple_files`; the upload widget was driven in real Chrome (Playwright) for the demo recording: 4 files uploaded and indexed |
 | A2 | Reject unsupported formats with a clear error | Complete and verified | `rag/pdf_loader.py::validate_pdf_bytes` (extension, `%PDF-` header, empty, size); tests in `tests/test_pdf_loader.py`; the audit live-tested a `.txt` renamed to `.pdf` |
 | A3 | Extract text from text-based PDFs | Complete and verified | `PyPDFLoader` in `rag/pdf_loader.py::load_pdf_bytes`; all 6 dataset PDFs (213 pages) load with no empty pages |
 | A4 | Preserve filename and page metadata | Complete and verified | `source`, 1-based `page`, `file_hash`, `chunk_id` metadata; `tests/test_pdf_loader.py`, `tests/test_chunking.py` |
 | A5 | Empty pages, corrupted, encrypted, duplicate and no-text PDFs handled gracefully | Complete and verified | `tests/test_pdf_loader.py` (blank, corrupted, encrypted); `tests/test_ingest.py` (duplicate detected **before parsing** since V1.1, regression test `test_duplicate_detected_before_parsing`) |
-| A6 | Normalise text without losing meaning | Complete and verified | `rag/pdf_loader.py::normalize_text`. V1.1 expands ligatures (`ﬁ`→`fi`) and keeps real compounds when rejoining hyphenated line breaks (`English-to-German`, `self-attention`); regression cases in `tests/test_pdf_loader.py::test_normalize_text`. Known residual: some PDFs (Llama 2) come out of extraction with words glued together (`doubledthecontextlength`), which normalisation cannot repair |
+| A6 | Normalise text without losing meaning | Complete and verified | `rag/pdf_loader.py::normalize_text`. V1.3: running headers/footers and page numbers stripped (`strip_repeated_lines`; audited on all 7 PDFs, tests in `tests/test_pdf_loader.py`). V1.1 expands ligatures (`ﬁ`→`fi`) and keeps real compounds when rejoining hyphenated line breaks (`English-to-German`, `self-attention`); regression cases in `tests/test_pdf_loader.py::test_normalize_text`. Known residual: some PDFs (Llama 2) come out of extraction with words glued together (`doubledthecontextlength`), which normalisation cannot repair |
 | A7 | No OCR; explain when a PDF cannot be processed | Complete and verified | No-text PDF error says it is probably scanned/image-only and OCR is not supported (`rag/pdf_loader.py`); `tests/test_pdf_loader.py` |
 | A8 | Dataset of about 50–200 pages, non-confidential, text-based | **Needs professor clarification** | Corpus A: 4 arXiv papers, 61 pages in total (each 11–19 pages). Corpus B (added in V1.1): GPT-3 (75 pp.) and Llama 2 (77 pp.), 152 pages in total. Both corpora fall within 50–200 pages if the range applies to the collection; corpus B also satisfies it per document. All six are public. Licences: Sentence-BERT is CC BY-SA 4.0; the other five are under the arXiv non-exclusive distribution licence (which grants redistribution rights only to arXiv). The input PDFs are to be shared (class session, 2026-11); `data/download_datasets.sh` re-downloads them. Corpus C (V1.2): NIST CSF 2.0, 32 pages, public domain, a different-domain check (report §8d) |
 
@@ -47,7 +47,8 @@ Status as of 2026-10-11 (Version 1.1: V1 plus the audit fixes). Each status mean
 | D1 | Store chunks, embeddings and metadata in a vector DB | Complete and verified | Persistent Chroma, cosine space (`rag/vectorstore.py`); `tests/test_vectorstore.py` |
 | D2 | Semantic (not keyword-only) search | Complete and verified | Slow test with the real model retrieves paraphrased queries (`tests/test_retrieval.py`, marked `slow`) |
 | D3 | Configurable top-k | Complete and verified | `TOP_K`, UI slider (1–10), `--top-k`; evaluated at k=4 and k=8 |
-| D3b | Search type: similarity or MMR (V1.2) | Complete and verified | `RETRIEVAL_MODE`, UI radio + MMR sliders, `--retrieval-mode`; `tests/test_vectorstore.py` (MMR tests); evaluated on both corpora at k=4 and k=8 (evaluation report §8b) |
+| D3b | Search type: hybrid (default), similarity or MMR | Complete and verified | `RETRIEVAL_MODE`, UI radio, `--retrieval-mode`; hybrid = BM25 + cosine with Reciprocal Rank Fusion (`VectorStoreManager.hybrid_search`); tests in `tests/test_vectorstore.py`; MMR evaluated in report §8b, hybrid in §8e |
+| D3c | Cross-encoder reranking (V1.3, default on) | Complete and verified | `rag/reranker.py`, `RERANK*` settings, UI checkbox, `--rerank/--no-rerank`; `tests/test_retrieval.py`; wrong answers 7 → 2 of 22 (report §8e) |
 | D4 | Retrieval restricted to the active corpus | Complete and verified | `file_hash` filter (`VectorStoreManager.similarity_search`); filter-isolation tests; the audit live-checked deselected documents (the system correctly fell back) |
 | D5 | Reset / re-index without mixing documents | Complete and verified | `reset()`, `remove_file()`, UI "Clear corpus" (confirm-gated) and "Re-index with current settings"; V1.1 fix: a second store instance survives another instance's reset (`tests/test_vectorstore.py::test_second_instance_survives_reset_by_another`). Separate eval corpora use separate collections |
 | D6 | Local store, no unnecessary infrastructure | Complete and verified | Chroma on local disk (`chroma_db/`, git-ignored) |
@@ -95,8 +96,8 @@ Status as of 2026-10-11 (Version 1.1: V1 plus the audit fixes). Each status mean
 
 | Item | Status | Note |
 |---|---|---|
-| Comparing 2–3 LLMs | Optional enhancement | Not done. The top-k 4 vs 8 comparison is **not** an LLM comparison. A retrieval-only embedding comparison (MiniLM vs bge-small) was run |
-| MMR retrieval | Done (V1.2) | Implemented and evaluated (report §8b); similarity stays the default |
-| Reranker / hybrid BM25 search | Optional enhancement | Evidence suggests it would help F3-type misses, but it was not implemented. MMR did not fix F3 |
+| Comparing 2–3 LLMs | Done (V1.3) | `llama3.2:3b` (default) vs `qwen2.5:3b` on all 33 questions and `llama3.1:8b` on corpus C, same retrieval (report §8e). An embedding comparison (MiniLM vs bge-small) was also run |
+| MMR retrieval | Done (V1.2) | Implemented and evaluated (report §8b); optional, not the default |
+| Reranker / hybrid BM25 search | Done (V1.3), default | Implemented after the evaluation identified retrieval misses as the main failure; measured gain in report §8e |
 | Cloud deployment, authentication, multi-user, persistent chat memory | Out of scope | A local demo was accepted by the professor |
 | LLM-as-a-judge / automatic metrics | Optional enhancement | Manual evaluation was requested; no pass-rate threshold was specified |

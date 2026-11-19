@@ -125,7 +125,7 @@ def strip_repeated_lines(texts: list[str], min_share: float = 0.5, min_pages: in
     """Remove running headers/footers and bare page numbers from a document's pages.
 
     A line at the top or bottom of a page counts as a running header/footer when the same
-    line (digits ignored) appears at the edge of at least ``min_share`` of the pages, and on
+    line (word for word; any bare page number counts as the same line) appears at the edge of at least ``min_share`` of the pages, and on
     at least ``min_pages`` pages. It is kept on the first page where it occurs (so a cover
     date or title stays searchable once) and removed everywhere else. Repeated headers make
     every chunk that contains them look similar to questions that name the document, which

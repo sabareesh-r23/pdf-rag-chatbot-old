@@ -17,7 +17,8 @@ flowchart TD
         RD -- no --> E1
         RD -- yes --> L[PyPDFLoader / pypdf<br/>one Document per page, 1-based page]
         L --> N[normalize_text<br/>expand ligatures, re-join hyphenated breaks<br/>keeping real compounds, collapse whitespace]
-        N --> S{any page with text?}
+        N --> HS[strip_repeated_lines<br/>remove running headers/footers and page numbers<br/>kept once on the first page]
+        HS --> S{any page with text?}
         S -- no --> E3[error: likely scanned / image-only PDF<br/>OCR out of scope]
         S -- yes --> C[split_documents<br/>RecursiveCharacterTextSplitter<br/>CHUNK_SIZE / CHUNK_OVERLAP, per page]
         C --> EM[get_embeddings<br/>all-MiniLM-L6-v2, normalized]
@@ -26,9 +27,10 @@ flowchart TD
 
     subgraph Query["Query path (per question)"]
         Q[User question in chat input] --> QE[embed question<br/>same embedding model]
-        QE --> SS[similarity or MMR search, top-k<br/>filter: file_hash IN active corpus]
+        QE --> SS[hybrid search default: BM25 + cosine rankings<br/>fused with Reciprocal Rank Fusion<br/>or similarity / MMR; filter: file_hash IN active corpus]
         DB -.-> SS
-        SS --> G{MIN_RELEVANCE guard<br/>optional}
+        SS --> RR[cross-encoder rerank<br/>30 candidates -> best top-k 4<br/>ms-marco-MiniLM-L-6-v2]
+        RR --> G{MIN_RELEVANCE guard<br/>optional}
         G --> R{any chunks left?}
         R -- no --> FB[FALLBACK_ANSWER<br/>LLM not called]
         R -- yes --> CB[format_context<br/>numbered blocks: n, source, page]
@@ -45,15 +47,16 @@ flowchart TD
 | Module | Responsibility | Key public API |
 |---|---|---|
 | `rag/config.py` | All tunables from env / `.env`; validation; report snapshot; fallback sentence | `Settings`, `get_settings(**overrides)`, `FALLBACK_ANSWER` |
-| `rag/pdf_loader.py` | Validate bytes (extension, header, size, encryption, corruption), extract text per page with 1-based page numbers, normalize text, detect empty / scanned pages | `validate_pdf_bytes`, `load_pdf_bytes`, `load_pdf_path`, `compute_file_hash`, `PDFValidationError`, `LoadResult` |
+| `rag/pdf_loader.py` | Validate bytes (extension, header, size, encryption, corruption), extract text per page with 1-based page numbers, normalize text, detect empty / scanned pages | `validate_pdf_bytes`, `load_pdf_bytes`, `load_pdf_path`, `strip_repeated_lines`, `compute_file_hash`, `PDFValidationError`, `LoadResult` |
 | `rag/chunking.py` | Split each page into overlapping chunks; add `chunk_index` and stable `chunk_id` | `split_documents(pages, chunk_size, chunk_overlap)` |
 | `rag/embeddings.py` | Load and cache the local Sentence-Transformers model with normalized vectors; actionable errors on download/load failure | `get_embeddings(model_name)`, `EmbeddingInitError` |
-| `rag/vectorstore.py` | Persistent Chroma collection (cosine); add/upsert chunks, list/remove files, reset corpus, filtered similarity search returning cosine similarity | `VectorStoreManager` |
+| `rag/vectorstore.py` | Persistent Chroma collection (cosine); add/upsert chunks, list/remove files, reset corpus, filtered similarity, MMR and hybrid (BM25 + cosine, RRF) search, all returning cosine similarity | `VectorStoreManager` |
 | `rag/ingest.py` | Orchestrate validate -> load -> dedupe -> chunk -> index; never raises for bad PDFs | `ingest_file(...) -> IngestReport` |
-| `rag/retrieval.py` | Embed the question, top-k similarity or MMR search restricted to the active corpus, typed results | `retrieve(...) -> list[RetrievedChunk]` |
+| `rag/retrieval.py` | Top-k hybrid, similarity or MMR search restricted to the active corpus, optional cross-encoder reranking of a larger candidate pool, typed results | `retrieve(...) -> list[RetrievedChunk]` |
+| `rag/reranker.py` | Load and cache the cross-encoder; score (question, chunk) pairs | `get_reranker`, `rerank_scores`, `RerankerInitError` |
 | `rag/generation.py` | Grounded system prompt, context formatting, LLM construction (Ollama / OpenAI-compatible), Ollama health check, answer generation with fallback | `SYSTEM_PROMPT`, `get_llm`, `check_ollama`, `format_context`, `generate_answer`, `LLMInitError` |
 | `rag/pipeline.py` | End-to-end `ask`: retrieve -> relevance guard -> generate -> sources & abstention flag | `RAGPipeline.ask(...) -> RAGResponse` |
-| `app.py` | Streamlit UI: upload & ingestion status, active-corpus selection, settings (top-k, search type and MMR parameters, temperature, top-p, context window, chunk size/overlap), LLM status, chat with sources and evidence, clear corpus | — |
+| `app.py` | Streamlit UI: upload & ingestion status, active-corpus selection, settings (top-k, search type and MMR parameters, reranking, temperature, top-p, context window, chunk size/overlap), LLM status, chat with sources and evidence, clear corpus | — |
 | `evaluation/run_eval.py` | Batch evaluation over `evaluation/questions.json`, writes JSON + Markdown records for manual grading | CLI |
 
 ## 3. Design decisions and rationale
@@ -102,13 +105,28 @@ deselected documents can never leak into answers. "Clear corpus" deletes and rec
 3B-parameter model (long contexts dilute small models' attention and slow generation on 8 GB machines).
 Adjustable in the UI and via `--top-k` for comparison.
 
-**Similarity search by default, MMR as an option (V1.2).** MMR (Maximal Marginal Relevance) fetches the
+**Hybrid search + cross-encoder reranking by default (V1.3).** Two retrieval failure causes were
+verified in the evaluation: wording mismatch between question and passage (F3) and a key sentence that
+is a small part of its chunk or is outscored by chunks sharing a running header (D1). Hybrid search adds
+a BM25 keyword ranking to the embedding ranking and merges them with Reciprocal Rank Fusion, so exact
+terms ("Wikipedia", "RS.MA") count. A cross-encoder then reads each of 30 candidates together with the
+question and keeps the best 4, which is much sharper than comparing two separate embeddings. Measured on
+26 questions, full evidence in the top 4 rose from 9 to 16; with the LLM, wrong answers fell from 7 to
+2 of 22 (evaluation report §8e). BM25 is computed in memory over the active chunks (fine for a few
+thousand chunks); the reranker adds about 1.5 s per question on an M1.
+
+**Running headers stripped at load time (V1.3).** Lines repeated word for word at the top or bottom of
+at least half of a document's pages, and bare page numbers, are removed except on the first page they
+appear on. In the NIST document the running title matched every question that named the framework, so
+header-carrying chunks crowded out the evidence (D1 ranked 55th).
+
+**MMR as an option (V1.2).** MMR (Maximal Marginal Relevance) fetches the
 20 most similar chunks and then picks k that are relevant but not near-duplicates of each other
 (`VectorStoreManager.mmr_search`, lambda 0.5). It is implemented on the raw Chroma query so that every
 returned chunk keeps its cosine similarity for the evidence panel. In the evaluation (report §8b) MMR
 helped on the long-document corpus, where similarity search fills k with repeats of the same topic,
 but hurt on the short papers: with 200-character chunk overlap, the continuation of a passage is in a
-neighbouring chunk that MMR treats as redundant. Similarity therefore stays the default.
+neighbouring chunk that MMR treats as redundant. It is kept as an option, not the default.
 
 **Grounded prompt and explicit fallback.** The system prompt instructs the model to answer only from
 numbered passages, cite them as `[n]`, state which part is missing for partial answers, treat passage

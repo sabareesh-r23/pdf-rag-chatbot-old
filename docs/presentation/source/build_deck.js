@@ -72,7 +72,7 @@ s.addText("Grounded, cited answers from your own PDFs, running locally with Lang
 badge(s, 0.6, 0.7, "[1]", C.accent1, "title-b1");
 badge(s, 1.16, 0.7, "[2]", C.accent2, "title-b2");
 badge(s, 1.72, 0.7, "[3]", C.accent5, "title-b3");
-textBox(s, "Academic capstone · Version 1.2", { x: 0.6, y: 4.7, w: 6, h: 0.35, fontSize: 14, color: C.accent5 });
+textBox(s, "Academic capstone · Version 1.3", { x: 0.6, y: 4.7, w: 6, h: 0.35, fontSize: 14, color: C.accent5 });
 s.addNotes("Introduce the project: a chatbot that answers questions about uploaded PDFs using Retrieval-Augmented Generation, citing file and page, and refusing to answer when the documents do not contain the information.");
 
 // ---------------------------------------------------------------- 2. Problem
@@ -116,13 +116,13 @@ function flow(slide, y, label, steps, fill, name) {
     }
   });
 }
-flow(s, 1.55, "Ingestion path (per uploaded PDF)", ["Upload + validate\n(type, header, size)", "Hash +\nduplicate check", "PyPDFLoader\nper page", "Normalise\ntext", "Chunk\n1000 / 200", "Embed\nMiniLM-L6"], C.background2, "ing");
-flow(s, 3.3, "Query path (per question)", ["Question", "Embed\n(same model)", "Top-k search\nactive files only", "Numbered\ncontext", "Grounded prompt\nLlama 3.2 3B", "Answer + cited\nfile/page"], C.accent5, "qry");
+flow(s, 1.55, "Ingestion path (per uploaded PDF)", ["Upload + validate\n(type, header, size)", "Hash +\nduplicate check", "PyPDFLoader\nper page", "Normalise +\nstrip headers", "Chunk\n1000 / 200", "Embed\nMiniLM-L6"], C.background2, "ing");
+flow(s, 3.3, "Query path (per question)", ["Question", "Hybrid search\nBM25 + embeddings", "Rerank 30\n→ top 4", "Numbered\ncontext", "Grounded prompt\nLlama 3.2 3B", "Answer + cited\nfile/page"], C.accent5, "qry");
 // shared store
 s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 7.0, y: 2.45, w: 2.5, h: 0.6, rectRadius: 0.08, fill: { color: C.accent1 }, line: { color: C.accent1 }, objectName: "store" });
 textBox(s, "Chroma vector store\n(cosine, file + page metadata)", { x: 7.05, y: 2.45, w: 2.4, h: 0.6, fontSize: 11, bold: true, align: "center", valign: "middle" });
 textBox(s, "No passages retrieved → fixed fallback answer, LLM not called", { x: 0.5, y: 4.45, w: 9, h: 0.35, fontSize: 12, italic: true, color: C.text2 });
-s.addNotes("Walk the ingestion path left to right, then the query path. The same embedding model is used for chunks and questions. Retrieval is filtered by file hash so only the selected documents can be cited. Full diagram: docs/architecture.md.");
+s.addNotes("Walk the ingestion path left to right, then the query path. Running page headers are stripped at load time. Each question is searched two ways, by keywords (BM25) and by meaning (embeddings); the rankings are merged, a cross-encoder reranks the best 30 and the top 4 go to the LLM. Retrieval is filtered by file hash so only the selected documents can be cited. Full diagram: docs/architecture.md.");
 
 // ---------------------------------------------------------------- 4. Stack
 s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Architecture" });
@@ -183,8 +183,8 @@ s.addText(bullets([
   "RecursiveCharacterTextSplitter splits paragraph → line → sentence, per page, so every chunk maps to one page",
   "Questions are embedded with the same all-MiniLM-L6-v2 model; Chroma ranks chunks by cosine similarity",
   "Search is filtered to the files ticked in the UI, so unselected documents can never be cited",
-  "Similarity search by default; MMR (relevant + non-redundant) selectable in the UI (V1.2)",
-  "Chunk size, overlap, top-k and search type are configurable and recorded with every run",
+  "Default (V1.3): hybrid BM25 + embedding search, then a cross-encoder reranks 30 candidates to the top 4",
+  "Similarity-only and MMR selectable; chunking, top-k, search type and reranking recorded with every run",
 ], 13), { x: 0.75, y: 2.95, w: 8.5, h: 1.9, isTextBox: true, margin: 0, valign: "top" });
 s.addNotes(`Explain the defaults. A chunk-size sweep (1000/800/600/500) was run during evaluation: no chunk size retrieved F3's evidence, and the other differences were within noise, so the default was kept. See the evaluation report.`);
 
@@ -216,7 +216,7 @@ s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Implementation" });
 s.addText("User interface: answers you can check", { placeholder: "title" });
 s.addImage({ path: path.join(__dirname, "ui_screenshot.png"), x: 0.5, y: 1.3, w: 5.6, h: 3.5, objectName: "ui-screenshot" });
 s.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 1.3, w: 5.6, h: 3.5, fill: { type: "none" }, line: { color: C.accent5, width: 0.75 }, objectName: "screenshot-border" });
-const ui = [["Sidebar", "Upload, indexing status per file, active-corpus checkboxes, clear / re-index"], ["Chat", "Question, answer with [n] citations, Sources: file (p. N)"], ["Evidence", "Rank, page, similarity score and full text of every retrieved chunk"], ["Settings", "Top-k, similarity / MMR, temperature, top-p, context window, chunking"]];
+const ui = [["Sidebar", "Upload, indexing status per file, active-corpus checkboxes, clear / re-index"], ["Chat", "Question, answer with [n] citations, Sources: file (p. N)"], ["Evidence", "Rank, page, similarity score and full text of every retrieved chunk"], ["Settings", "Top-k, hybrid / similarity / MMR, reranking, temperature, top-p, context window, chunking"]];
 ui.forEach(([h, d], i) => {
   const y = 1.2 + i * 0.95;
   textBox(s, h, { x: 6.45, y, w: 3.05, h: 0.3, fontSize: 15, bold: true });
@@ -255,7 +255,7 @@ s.addChart(pres.charts.BAR, [
   catAxisLabelColor: HEX.dk2, catAxisLabelFontSize: 11, valAxisLabelColor: HEX.dk2, valAxisLabelFontSize: 10,
   valAxisMaxVal: 100, valAxisMinVal: 0, valAxisLabelFormatCode: "0\"%\"", dataLabelFormatCode: "0\"%\"",
   valGridLine: { color: HEX.lt2, size: 0.75 }, catGridLine: { style: "none" },
-  showTitle: true, title: "Answerable questions with evidence retrieved (%)", titleFontSize: 12, titleColor: HEX.dk1,
+  showTitle: true, title: "V1.1 baseline (similarity search): evidence retrieved (%)", titleFontSize: 12, titleColor: HEX.dk1,
 }, chartText));
 D.retrieval.notes.forEach((t, i) => {
   textBox(s, t, { x: 6.6, y: 1.25 + i * 1.25, w: 2.9, h: 1.1, fontSize: 13, color: C.text1 });
@@ -275,7 +275,7 @@ s.addChart(pres.charts.BAR, [
   showLegend: true, legendPos: "b", legendFontSize: 11, legendColor: HEX.dk2,
   catAxisLabelColor: HEX.dk2, catAxisLabelFontSize: 11, valAxisLabelColor: HEX.dk2, valAxisLabelFontSize: 10,
   valGridLine: { color: HEX.lt2, size: 0.75 }, catGridLine: { style: "none" },
-  showTitle: true, title: "Answerable questions by judged outcome (count)", titleFontSize: 12, titleColor: HEX.dk1,
+  showTitle: true, title: "V1.1 baseline (similarity search): outcomes (count)", titleFontSize: 12, titleColor: HEX.dk1,
 }, chartText));
 textBox(s, D.quality.abstainBig, { x: 6.6, y: 1.2, w: 2.9, h: 0.9, fontSize: 44, bold: true, color: C.accent2, fontFace: THEME.headFontFace });
 textBox(s, D.quality.abstainLabel, { x: 6.6, y: 2.1, w: 2.9, h: 0.6, fontSize: 12, color: C.text2 });
@@ -296,7 +296,7 @@ s.addChart(pres.charts.BAR, [
   showLegend: true, legendPos: "b", legendFontSize: 9, legendColor: HEX.dk2,
   catAxisLabelColor: HEX.dk2, catAxisLabelFontSize: 10, valAxisLabelColor: HEX.dk2, valAxisLabelFontSize: 9,
   valGridLine: { color: HEX.lt2, size: 0.75 }, catGridLine: { style: "none" },
-  showTitle: true, title: "Answerable questions (A n=10, B n=6)", titleFontSize: 11, titleColor: HEX.dk1,
+  showTitle: true, title: "V1.2: answerable questions (A n=10, B n=6)", titleFontSize: 11, titleColor: HEX.dk1,
 }, chartText));
 s.addText(bullets(D.mmr.points, 11), { x: 0.5, y: 3.6, w: 4.8, h: 1.55, isTextBox: true, margin: 0, valign: "top" });
 card(s, 5.5, 1.15, 4.0, 3.9, "params-card");
@@ -309,6 +309,34 @@ D.mmr.params.forEach(([k, v, why], i) => {
 });
 textBox(s, "All adjustable in the sidebar; recorded in every run", { x: 5.7, y: 4.75, w: 3.6, h: 0.25, fontSize: 10, italic: true, color: C.text2 });
 s.addNotes(D.mmr.speaker);
+
+// ---------------------------------------------------------------- 12b. Improvements (V1.3)
+s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Evaluation" });
+s.addText("Improving it: hybrid search + reranker", { placeholder: "title" });
+s.addChart(pres.charts.BAR, [
+  { name: "Correct", labels: D.v13.labels, values: D.v13.correct },
+  { name: "Partial", labels: D.v13.labels, values: D.v13.partial },
+  { name: "Incorrect", labels: D.v13.labels, values: D.v13.incorrect },
+], Object.assign({
+  x: 0.5, y: 1.15, w: 5.0, h: 2.6, barDir: "bar", barGrouping: "stacked",
+  chartColors: [HEX.accent2, HEX.accent1, HEX.accent3], showValue: true, dataLabelPosition: "ctr", dataLabelFontSize: 10, dataLabelColor: HEX.dk1,
+  showLegend: true, legendPos: "b", legendFontSize: 10, legendColor: HEX.dk2,
+  catAxisLabelColor: HEX.dk2, catAxisLabelFontSize: 10, valAxisLabelColor: HEX.dk2, valAxisLabelFontSize: 9,
+  valGridLine: { color: HEX.lt2, size: 0.75 }, catGridLine: { style: "none" },
+  showTitle: true, title: "22 answerable questions, 3 corpora, top-k 4", titleFontSize: 11, titleColor: HEX.dk1,
+}, chartText));
+s.addText(bullets(D.v13.points, 11), { x: 0.5, y: 3.85, w: 5.0, h: 1.3, isTextBox: true, margin: 0, valign: "top" });
+textBox(s, D.v13.big, { x: 5.8, y: 1.15, w: 3.7, h: 0.75, fontSize: 40, bold: true, color: C.accent2, fontFace: THEME.headFontFace });
+textBox(s, D.v13.bigLabel, { x: 5.8, y: 1.9, w: 3.7, h: 0.5, fontSize: 12, color: C.text2 });
+card(s, 5.8, 2.55, 3.7, 2.5, "llm-card");
+textBox(s, "LLM comparison (same retrieval)", { x: 6.0, y: 2.68, w: 3.3, h: 0.3, fontSize: 13, bold: true, fontFace: THEME.headFontFace });
+D.v13.llms.forEach(([m, r, n], i) => {
+  const y = 3.08 + i * 0.62;
+  textBox(s, m, { x: 6.0, y, w: 1.75, h: 0.28, fontSize: 11, bold: true, fontFace: "Courier New" });
+  textBox(s, r, { x: 7.75, y, w: 1.6, h: 0.28, fontSize: 11, bold: true, color: C.accent6, align: "right" });
+  textBox(s, n, { x: 6.0, y: y + 0.27, w: 3.35, h: 0.3, fontSize: 9.5, color: C.text2 });
+});
+s.addNotes(D.v13.speaker);
 
 // ---------------------------------------------------------------- 12. Failure analysis
 s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Evaluation" });
@@ -332,14 +360,14 @@ s.addText(bullets(D.limitations, 13), { x: 0.5, y: 1.65, w: 4.3, h: 3.3, isTextB
 card(s, 5.2, 1.2, 4.3, 3.75, "improve-card");
 textBox(s, "Improvements (evidence-based)", { x: 5.45, y: 1.35, w: 3.9, h: 0.35, fontSize: 18, bold: true, fontFace: THEME.headFontFace });
 s.addText(bullets(D.improvements, 13), { x: 5.45, y: 1.8, w: 3.85, h: 3.05, isTextBox: true, margin: 0, valign: "top" });
-s.addNotes("Every improvement listed is tied to a failure observed in the evaluation. None of them has been implemented or measured yet.");
+s.addNotes("Hybrid search, reranking and header stripping were implemented in V1.3 because the evaluation showed retrieval misses were the main failure. What is listed here is what remains, each tied to an observed failure. A larger model was tested (Llama 3.1 8B) and reads better, but it needs more memory than this 8 GB laptop.");
 
 // ---------------------------------------------------------------- 14. Conclusion
 s = pres.addSlide({ masterName: "DARK", sectionTitle: "Conclusion" });
 s.addText("Conclusion", { placeholder: "title" });
 s.addText(D.conclusion, { placeholder: "body" });
 badge(s, 0.6, 0.7, "[✓]", C.accent2, "end-b1");
-s.addNotes("Close by restating what works (grounded, cited answers; consistent abstention on unanswerable questions) and what doesn't yet (dense retrieval misses some short facts; a 3B model sometimes misreads or fabricates). Invite questions.");
+s.addNotes("Close by restating what works (grounded, cited answers; consistent abstention on unanswerable questions, on two very different kinds of documents), how evaluation drove the improvements (wrong answers 7 to 2 of 22), and what limits it now (the 3B model's reading of tables and lists). Invite questions.");
 
 (async () => {
   fs.mkdirSync(path.dirname(OUT), { recursive: true });

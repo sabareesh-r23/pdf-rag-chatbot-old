@@ -18,7 +18,7 @@ from rag.embeddings import EmbeddingInitError, get_embeddings
 from rag.generation import LLMInitError
 from rag.ingest import ingest_file
 from rag.pipeline import RAGPipeline
-from rag.reranker import RerankerInitError
+from rag.reranker import RerankerInitError, get_reranker
 from rag.vectorstore import VectorStoreManager
 
 try:  # optional helper (not in CONTRACTS.md); degrade gracefully if absent
@@ -134,6 +134,11 @@ with st.sidebar:
             "Top-p (nucleus sampling)", 0.1, 1.0, value=float(base_settings.llm_top_p), step=0.05,
             help="Only has an effect when temperature > 0.",
         )
+        llm_top_k = st.slider(
+            "Top-k sampling (LLM tokens)", 1, 100, value=min(max(int(base_settings.llm_top_k), 1), 100),
+            help="Sample only from the K most likely next tokens. Only has an effect when temperature > 0. "
+                 "Not the same as 'Top-k retrieved chunks'.",
+        )
         ctx_options = [2048, 4096, 8192, 16384]
         llm_num_ctx = st.select_slider(
             "Context window (tokens, Ollama)", ctx_options,
@@ -158,7 +163,7 @@ try:
     settings = get_settings(
         top_k=int(top_k), chunk_size=int(chunk_size), chunk_overlap=int(chunk_overlap),
         retrieval_mode=retrieval_mode, mmr_fetch_k=int(mmr_fetch_k), mmr_lambda=float(mmr_lambda), rerank=bool(rerank),
-        llm_temperature=float(llm_temperature), llm_top_p=float(llm_top_p), llm_num_ctx=int(llm_num_ctx),
+        llm_temperature=float(llm_temperature), llm_top_p=float(llm_top_p), llm_top_k=int(llm_top_k), llm_num_ctx=int(llm_num_ctx),
     )
 except ValueError as exc:
     st.sidebar.error(f"Invalid settings: {exc}")
@@ -173,7 +178,7 @@ with st.sidebar.expander("Effective configuration", expanded=False):
         + (f", reranked from {settings.rerank_candidates} candidates" if settings.rerank else "")
         + "\n"
         f"- **Min relevance:** {settings.min_relevance}\n"
-        f"- **LLM:** {settings.llm_provider} / `{settings.llm_model}` (temperature {settings.llm_temperature}, top-p {settings.llm_top_p}, context {settings.llm_num_ctx} tokens)\n"
+        f"- **LLM:** {settings.llm_provider} / `{settings.llm_model}` (temperature {settings.llm_temperature}, top-p {settings.llm_top_p}, sampling top-k {settings.llm_top_k}, context {settings.llm_num_ctx} tokens)\n"
         f"- **Vector store:** `{settings.chroma_dir}` (collection `{settings.collection_name}`)"
     )
 
@@ -188,6 +193,16 @@ except APP_ERRORS as exc:
 except Exception as exc:  # noqa: BLE001 - show rather than crash
     st.error(f"Unexpected error while opening the vector store: {exc}")
     st.stop()
+
+# Load the reranker up front (cached per process) so the first question is not slowed
+# down by the model load. A failure here is not fatal: answers can still be produced
+# with reranking switched off in Settings.
+if settings.rerank:
+    try:
+        with st.spinner("Loading reranker model..."):
+            get_reranker(settings.rerank_model)
+    except RerankerInitError as exc:
+        st.sidebar.warning(f"{exc} Turn off 'Rerank with cross-encoder' in Settings to continue without it.")
 
 
 def run_ingest(files: list[tuple[str, bytes]], ingest_settings: Settings, label: str) -> list[dict]:

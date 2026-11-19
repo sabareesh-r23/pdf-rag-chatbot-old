@@ -75,6 +75,7 @@ def get_llm(settings: Settings) -> "BaseChatModel":
             base_url=settings.ollama_base_url,
             temperature=settings.llm_temperature,
             top_p=settings.llm_top_p,
+            top_k=settings.llm_top_k,
             num_ctx=settings.llm_num_ctx,
         )
 

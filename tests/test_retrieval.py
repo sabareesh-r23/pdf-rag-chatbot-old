@@ -94,10 +94,11 @@ def test_real_model_semantic_retrieval(tmp_path):
         "What medicine did the doctor give for the illness?": 3,
         "What led to the town being under water?": 4,
     }
-    for question, page in cases.items():
-        top = retrieve(store, question, k=1)[0]
-        assert top.page == page, f"{question!r} -> page {top.page}"
-        assert 0.0 < top.score <= 1.0001
+    for mode in ("similarity", "hybrid"):
+        for question, page in cases.items():
+            top = retrieve(store, question, k=1, mode=mode)[0]
+            assert top.page == page, f"{mode}: {question!r} -> page {top.page}"
+            assert 0.0 < top.score <= 1.0001
 
 
 # --- cross-encoder reranking (V1.3) ---------------------------------------------------
@@ -122,3 +123,15 @@ def test_retrieve_with_rerank_reorders_and_truncates(monkeypatch, indexed_store)
 
 def test_retrieve_without_rerank_has_no_rerank_score(indexed_store):
     assert all(c.rerank_score is None for c in retrieve(indexed_store, "photosynthesis", k=3))
+
+
+def test_mmr_with_rerank_keeps_mmr_selection(monkeypatch, indexed_store):
+    """Reranking must not widen MMR to the candidate pool (that would disable MMR)."""
+    import rag.reranker as rr
+
+    seen = {}
+    monkeypatch.setattr(rr, "rerank_scores", lambda m, q, texts: seen.setdefault("n", len(texts)) and [0.0] * len(texts) or [0.0] * len(texts))
+    mmr = retrieve(indexed_store, "photosynthesis", k=2, mode="mmr", fetch_k=6)
+    both = retrieve(indexed_store, "photosynthesis", k=2, mode="mmr", fetch_k=6, rerank_model="fake", rerank_candidates=30)
+    assert seen["n"] == 2  # only the MMR selection is reranked
+    assert {c.chunk_id for c in both} == {c.chunk_id for c in mmr}

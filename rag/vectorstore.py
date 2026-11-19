@@ -31,8 +31,12 @@ _STOPWORDS = frozenset(
 
 
 def _tokens(text: str) -> list[str]:
-    """Lowercase word tokens for BM25 (keeps identifiers such as rs.ma, gpt-3, 2048)."""
-    return [t for t in _TOKEN.findall(text.lower()) if t not in _STOPWORDS]
+    """Lowercase word tokens for BM25 (keeps identifiers such as rs.ma, gpt-3, 2048).
+
+    Single letters are dropped: the "s" of a possessive ("company's") would otherwise
+    match unrelated chunks ("automobile's") and win the keyword ranking on its own.
+    """
+    return [t for t in _TOKEN.findall(text.lower()) if t not in _STOPWORDS and (len(t) > 1 or t.isdigit())]
 
 
 def _bm25_scores(query: list[str], docs: list[list[str]], k1: float = 1.5, b: float = 0.75) -> list[float]:
