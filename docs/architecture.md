@@ -55,8 +55,8 @@ flowchart TD
 | `rag/retrieval.py` | Top-k hybrid, similarity or MMR search restricted to the active corpus, optional cross-encoder reranking of a larger candidate pool, typed results | `retrieve(...) -> list[RetrievedChunk]` |
 | `rag/reranker.py` | Load and cache the cross-encoder; score (question, chunk) pairs | `get_reranker`, `rerank_scores`, `RerankerInitError` |
 | `rag/generation.py` | Grounded system prompt, context formatting, LLM construction (Ollama / OpenAI-compatible), Ollama health check, answer generation with fallback | `SYSTEM_PROMPT`, `get_llm`, `check_ollama`, `format_context`, `generate_answer`, `LLMInitError` |
-| `rag/pipeline.py` | End-to-end `ask`: retrieve -> relevance guard -> generate -> sources & abstention flag | `RAGPipeline.ask(...) -> RAGResponse` |
-| `app.py` | Streamlit UI: upload & ingestion status, active-corpus selection, settings (top-k, search type and MMR parameters, reranking, temperature, top-p, context window, chunk size/overlap), LLM status, chat with sources and evidence, clear corpus | — |
+| `rag/pipeline.py` | End-to-end `ask`: (optional decomposition of comparison questions) -> retrieve -> relevance guard -> generate -> sources & abstention flag | `RAGPipeline.ask(...) -> RAGResponse` |
+| `app.py` | Streamlit UI: upload & ingestion status, active-corpus selection, settings (top-k, search type and MMR parameters, reranking, comparison-question splitting, sampling top-k, temperature, top-p, context window, chunk size/overlap), LLM status, chat with sources and evidence, clear corpus | — |
 | `evaluation/run_eval.py` | Batch evaluation over `evaluation/questions.json`, writes JSON + Markdown records for manual grading | CLI |
 
 ## 3. Design decisions and rationale
@@ -113,7 +113,7 @@ terms ("Wikipedia", "RS.MA") count. A cross-encoder then reads each of 30 candid
 question and keeps the best 4, which is much sharper than comparing two separate embeddings. Measured on
 26 questions, full evidence in the top 4 rose from 9 to 16; with the LLM, wrong answers fell from 7 to
 2 of 22 (evaluation report §8e). BM25 is computed in memory over the active chunks (fine for a few
-thousand chunks); the reranker adds about 1.5 s per question on an M1.
+thousand chunks); the reranker adds about 2 s per question on an M1 (hybrid alone 6.3 s, hybrid + rerank 8.3 s on average).
 
 **Running headers stripped at load time (V1.3).** Lines repeated word for word at the top or bottom of
 at least half of a document's pages, and bare page numbers, are removed except on the first page they

@@ -202,12 +202,23 @@ except Exception as exc:  # noqa: BLE001 - show rather than crash
 # Load the reranker up front (cached per process) so the first question is not slowed
 # down by the model load. A failure here is not fatal: answers can still be produced
 # with reranking switched off in Settings.
-if settings.rerank:
+@st.cache_resource(show_spinner="Loading reranker model...")
+def preload_reranker(model_name: str) -> str | None:
+    """Load once per process; a failure is cached too, so an offline machine does not retry on every click."""
     try:
-        with st.spinner("Loading reranker model..."):
-            get_reranker(settings.rerank_model)
+        get_reranker(model_name)
+        return None
     except RerankerInitError as exc:
-        st.sidebar.warning(f"{exc} Turn off 'Rerank with cross-encoder' in Settings to continue without it.")
+        return str(exc)
+
+
+if settings.rerank:
+    reranker_error = preload_reranker(settings.rerank_model)
+    if reranker_error:
+        st.sidebar.warning(
+            f"{reranker_error} Turn off 'Rerank with cross-encoder' in Settings to continue without it "
+            "(restart the app after fixing the connection)."
+        )
 
 
 def run_ingest(files: list[tuple[str, bytes]], ingest_settings: Settings, label: str) -> list[dict]:

@@ -18,7 +18,7 @@ Status as of 2026-11-20 (Version 1.3). `[x]` = done and verified in this reposit
       nothing while reranking was on; a stray one-letter BM25 token could win the keyword ranking.
 - [x] Browser pass in real Chrome (Playwright): upload widget, index, questions, evidence panel, untick a
       file, settings, duplicate upload, re-index, clear corpus. No errors.
-- [x] Clean clone from GitHub + install from `requirements.txt` + tests (2026-11-19).
+- [x] Clean clone from GitHub + install from `requirements.txt` + tests: 139 passed, defaults and reranker load verified (2026-11-20).
 - [x] No secrets in the repo (`.env` git-ignored).
 
 ## 2. Evaluation
@@ -38,10 +38,10 @@ Status as of 2026-11-20 (Version 1.3). `[x]` = done and verified in this reposit
 - [x] Slide 8 shows a screenshot of the final app (rerank scores in the evidence panel).
 
 ## 4. Demo video
-- [x] `submission/RAG_PDF_Chatbot_Demo.mp4` (4:47, 1440×900, captioned screen recording of the final
+- [x] `submission/RAG_PDF_Chatbot_Demo.mp4` (5:20, 1440×900, captioned screen recording of the final
       app): upload and index 4 PDFs; factual, multi-part, partially answerable, unanswerable and
       false-premise questions; evidence panel with rerank scores; active-corpus filter; settings; a
-      two-passage answer. Every scene checked frame by frame against the answers.
+      two-passage answer; the NIST document (D1, which failed before the fixes, now answered; fines declined). Every scene checked frame by frame against the answers.
 - [x] Voice-over script timed to this video: `docs/demo_voiceover.md`.
 
 ## 5. Dataset and packaging

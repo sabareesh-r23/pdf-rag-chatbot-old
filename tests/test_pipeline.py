@@ -238,6 +238,8 @@ def test_decompose_question_parses_lines_and_falls_back():
     llm = FakeListChatModel(responses=["1. Context window of GPT-3\n- Context window of Llama 2\n\n"])
     assert decompose_question(llm, "Compare X and Y") == ["Context window of GPT-3", "Context window of Llama 2"]
     assert decompose_question(FakeListChatModel(responses=["just one line"]), "Compare X and Y") == []
+    messy = FakeListChatModel(responses=["Here are the queries:\n2048-token context of GPT-3\n2) Context window of Llama 2"])
+    assert decompose_question(messy, "Compare X and Y") == ["2048-token context of GPT-3", "Context window of Llama 2"]
 
 
 def test_pipeline_uses_sub_queries_for_comparisons(stub_retrieve):

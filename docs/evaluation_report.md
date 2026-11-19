@@ -71,12 +71,12 @@ snippet is "28.4 BLEU". The judgements below are therefore based on the chunk te
 
 | Item | Value |
 |---|---|
-| Code | Version 1 (commit `e04ea07`) for the baseline runs; Version 1.1 (commit `8c322f4`) for §4–§8; V1.2 for §8b–§8d; **V1.3 (commit `5e25e06`) for §8e, the final system** |
+| Code | Version 1 (commit `e04ea07`) for the baseline runs; Version 1.1 (commit `8c322f4`) for §4–§8; V1.2 for §8b–§8d; **V1.3 for §8e, the final system** (first V1.3 commit `5e25e06`; the final runs use the submitted code, see `git log`) |
 | Extraction / chunking | PyPDFLoader; RecursiveCharacterTextSplitter, chunk size 1000, overlap 200 |
 | Embeddings / store | `sentence-transformers/all-MiniLM-L6-v2`, Chroma (cosine) |
 | LLM | `llama3.2:3b` (Ollama, Q4_K_M), temperature 0 |
 | Hardware | Apple M1, 8 GB RAM |
-| Automated tests | `.venv/bin/pytest -q` → **110 passed** (V1.1); 123 passed (V1.2, adds MMR and LLM-parameter tests); **130 passed** (V1.3, adds header-stripping, hybrid and reranking tests) |
+| Automated tests | `.venv/bin/pytest -q` → **110 passed** (V1.1); 123 passed (V1.2, adds MMR and LLM-parameter tests); 130 passed (first V1.3 commit); **139 passed** (final code: adds decomposition, sampling top-k and MMR + rerank regression tests) |
 
 | Corpus | Documents | Pages | Chunks | Questions |
 |---|---|---|---|---|
@@ -106,7 +106,7 @@ sources longer than 70 pages are included (see §9 on the dataset-size question)
 | `results_20261119_233332` | V1.2 (MMR) | **C** | 4 (MMR) | 9 | 4.6 s |
 | `results_20261119_234420` / `234833` / `235109` | V1.3 header stripping, similarity | A / B / C | 4 | 15 / 9 / 9 | 7.6 / 7.0 / 5.2 s |
 | `results_20261119_234627` / `234950` / `235210` | V1.3 hybrid (no rerank) | A / B / C | 4 | 15 / 9 / 9 | 6.7 / 6.9 / 5.3 s |
-| **`results_20261119_235736` / `235955` / `20261120_000130`** | **V1.3 final: hybrid + rerank** | A / B / C | 4 | 15 / 9 / 9 | 8.3 / 8.9 / 7.7 s |
+| `results_20261119_235736` / `235955` / `20261120_000130` | V1.3 hybrid + rerank (judged; same answers as the final runs below) | A / B / C | 4 | 15 / 9 / 9 | 8.3 / 8.9 / 7.7 s |
 | `results_20261120_000505` / `000800` / `001024` | V1.3 hybrid + rerank | A / B / C | 6 | 15 / 9 / 9 | 10.6 / 10.7 / 8.6 s |
 | `results_20261120_001401` / `001604` / `001727` | V1.3 final retrieval, **`qwen2.5:3b`** | A / B / C | 4 | 15 / 9 / 9 | 7.3 / 7.7 / 5.9 s |
 | `results_20261120_002226` | V1.3 final retrieval, **`llama3.1:8b`** | C | 4 | 9 | 33.1 s |
@@ -472,7 +472,7 @@ passage (§7.1) and repeated page headers (§8d). Three changes target exactly t
 
 | Change | What it does | Targets |
 |---|---|---|
-| **Header/footer stripping** (`strip_repeated_lines` in `rag/pdf_loader.py`) | Lines at the top/bottom of pages that repeat word for word on at least half of the pages, and bare page numbers, are removed, except on the first page where they occur. Audited on all 7 PDFs: only page numbers and the NIST running title/date were removed | D1 (§8d) |
+| **Header/footer stripping** (`strip_repeated_lines` in `rag/pdf_loader.py`) | Lines at the top/bottom of pages that repeat word for word on at least half of the pages, and bare page numbers, are removed, except on the first page where they occur. Audited on all 7 PDFs: only page numbers, the NIST running title/date, and a few bare figure-axis numbers at page edges in Llama 2 (pp. 28, 33, 53) were removed | D1 (§8d) |
 | **Hybrid search** (`VectorStoreManager.hybrid_search`) | Ranks the active chunks by BM25 keyword score and by embedding similarity and merges the two rankings with Reciprocal Rank Fusion (k = 60) | Wording mismatch: exact terms such as "Wikipedia", "RS.MA", "Core Functions" |
 | **Cross-encoder reranking** (`rag/reranker.py`, `cross-encoder/ms-marco-MiniLM-L-6-v2`) | Retrieves 30 candidates, scores each (question, chunk) pair jointly, keeps the best 4 | A key sentence that is only a small part of its chunk (D1, F4, LF3) |
 
@@ -494,7 +494,7 @@ where the same check gives 10 / 26 for hybrid at top 4.)
 
 Reranking is the largest single gain; hybrid adds a little on top. Newly complete at top 4 include D1
 (via the p. 2 abstract and p. 31 glossary, which also list the six Functions; the p. 8 chunk itself
-still ranks outside the top 4), D4 (Table 1, rank 25 → top 4), F4, M1, LF3 and LS1. Still missed: F3, M2, M3, S1, S2, LF1, LM2, D6.
+still ranks outside the top 4), D4 (Table 1, rank 25 → top 4), F4, M1, LF3 and LS1. Still missed: F3, M2, M3, S1, S2, LF1, LM2, D6, and the false-premise evidence for A1 and LA1.
 
 ### Step 2: full evaluation with the LLM (answerable questions, n = 22)
 
@@ -548,7 +548,7 @@ one, and about 2 s slower. Not better overall, so top-k 4 stays.
 | Idea | Target | What was tried | Result | Decision |
 |---|---|---|---|---|
 | **Table-aware extraction** | BLEU case, D4, LF1 | `pdfplumber` table detection on all 7 PDFs, both "lines" (ruled tables) and "text" strategies | Only the NIST document has real ruled tables (Table 1 and the Tier table came out clean, row by row). In the 6 arXiv papers the detector returned **figures and diagrams as tables** (e.g. 33-column "tables" of letter fragments from attention visualisations on Transformer p. 13–15) and found none of the target tables with the "lines" strategy. The "text" strategy recovered GPT-3 Table 2.1 with a garbled header but turned ordinary paragraphs into tables elsewhere (NIST p. 20) and missed Transformer Table 2 entirely. Llama 2 alone added 15 s of extraction time | **Not adopted.** It would add junk text to 6 of 7 documents. Reliable table extraction from LaTeX papers needs a layout model (out of scope for a local prototype) |
-| **Query decomposition** for comparisons (`QUERY_DECOMPOSITION`, `decompose_question`) | LM2 | Questions matching compare / versus / difference between are split by the LLM into one search query per subject; each retrieves its own chunks, merged round-robin; the answer is still generated for the original question. Runs `005436` / `005658` / `005831` | LM2 still declined: the Llama 2 sub-query found p. 47 ("from 2048 to 4096 tokens"), but the GPT-3 sub-query again missed the table-heavy n_ctx chunk. D5 (contains "versus") was decomposed into queries about **cerebrospinal fluid** — the 3B model expanded "CSF" wrongly — and its answer happened to become correct by luck. M3 stayed correct | **Implemented as an option, off by default.** It fixed nothing it was aimed at and can generate misleading queries with a 3B model |
+| **Query decomposition** for comparisons (`QUERY_DECOMPOSITION`, `decompose_question`) | LM2 | Questions matching compare / versus / difference between are split by the LLM into one search query per subject; each retrieves its own chunks, merged round-robin; the answer is still generated for the original question. Runs `005436` / `005658` / `005831` (these runs took 2 chunks per sub-query, so D5 reached the LLM with 3 de-duplicated chunks; the code now takes k per sub-query and caps the merged list at k) | LM2 still declined: the Llama 2 sub-query found p. 47 ("from 2048 to 4096 tokens"), but the GPT-3 sub-query again missed the table-heavy n_ctx chunk. D5 (contains "versus") was decomposed into queries about **cerebrospinal fluid** — the 3B model expanded "CSF" wrongly — and its answer happened to become correct by luck. M3 stayed correct | **Implemented as an option, off by default.** It fixed nothing it was aimed at and can generate misleading queries with a 3B model |
 | **Premise check** before answering | A1, LA1, DA1 | Analysed, not built | These three already decline, which the rubric counts as acceptable; A2 is now corrected. A real check needs extra LLM calls on **every** question (about doubling answer time on this laptop), and a cheaper trigger on "why …" questions would also fire on legitimate ones such as S1 | **Not built**; best done with a stronger LLM |
 
 **Conclusion of §8e.** The verified root causes led to targeted fixes that reduced wrong answers from
@@ -573,7 +573,8 @@ LS1); the 8B model fixes some of them but needs more memory than this laptop has
 ## 10. Conclusions
 
 1. **Abstention on unanswerable questions is reliable in these tests.** All 7 unanswerable questions
-   (A, B and C) were declined in every configuration tested, including with the other two LLMs, without
+   (A, B and C) were declined in every configuration tested, including with `qwen2.5:3b` (all corpora) and
+   `llama3.1:8b` (corpus C), without
    using tempting near-miss context.
 2. **Retrieval was the dominant failure source (V1.1–V1.2).** Of the incorrect or partial answers in the V1.1 runs,
    F3, LF1 (k=4), LF3 (k=4), LM2, LS1 (k=4) and M2's missing details trace to evidence that was not
@@ -636,7 +637,7 @@ LS1); the 8B model fixes some of them but needs more memory than this laptop has
 ```
 
 Note: V1.1/V1.2 runs were made before header stripping existed, so re-running them now uses the
-header-stripped text (for corpora A and B this only removes page numbers).
+header-stripped text (for corpora A and B this removes page numbers and a few bare figure-axis numbers in Llama 2).
 
 New runs write new timestamped files. With temperature 0, individual answers are usually but not always
 identical to those quoted here.

@@ -1,6 +1,6 @@
 # Voice-over script for `submission/RAG_PDF_Chatbot_Demo.mp4`
 
-The video is 4:47. Timestamps match the on-screen captions to within a few seconds (checked against
+The video is 5:20. Timestamps match the on-screen captions to within a few seconds (checked against
 frames taken every 4 s). Each block is sized for a calm pace (about 140 words per minute). If you fall
 behind, skip the sentences in *(brackets)*.
 
@@ -57,12 +57,12 @@ fallback answer. In my evaluation every unanswerable question was declined like 
 This question has a false premise: it asks why the Transformer uses LSTM layers, but it doesn't use
 any. The chatbot does not make up a reason; it declines. *(A specific prompt rule handles this.)*
 
-### 2:48 – 3:20 · Active corpus filter
+### 2:48 – 3:16 · Active corpus filter
 Now I untick the BERT paper. It stays indexed but is no longer searched. I ask a detail that only the
 BERT paper contains, how many tokens BERT masks, and since no BERT passage can be retrieved, the
 chatbot falls back instead of guessing. Then I tick the paper again.
 
-### 3:20 – 3:36 · Settings
+### 3:16 – 3:36 · Settings
 The Settings panel shows the parameters: top-k, the search type, reranking, temperature, top-p, the
 context window and chunking. The defaults were chosen by my evaluation: hybrid search with the
 reranker, four chunks, and temperature zero for faithful, repeatable answers. *(I measured the largest
@@ -74,13 +74,17 @@ page 2. Both are retrieved and cited, and the evidence panel shows their rerank 
 *(Keyword search helps with exact terms, and the reranker with sentences that are a small part of a
 long chunk.)*
 
-### 4:12 – 4:28 · Evaluation
-I evaluated it manually with 33 questions on three document sets, including a government
-cybersecurity document. My first evaluation showed most errors came from retrieval missing the right
-passage, so I added the header cleaning, hybrid search and the reranker: wrong answers fell from 7 to
-2 out of 22, and every unanswerable question was still declined.
+### 4:12 – 4:52 · A different kind of document
+Now a completely different document: the NIST Cybersecurity Framework, a 32-page government policy
+document. I ask for its six Core Functions. In my first evaluation this question failed: every page
+repeats the same header, which made all chunks look alike and buried the answer. With the header
+removal and the reranker it now lists all six Functions, citing pages 2, 9 and 31.
+And when I ask about fines, which the framework does not mention, it declines here too.
 
-### 4:28 – 4:47 · Close
-I also compared other language models and tried table extraction and query decomposition; the report
-explains why they were not adopted. The code, the evaluation and the slides are on GitHub. Thank you
-for watching.
+### 4:52 – 5:08 · Evaluation
+I evaluated it manually with 33 questions on three document sets. Fixing what that evaluation found cut
+wrong answers from 7 to 2 out of 22, and every unanswerable question was still declined.
+
+### 5:08 – 5:20 · Close
+The report also compares other models and explains what I tried and rejected. Everything is on
+GitHub. Thank you for watching.

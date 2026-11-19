@@ -96,6 +96,7 @@ All settings are environment variables (or entries in `.env`), defined in `rag/c
 | `RERANK` | `true` | Rerank `RERANK_CANDIDATES` retrieved chunks with a cross-encoder and keep the best `TOP_K` |
 | `RERANK_MODEL` | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Cross-encoder used for reranking (~90 MB, downloaded on first use) |
 | `RERANK_CANDIDATES` | `30` | Candidates passed to the reranker |
+| `QUERY_DECOMPOSITION` | `false` | Split comparison questions ("compare X with Y") into one search query per subject (optional; see evaluation report §8e) |
 | `MMR_FETCH_K` | `20` | Candidate pool for MMR, and for each ranking in hybrid search |
 | `MMR_LAMBDA` | `0.5` | MMR trade-off: 1 = relevance only, 0 = diversity only |
 | `MIN_RELEVANCE` | `0.0` | Drop retrieved chunks with cosine similarity below this (0 = disabled) |
@@ -107,6 +108,7 @@ All settings are environment variables (or entries in `.env`), defined in `rag/c
 | `LLM_MODEL` | `llama3.2:3b` | Model name for the chosen provider |
 | `LLM_TEMPERATURE` | `0.0` | Sampling temperature (0 = deterministic) |
 | `LLM_TOP_P` | `0.9` | Nucleus sampling; only has an effect when temperature > 0 |
+| `LLM_TOP_K` | `40` | Sampling top-k (LLM tokens; Ollama's default); only has an effect when temperature > 0. Not the retrieval `TOP_K` |
 | `LLM_NUM_CTX` | `4096` | Ollama context window in tokens (prompt + answer); ignored for `openai` |
 | `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server URL |
 | `OPENAI_API_KEY` | — | Required when `LLM_PROVIDER=openai` (read from env only, never stored) |
@@ -121,8 +123,8 @@ OPENAI_API_KEY=sk-...
 # OPENAI_BASE_URL=https://your-compatible-endpoint/v1
 ```
 
-Top-k, search type (hybrid / similarity / MMR), reranking, temperature, top-p, context window, chunk
-size and chunk overlap can also be changed at runtime in the sidebar **Settings**
+Top-k, search type (hybrid / similarity / MMR), reranking, comparison-question splitting, temperature,
+top-p, sampling top-k, context window, chunk size and chunk overlap can also be changed at runtime in the sidebar **Settings**
 (chunk changes apply to newly indexed files or via **Re-index with current settings**).
 
 ## Tests

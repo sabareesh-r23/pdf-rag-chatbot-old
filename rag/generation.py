@@ -7,6 +7,7 @@ The LLM is either a local Ollama model (default) or an OpenAI-compatible API.
 from __future__ import annotations
 
 import json
+import re
 import os
 import urllib.error
 import urllib.request
@@ -160,6 +161,9 @@ DECOMPOSE_PROMPT = (
 )
 
 
+_LIST_MARKER = re.compile(r"^(?:[-•*]|\d{1,2}[.)])\s+")  # "- ", "• ", "1. ", "2) " but not "2048-token"
+
+
 def decompose_question(llm, question: str, max_parts: int = 3) -> list[str]:
     """Ask the LLM to split a comparison question into self-contained search queries.
 
@@ -175,8 +179,10 @@ def decompose_question(llm, question: str, max_parts: int = 3) -> list[str]:
     text = str(getattr(result, "content", result))
     parts: list[str] = []
     for line in text.splitlines():
-        line = line.strip().lstrip("-•*0123456789.) \t").strip()
-        if len(line) >= 8 and line.lower() not in {p.lower() for p in parts}:
+        line = _LIST_MARKER.sub("", line.strip()).strip()
+        if len(line) < 8 or line.endswith(":"):  # skip blanks and preambles like "Here are the queries:"
+            continue
+        if line.lower() not in {p.lower() for p in parts}:
             parts.append(line)
     return parts[:max_parts] if len(parts) >= 2 else []
 

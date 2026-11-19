@@ -216,7 +216,7 @@ s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Implementation" });
 s.addText("User interface: answers you can check", { placeholder: "title" });
 s.addImage({ path: path.join(__dirname, "ui_screenshot.png"), x: 0.5, y: 1.3, w: 5.6, h: 3.5, objectName: "ui-screenshot" });
 s.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 1.3, w: 5.6, h: 3.5, fill: { type: "none" }, line: { color: C.accent5, width: 0.75 }, objectName: "screenshot-border" });
-const ui = [["Sidebar", "Upload, indexing status per file, active-corpus checkboxes, clear / re-index"], ["Chat", "Question, answer with [n] citations, Sources: file (p. N)"], ["Evidence", "Rank, page, similarity score and full text of every retrieved chunk"], ["Settings", "Top-k, hybrid / similarity / MMR, reranking, temperature, top-p, context window, chunking"]];
+const ui = [["Sidebar", "Upload, indexing status per file, active-corpus checkboxes, clear / re-index"], ["Chat", "Question, answer with [n] citations, Sources: file (p. N)"], ["Evidence", "Rank, page, similarity and rerank scores, and full text of every retrieved chunk"], ["Settings", "Top-k, hybrid / similarity / MMR, reranking, temperature, top-p, sampling top-k, context window, chunking"]];
 ui.forEach(([h, d], i) => {
   const y = 1.2 + i * 0.95;
   textBox(s, h, { x: 6.45, y, w: 3.05, h: 0.3, fontSize: 15, bold: true });

@@ -91,7 +91,7 @@ Status as of 2026-11-20 (Version 1.3: hybrid search, reranking, header stripping
 | D-2 | Architecture document and diagram | Complete | `docs/architecture.md` (Mermaid) |
 | D-3 | Manual evaluation report, about 10–15 questions | Complete | `docs/evaluation_report.md`: 33 questions over three corpora (15 + 9 + 9), per-question judgements with rationale for every configuration (similarity, MMR, hybrid, hybrid + rerank; top-k 4/6/8; three LLMs) |
 | D-4 | Presentation | Complete | `docs/presentation/RAG_PDF_Chatbot_Capstone.pptx` (16 slides with speaker notes; slide 8 has a real app screenshot; slide 12 covers MMR and LLM parameters; slide 13 the V1.3 improvements and LLM comparison) |
-| D-5 | 5–10 minute demo video | Complete | `submission/RAG_PDF_Chatbot_Demo.mp4` (4:47, captioned screen recording of the final app; narration script in `docs/demo_voiceover.md`) |
+| D-5 | 5–10 minute demo video | Complete | `submission/RAG_PDF_Chatbot_Demo.mp4` (5:20, captioned screen recording of the final app; narration script in `docs/demo_voiceover.md`) |
 | D-6 | Dataset included with the submission | Needs professor clarification (licensing) | See A8 |
 
 ## Optional / out of scope (not prerequisites)

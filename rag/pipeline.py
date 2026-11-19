@@ -161,8 +161,8 @@ class RAGPipeline:
         if self.settings.query_decomposition and is_comparison(question) and (file_hashes is None or file_hashes):
             sub_queries = decompose_question(self.llm, question)
         if sub_queries:
-            per_query = max(2, -(-k // len(sub_queries)))  # ceil(k / n), at least 2
-            chunks = merge_round_robin([_retrieve(q, per_query) for q in sub_queries], k)
+            # k per sub-query, interleaved and de-duplicated, so the LLM still gets k chunks.
+            chunks = merge_round_robin([_retrieve(q, k) for q in sub_queries], k)
         else:
             chunks = _retrieve(question, k)
 
