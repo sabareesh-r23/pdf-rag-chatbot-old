@@ -79,6 +79,9 @@ sources longer than 70 pages are included (see §9 on the dataset-size question)
 | `results_20261119_222609` | V1.2 (MMR) | A | 8 (MMR) | 15 | 11.6 s |
 | `results_20261119_222457` | V1.2 (MMR) | B | 4 (MMR) | 9 | 6.5 s |
 | `results_20261119_222916` | V1.2 (MMR) | B | 8 (MMR) | 9 | 12.2 s |
+| `results_20261119_233112` | V1.2 | **C** | 4 | 9 | 5.5 s |
+| `results_20261119_233216` | V1.2 | **C** | 8 | 9 | 7.0 s |
+| `results_20261119_233332` | V1.2 (MMR) | **C** | 4 (MMR) | 9 | 4.6 s |
 
 The V1.2 runs use MMR retrieval (`--retrieval-mode mmr`, fetch_k 20, lambda 0.5). Everything else is
 unchanged (same prompt, chunking, embeddings, LLM, temperature 0, context window 4096). They are
@@ -359,12 +362,83 @@ The generation settings are now explicit and visible in the UI:
 | Retrieval mode | similarity (MMR optional) | §8b |
 | Chunk size / overlap | 1000 / 200 characters | §7.1 sweep |
 
+## 8d. Different-domain check: a government policy document (corpus C)
+
+**Why.** Corpora A and B are both machine-learning papers. To see whether the system behaves the same
+way on a different kind of document, it was tested on the **NIST Cybersecurity Framework (CSF) 2.0**
+(NIST CSWP 29, 32 pages, 111 chunks; a US government work in the public domain). It is a policy and
+guidance document with bullet lists, a category table and a running page header, and none of the
+vocabulary of the ML papers.
+
+**Questions.** 9 new questions in `evaluation/questions_domain.json`, written against the extracted
+text with verbatim evidence quotes and pages: 2 factual, 2 multi-part (one from a flattened table),
+1 synthesis, 1 partially answerable, 2 unanswerable (fines; a required encryption algorithm) and
+1 false premise ("which controls does the CSF prescribe?"; it prescribes none). Absence for the
+unanswerable questions was verified by regex over the extracted text. Same code, settings and judging
+rules as §1.
+
+### Summary (answerable questions, n=6)
+
+| Setting | Evidence full / partial / none | Correct / partial / incorrect | Faithful | Unanswerable abstained | False premise OK | Latency |
+|---|---|---|---|---|---|---|
+| Similarity, k=4 | 3 / 1 / 2 | **2 / 1 / 3** | 2 / 3 | 2 / 2 | 1 / 1 (abstained) | 5.5 s |
+| Similarity, k=8 | 3 / 1 / 2 | **2 / 1 / 3** | 2 / 4 | 2 / 2 | 1 / 1 (abstained) | 7.0 s |
+| MMR, k=4 | 3 / 0 / 3 | **3 / 0 / 3** | 2 / 4 | 2 / 2 | 1 / 1 (abstained) | 4.6 s |
+
+### Per-question judgements
+
+| ID | Sim k=4 | Sim k=8 | MMR k=4 | Rationale (from the chunk text) |
+|---|---|---|---|---|
+| D1 six Functions | Incorrect (abstained) | Incorrect (abstained) | Incorrect (abstained) | **Retrieval.** The p. 8 chunk with "GOVERN, IDENTIFY, PROTECT, DETECT, RESPOND, and RECOVER" ranks **55th**. See root cause below. Abstaining was the safe behaviour given its context |
+| D2 four Tiers | Correct | Correct | Incorrect (abstained) | Similarity retrieves the p. 31 glossary sentence. MMR picks p. 7, 13 and two p. 4 chunks and misses it |
+| D3 old name + date | Incorrect (abstained) | Incorrect (abstained) | Correct, **unfaithful** | Similarity misses the p. 2 "Framework for Improving Critical Infrastructure Cybersecurity" sentence (rank 13); it could still have given the date from the page headers. MMR retrieves p. 2 and answers both parts correctly, but cites the name to [1] (a p. 18 chunk that only carries the date) |
+| D4 RESPOND categories (table) | Incorrect (abstained) | Incorrect, **unfaithful** | Incorrect, **unfaithful** | **Retrieval + hallucination.** The Table 1 chunk (p. 20) ranks 25th. At k=8 the model invents "two Categories: Incident Management; Analysis and Mitigation". With MMR it lists RC.RP and ID.IM, which belong to RECOVER and IDENTIFY. The only answers in corpus C that state wrong facts |
+| D5 GOVERN centre + prevent vs manage | Partial, **unfaithful** | Partial, **unfaithful** | **Correct** | All settings retrieve pp. 9–10. With similarity the model adds DETECT to the "prevent" list (the text says GOVERN, IDENTIFY, PROTECT); at k=8 it also drops the "discover and manage" list. MMR's answer is exactly right and cited |
+| D6 first Profile step + cost | Correct | Correct | Correct | "Scope the Organizational Profile" [1], then says the cost is not covered: the intended partial-answer behaviour |
+| DU1 fines | Abstained ✓ | Abstained ✓ | Abstained ✓ | No fines in the document; the "governmental policies and mandates" distractor was not misused |
+| DU2 encryption algorithm | Abstained ✓ | Abstained ✓ | Abstained ✓ | Not misled by the Data Security category |
+| DA1 prescribed controls (false premise) | Abstained | Abstained | Abstained | Acceptable. At k=8 the "does not prescribe" passage **was** retrieved, so the premise could have been corrected; the model abstained instead (as in A1, A2 and LA1) |
+
+### Root cause of D1 (verified)
+
+- Every page starts with the header "NIST CSWP 29 The NIST Cybersecurity Framework (CSF) 2.0 February 26,
+  2024", which ends up in the first chunk of each page (31 of 111 chunks).
+- The question names "the NIST Cybersecurity Framework 2.0", so header-carrying chunks get a similar,
+  inflated score: the top four scores are 0.706 / 0.703 / 0.702 / 0.702, and 8 of the top 10 chunks
+  carry the header (28% of all chunks do).
+- The evidence chunk is the *second* chunk on p. 8 (no header), and most of its text describes
+  GOVERN in detail, so the list of six Functions is a small part of its embedding.
+- Checks: without the document name ("What are the six Core Functions?") the chunk rises from 55th to
+  25th, which is still outside the top 8. So the header explains part of the miss and chunk dilution
+  the rest.
+- **Fix (not implemented):** strip repeated running headers and footers during PDF normalisation,
+  and/or hybrid BM25 search, which would match the exact words "Core Functions".
+
+### Observations
+
+1. **The safety behaviour carries over to a new domain.** All unanswerable questions and the false
+   premise abstained in every setting (6 of 6 unanswerable responses), and the partial-answer
+   question behaved exactly as intended.
+2. **Accuracy is similar to the long-document corpus, not better.** 2–3 of 6 answerable questions
+   correct (B: 2–3 of 6), with retrieval again the main failure (D1, D4, and D2/D3 depending on the
+   setting).
+3. **New failure type: repeated page headers.** The ML papers have no running header; this document
+   does, and it distorts the ranking. This is a data-handling issue that only a different kind of
+   document revealed.
+4. **Tables remain the weak spot.** D4 (a flattened table) is the only question that produced
+   invented facts, at k=8 and with MMR.
+5. **MMR vs similarity is again question-dependent.** MMR fixed D3 and D5 and lost D2. With 6
+   answerable questions this is not evidence that either is better on this document; similarity stays
+   the default.
+
 ## 9. Limitations of this evaluation
 
 - Small sample: 10 + 6 answerable questions, one run per configuration. Temperature 0 makes runs largely
   repeatable, but small prompt changes did alter individual answers (see `results/superseded/`).
 - A single evaluator made all judgements (re-checked in a second pass); there is no inter-rater agreement measure.
-- Both corpora are machine-learning papers; behaviour on other domains was not tested.
+- Corpora A and B are machine-learning papers. One different-domain document (corpus C, NIST CSF 2.0,
+  §8d) was added; behaviour on other kinds of documents (e.g. scanned forms, legal or financial
+  reports, non-English text) was not tested.
 - Expected answers for multi-part questions involve judgement about which details are "required".
   The borderline cases are decided by the §1 rubric, with the decision stated in the row.
 - **Dataset size requirement.** The brief says about 50–200 pages without stating whether that applies
@@ -386,10 +460,14 @@ The generation settings are now explicit and visible in the UI:
    - one over-cautious abstention (LF3 at k=8)
 4. **False premises remain the main hallucination risk.** The system never corrected a premise. It
    abstained in 5 of 6 false-premise responses and fabricated once (A2, k=8).
-5. **MMR (V1.2) is corpus-dependent.** It helped on the long documents (no incorrect answers at k=8,
+5. **Different domain (§8d).** On a 32-page NIST policy document, the abstention and partial-answer
+   behaviour carried over unchanged, accuracy was similar to the long ML papers, and two
+   data-handling issues showed up: repeated page headers distort retrieval, and tables can produce
+   invented facts.
+6. **MMR (V1.2) is corpus-dependent.** It helped on the long documents (no incorrect answers at k=8,
    LF3 fixed at both k) and removed the A2 hallucination, but hurt on the short papers (M3, F4) by
    dropping neighbouring chunks. Similarity stays the default (§8b).
-6. **V1.1 fixes:**
+7. **V1.1 fixes:**
    - **Measured on these questions:** A2 at k=4 (fabrication → abstention), S1 at k=4 (partial →
      correct), citations limited to cited pages, P1 partial-answer behaviour.
    - **Not demonstrated:** a general accuracy gain.
@@ -403,7 +481,8 @@ The generation settings are now explicit and visible in the UI:
 | Cross-document comparisons | LM2 | Query decomposition (one sub-query per document) |
 | False-premise handling | A2 (k=8) | Stronger LLM, or a premise-check step |
 | Omitted retrieved details; contradictions | S2, M2 (k=8) | Stronger LLM (OpenAI-compatible path is already supported), or answer/claim verification |
-| Table numbers | BLEU case | Table-aware extraction (out of scope for baseline) |
+| Table numbers | BLEU case, D4 | Table-aware extraction (out of scope for baseline) |
+| Repeated page headers dominate retrieval | D1 (§8d) | Strip running headers/footers during normalisation; hybrid BM25 |
 
 ## 12. How to reproduce
 
@@ -413,6 +492,8 @@ The generation settings are now explicit and visible in the UI:
 .venv/bin/python -m evaluation.run_eval --questions evaluation/questions.json --top-k 8
 .venv/bin/python -m evaluation.run_eval --questions evaluation/questions_long.json --pdf-dir data/long_pdfs --top-k 4 --reindex
 .venv/bin/python -m evaluation.run_eval --questions evaluation/questions_long.json --pdf-dir data/long_pdfs --top-k 8
+# Corpus C (different domain): NIST CSF 2.0
+.venv/bin/python -m evaluation.run_eval --questions evaluation/questions_domain.json --pdf-dir data/domain_pdfs --top-k 4
 # V1.2: MMR retrieval (repeat with --top-k 8, and with the long corpus)
 .venv/bin/python -m evaluation.run_eval --questions evaluation/questions.json --top-k 4 --retrieval-mode mmr
 ```

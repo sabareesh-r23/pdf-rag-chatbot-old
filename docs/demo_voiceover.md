@@ -81,10 +81,10 @@ because it drops the neighbouring chunk that continues a passage. So similarity 
 MMR is an option for long reports.
 
 ### 4:20 – 4:36 · Evaluation
-I evaluated the chatbot manually with 24 questions on two document sets, checking each answer against
-the PDF text. All unanswerable questions were correctly declined. Most wrong answers came from retrieval
-missing the right passage, not from the LLM. Hybrid keyword-plus-semantic search would be the next
-improvement.
+I evaluated it manually with 33 questions: two sets of research papers, plus a government cybersecurity
+document to check a different domain. Every unanswerable question was correctly declined. Most wrong
+answers came from retrieval missing the right passage. *(Hybrid keyword-plus-semantic search and
+removing repeated page headers are the next improvements.)*
 
 ### 4:36 – 4:56 · Close
 The code, the evaluation report and the slides are on GitHub. To sum up: a local chatbot that answers

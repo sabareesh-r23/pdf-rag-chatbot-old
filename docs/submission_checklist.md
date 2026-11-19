@@ -17,6 +17,7 @@ Items marked **(you)** need the student; items marked **(professor)** need confi
 - [x] 15 + 9 questions with ground truth verified against the PDFs (quotes and pages in the JSON files).
 - [x] Final runs at top-k 4 and 8 for both corpora (`evaluation/results/results_20261011_1217*`–`1224*`);
       V1 baseline runs kept; intermediate runs in `results/superseded/` with an explanation.
+- [x] Different-domain check: 9 questions on NIST CSF 2.0 (corpus C), 3 runs, judged in report §8d.
 - [x] V1.2 MMR runs at top-k 4 and 8 for both corpora (`results_20261119_22*`), judged in report §8b;
       LLM parameters and the measured context use in §8c.
 - [x] `docs/evaluation_report.md` written from the real outputs, with a rationale for each judgement.

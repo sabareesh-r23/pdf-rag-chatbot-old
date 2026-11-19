@@ -1,0 +1,83 @@
+[
+ {
+  "id": "D1",
+  "category": "factual",
+  "question": "What are the six Core Functions of the NIST Cybersecurity Framework 2.0?",
+  "expected_answer": "GOVERN, IDENTIFY, PROTECT, DETECT, RESPOND and RECOVER.",
+  "expected_sources": [{"source": "NIST.CSWP.29.pdf", "pages": [8]}],
+  "notes": "Evidence: 'The CSF Core Functions — GOVERN, IDENTIFY, PROTECT, DETECT, RESPOND, and RECOVER — organize cybersecurity outcomes at their highest level.' (p. 8)",
+  "evidence_snippets": ["GOVERN, IDENTIFY, PROTECT, DETECT, RESPOND, and RECOVER"]
+ },
+ {
+  "id": "D2",
+  "category": "factual",
+  "question": "What are the four CSF Tiers?",
+  "expected_answer": "Partial (Tier 1), Risk Informed (Tier 2), Repeatable (Tier 3) and Adaptive (Tier 4).",
+  "expected_sources": [{"source": "NIST.CSWP.29.pdf", "pages": [12, 31]}],
+  "notes": "Evidence: '... as Partial (Tier 1), Risk Informed (Tier 2), Repeatable (Tier 3), and Adaptive (Tier 4).' (p. 12, split over a line break); glossary 'There are four Tiers: Partial (Tier 1), Risk Informed (Tier 2), Repeatable (Tier 3), and Adaptive (Tier 4).'",
+  "evidence_snippets": ["Risk Informed (Tier 2), Repeatable (Tier 3), and Adaptive (Tier 4)"]
+ },
+ {
+  "id": "D3",
+  "category": "multi_chunk",
+  "question": "What was the Cybersecurity Framework called before version 2.0, and on what date was CSF 2.0 published?",
+  "expected_answer": "It was called the 'Framework for Improving Critical Infrastructure Cybersecurity'; CSF 2.0 is dated February 26, 2024.",
+  "expected_sources": [{"source": "NIST.CSWP.29.pdf", "pages": [1, 2]}],
+  "notes": "Evidence: 'Before version 2.0, the Cybersecurity Framework was called the \"Framework for Improving Critical Infrastructure Cybersecurity.\"' (p. 2); 'February 26, 2024' (p. 1 and every page header).",
+  "evidence_snippets": ["Framework for Improving", "February 26, 2024"]
+ },
+ {
+  "id": "D4",
+  "category": "multi_chunk",
+  "question": "Which Categories make up the RESPOND Function, and what are their identifiers?",
+  "expected_answer": "Incident Management (RS.MA), Incident Analysis (RS.AN), Incident Response Reporting and Communication (RS.CO) and Incident Mitigation (RS.MI).",
+  "expected_sources": [{"source": "NIST.CSWP.29.pdf", "pages": [20]}],
+  "notes": "Evidence: Table 1 rows 'Respond (RS) Incident Management RS.MA / Incident Analysis RS.AN / Incident Response Reporting and Communication RS.CO / Incident Mitigation RS.MI' (p. 20). A flattened-table question, like LF2 and the BLEU case.",
+  "evidence_snippets": ["Incident Management RS.MA", "Incident Mitigation RS.MI"]
+ },
+ {
+  "id": "D5",
+  "category": "synthesis",
+  "question": "Why is GOVERN placed at the centre of the CSF Functions wheel, and which Functions help prevent incidents versus discover and manage them?",
+  "expected_answer": "GOVERN is in the centre because it informs how an organization implements the other five Functions. GOVERN, IDENTIFY and PROTECT help prevent and prepare for incidents; GOVERN, DETECT, RESPOND and RECOVER help discover and manage incidents.",
+  "expected_sources": [{"source": "NIST.CSWP.29.pdf", "pages": [9, 10]}],
+  "notes": "Evidence: 'GOVERN is in the center of the wheel because it informs how an organization will implement the other five Functions.' (p. 9); 'GOVERN, IDENTIFY, and PROTECT outcomes help prevent and prepare for incidents, while GOVERN, DETECT, RESPOND, and RECOVER outcomes help discover and manage incidents.' (p. 10)",
+  "evidence_snippets": ["GOVERN is in the center of the wheel", "help prevent and prepare for incidents"]
+ },
+ {
+  "id": "D6",
+  "category": "adversarial",
+  "question": "What is the first step in creating a CSF Organizational Profile, and how much does it cost an organization to implement the CSF?",
+  "expected_answer": "The first step is to scope the Organizational Profile (document the high-level facts and assumptions that define its scope). The document does not state an implementation cost, so that part should be reported as not covered.",
+  "expected_sources": [{"source": "NIST.CSWP.29.pdf", "pages": [12]}],
+  "notes": "Evidence: '1. Scope the Organizational Profile. Document the high-level facts and assumptions on which the Profile will be based to define its scope.' (p. 12). Absence: 'cost' occurs only in 'cost-benefit analysis' / 'cost-effective' (p. 13); no implementation cost.",
+  "evidence_snippets": ["Scope the Organizational Profile"]
+ },
+ {
+  "id": "DU1",
+  "category": "unanswerable",
+  "question": "What is the maximum fine for an organization that does not comply with CSF 2.0?",
+  "expected_answer": "Not in the document - the system should abstain. (The CSF is voluntary guidance and states no fines.)",
+  "expected_sources": [],
+  "notes": "Absence verified: regex 'fine\\b|fines|penalt' over the extracted text only matches 'define'. Tempting distractor: 'adopted voluntarily and through governmental policies and mandates' (p. 7).",
+  "evidence_snippets": []
+ },
+ {
+  "id": "DU2",
+  "category": "unanswerable",
+  "question": "Which encryption algorithm does CSF 2.0 require for protecting data at rest?",
+  "expected_answer": "Not in the document - the system should abstain. (The CSF lists outcomes such as data security, not specific algorithms.)",
+  "expected_sources": [],
+  "notes": "Absence verified: 'AES' and 'encryption algorithm' do not occur. Tempting distractor: the Data Security category (PR.DS) and its data-at-rest Subcategory.",
+  "evidence_snippets": []
+ },
+ {
+  "id": "DA1",
+  "category": "adversarial",
+  "question": "Which specific security controls does CSF 2.0 prescribe that every organization must implement?",
+  "expected_answer": "False premise: the CSF does not prescribe controls or how outcomes should be achieved; it describes desired outcomes and links to online resources (Informative References, Implementation Examples) for guidance. Abstaining or correcting the premise is acceptable.",
+  "expected_sources": [{"source": "NIST.CSWP.29.pdf", "pages": [2, 6]}],
+  "notes": "Evidence: 'The CSF does not prescribe how outcomes should be achieved.' (p. 2); 'It does not prescribe outcomes nor how they may be achieved.' (p. 6)",
+  "evidence_snippets": ["does not prescribe"]
+ }
+]

@@ -144,6 +144,8 @@ verbatim evidence snippets retrieved). Human judgement fields are left blank by 
 Question sets (ground truth verified against the PDF text, with quotes and page numbers):
 - `evaluation/questions.json`: 15 questions on `data/sample_pdfs/` (4 papers, 61 pages)
 - `evaluation/questions_long.json`: 9 questions on `data/long_pdfs/` (GPT-3 and Llama 2 papers, 152 pages)
+- `evaluation/questions_domain.json`: 9 questions on `data/domain_pdfs/` (NIST Cybersecurity Framework 2.0,
+  32 pages): a different-domain check on a government policy document
 
 **Results:** see [docs/evaluation_report.md](docs/evaluation_report.md). Judgements were made by
 reading the retrieved chunks against verified expected answers. No results are claimed in this README.
@@ -171,10 +173,11 @@ pdf-rag-chatbot/
 ├── data/
 │   ├── sample_pdfs/          # corpus A: 4 public arXiv papers, 61 pages
 │   ├── long_pdfs/            # corpus B: GPT-3 + Llama 2 papers, 152 pages
-│   └── download_datasets.sh  # re-download all six PDFs from arXiv
+│   ├── domain_pdfs/          # corpus C: NIST CSF 2.0, 32 pages (different domain)
+│   └── download_datasets.sh  # re-download all seven PDFs
 ├── docs/
 │   ├── architecture.md
-│   ├── evaluation_report.md  # manual evaluation report (24 questions)
+│   ├── evaluation_report.md  # manual evaluation report (33 questions, 3 corpora)
 │   ├── requirements_matrix.md
 │   ├── evaluation_template.md  # blank template (superseded by evaluation_report.md)
 │   ├── demo_walkthrough.md

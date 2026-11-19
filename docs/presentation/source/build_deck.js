@@ -228,19 +228,19 @@ s.addNotes("Screenshot from the running app: the answer to F1 with its [n] citat
 pres.addSection({ title: "Evaluation" });
 s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Evaluation" });
 s.addText("Evaluation: manual and evidence-checked", { placeholder: "title" });
-const corp = [[`Corpus A · ${D.corpusA.pages} pages`, D.corpusA.desc, `${D.corpusA.questions} questions`], [`Corpus B · ${D.corpusB.pages} pages`, D.corpusB.desc, `${D.corpusB.questions} questions`]];
+const corp = [[`Corpus A · ${D.corpusA.pages} pages`, D.corpusA.desc, `${D.corpusA.questions} questions`], [`Corpus B · ${D.corpusB.pages} pages`, D.corpusB.desc, `${D.corpusB.questions} questions`], [`Corpus C · ${D.corpusC.pages} pages`, D.corpusC.desc, `${D.corpusC.questions} questions`]];
 corp.forEach(([h, d, q], i) => {
-  const x = 0.5 + i * 4.6;
-  card(s, x, 1.2, 4.4, 1.55, "corp-" + i);
-  textBox(s, h, { x: x + 0.2, y: 1.35, w: 4.0, h: 0.35, fontSize: 16, bold: true, fontFace: THEME.headFontFace });
-  textBox(s, d, { x: x + 0.2, y: 1.75, w: 4.0, h: 0.6, fontSize: 12, color: C.text2 });
-  textBox(s, q, { x: x + 0.2, y: 2.35, w: 4.0, h: 0.3, fontSize: 12, bold: true, color: C.accent6 });
+  const x = 0.5 + i * 3.05;
+  card(s, x, 1.2, 2.85, 1.6, "corp-" + i);
+  textBox(s, h, { x: x + 0.18, y: 1.33, w: 2.5, h: 0.32, fontSize: 14, bold: true, fontFace: THEME.headFontFace });
+  textBox(s, d, { x: x + 0.18, y: 1.7, w: 2.5, h: 0.72, fontSize: 11, color: C.text2 });
+  textBox(s, q, { x: x + 0.18, y: 2.45, w: 2.5, h: 0.28, fontSize: 11, bold: true, color: C.accent6 });
 });
 textBox(s, "Question types", { x: 0.5, y: 3.0, w: 4, h: 0.3, fontSize: 15, bold: true });
 textBox(s, "Factual · multi-passage · synthesis · partially answerable · unanswerable · false premise", { x: 0.5, y: 3.32, w: 9, h: 0.3, fontSize: 13, color: C.text2 });
 textBox(s, "For every answer", { x: 0.5, y: 3.8, w: 4, h: 0.3, fontSize: 15, bold: true });
 textBox(s, "Was the evidence retrieved? Is the answer correct, relevant and supported? Correct abstention? Failure class: retrieval · context · generation · abstention", { x: 0.5, y: 4.12, w: 9, h: 0.6, fontSize: 13, color: C.text2 });
-s.addNotes("Expected answers were verified against the PDF text with a verbatim quote and page number. Each question was run at top-k 4 and 8. Each answer was judged by reading the retrieved chunks against the expected answer; see docs/evaluation_report.md.");
+s.addNotes("Expected answers were verified against the PDF text with a verbatim quote and page number. Corpora A and B were run at top-k 4 and 8 with similarity and MMR; corpus C (a different-domain check) at top-k 4 and 8 and with MMR. Each answer was judged by reading the retrieved chunks against the expected answer; see docs/evaluation_report.md.");
 
 // ---------------------------------------------------------------- 10. Retrieval results (chart)
 s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Evaluation" });

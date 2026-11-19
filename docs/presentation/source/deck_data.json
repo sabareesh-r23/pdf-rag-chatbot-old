@@ -83,17 +83,19 @@
  "limitations": [
   "No OCR: scanned PDFs are rejected with an explanation",
   "Tables and figures lose structure in text extraction",
+  "Repeated page headers skew retrieval (NIST D1)",
   "Dense retrieval misses passages worded differently from the question",
   "3B local model: occasional omissions, contradictions and one fabrication",
-  "Single-user local prototype; 24-question evaluation, one run per setting"
+  "Single-user local prototype; 33 questions, one run per setting"
  ],
  "improvements": [
-  "Hybrid BM25 + dense search, or a cross-encoder reranker (F3, LM2, premise chunks). MMR did not fix F3",
-  "Merge neighbouring chunks after MMR, or tune λ and overlap (M3, F4)",
-  "Query decomposition for cross-document comparisons (LM2)",
-  "Stronger LLM via the existing OpenAI-compatible setting (S2, M2, A2)"
+  "Hybrid BM25 + dense search, or a reranker (F3, LM2, D1). MMR did not fix F3",
+  "Strip running page headers before chunking (D1)",
+  "Merge neighbouring chunks after MMR (M3, F4)",
+  "Stronger LLM via the OpenAI-compatible setting (S2, A2, D5)",
+  "Table-aware extraction (BLEU, D4)"
  ],
- "conclusion": "A working local RAG chatbot that cites file and page and abstained on every unanswerable test question. Evaluation shows retrieval is the main bottleneck, with false premises the main hallucination risk.",
+ "conclusion": "A working local RAG chatbot that cites file and page and abstained on every unanswerable test question, including on a government policy document from a different domain. Evaluation shows retrieval is the main bottleneck, with false premises and tables the main hallucination risks.",
  "mmr": {
   "labels": [
    "A · k4",
@@ -159,5 +161,10 @@
    ]
   ],
   "speaker": "V1.2 adds MMR retrieval and makes the LLM parameters explicit. Same 24 questions, same judging rules. MMR fetches 20 candidates and picks 4 or 8 that are relevant but not redundant. It helped on the long GPT-3 and Llama 2 papers and hurt on the short papers, because with 200-character overlap the next chunk of a passage looks redundant to MMR. The context window was measured: Ollama truncates at 4096 tokens by default, and the largest prompt is about 2,500 tokens, so nothing was cut. See evaluation report sections 8b and 8c."
+ },
+ "corpusC": {
+  "pages": 32,
+  "questions": 9,
+  "desc": "Different domain: NIST Cybersecurity Framework 2.0 (government policy, public domain)"
  }
 }
