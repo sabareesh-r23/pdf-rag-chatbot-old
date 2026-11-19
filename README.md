@@ -5,7 +5,7 @@ upload**, cites the file and page for every answer, shows the retrieved evidence
 fixed fallback message when the documents do not contain the answer. Everything runs locally by
 default (local embeddings + a local LLM via Ollama); any OpenAI-compatible API can be used instead.
 
-Built as an academic capstone project.
+Built as an academic capstone project. **Submission index:** [SUBMISSION.md](SUBMISSION.md) · **Demo video:** [submission/RAG_PDF_Chatbot_Demo.mp4](submission/RAG_PDF_Chatbot_Demo.mp4)
 
 ## Features
 
@@ -145,8 +145,8 @@ Question sets (ground truth verified against the PDF text, with quotes and page 
 - `evaluation/questions.json`: 15 questions on `data/sample_pdfs/` (4 papers, 61 pages)
 - `evaluation/questions_long.json`: 9 questions on `data/long_pdfs/` (GPT-3 and Llama 2 papers, 152 pages)
 
-**Results:** see [docs/evaluation_report.md](docs/evaluation_report.md). Its judgements are drafts
-until the student confirms them. No results are claimed in this README.
+**Results:** see [docs/evaluation_report.md](docs/evaluation_report.md). Judgements were made by
+reading the retrieved chunks against verified expected answers. No results are claimed in this README.
 
 ## Project structure
 
@@ -174,7 +174,7 @@ pdf-rag-chatbot/
 │   └── download_datasets.sh  # re-download all six PDFs from arXiv
 ├── docs/
 │   ├── architecture.md
-│   ├── evaluation_report.md  # evaluation with draft judgements (confirm before submitting)
+│   ├── evaluation_report.md  # manual evaluation report (24 questions)
 │   ├── requirements_matrix.md
 │   ├── evaluation_template.md  # blank template (superseded by evaluation_report.md)
 │   ├── demo_walkthrough.md

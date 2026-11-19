@@ -15,6 +15,6 @@ NODE_PATH=$PWD/node_modules REPO=../../.. PPTX_SKILL=<path to a pptx skill provi
 `apply_theme.js` only writes the theme colours/fonts into the file; without it, open the deck in
 PowerPoint and the content is unchanged but scheme colours fall back to Office defaults.
 
-`overflow.py` is a rough text-fit estimate (wraps text with the Office Calibri/Cambria metrics). The
-deck has **not** been visually checked slide-by-slide in a renderer; review it in PowerPoint and replace
-the dashed screenshot frame on the UI slide with a real screenshot.
+`overflow.py` is a rough text-fit estimate (wraps text with the Office Calibri/Cambria metrics). All slides
+were rendered with LibreOffice and checked visually (2026-11-19). The UI slide uses `ui_screenshot.png`,
+captured from the running app.

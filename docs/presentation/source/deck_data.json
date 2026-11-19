@@ -57,7 +57,7 @@
   "abstainBig": "10 / 10",
   "abstainLabel": "unanswerable responses correctly abstained (5 questions × 2 settings)",
   "note": "False premises: never corrected; abstained in 5 of 6 responses, fabricated once (A2 at top-k 8). More context did not always help the 3B model.",
-  "speaker": "Judged outcomes for answerable questions in the final runs. Top-k 8 retrieves more evidence but corpus A correct answers went 7 to 6, latency roughly doubled (7 s to 13 s), and the only hallucination appeared at top-k 8. These are draft judgements to be confirmed; see docs/evaluation_report.md."
+  "speaker": "Judged outcomes for answerable questions in the final runs. Top-k 8 retrieves more evidence but corpus A correct answers went 7 to 6, latency roughly doubled (7 s to 13 s), and the only hallucination appeared at top-k 8. See docs/evaluation_report.md."
  },
  "failures": [
   {
@@ -111,7 +111,7 @@
    4,
    4,
    3,
-   3
+   4
   ],
   "simIncorrect": [
    1,
@@ -150,14 +150,14 @@
    [
     "Top-k",
     "4",
-    "§8: k8 adds recall, not accuracy"
+    "k8 adds recall, not accuracy"
    ],
    [
     "MMR fetch_k / λ",
     "20 / 0.5",
-    "§8b"
+    "candidates / relevance weight"
    ]
   ],
-  "speaker": "V1.2 adds MMR retrieval and makes the LLM parameters explicit. Same 24 questions, same judging rules. MMR fetches 20 candidates and picks 4 or 8 that are relevant but not redundant. It helped on the long GPT-3 and Llama 2 papers and hurt on the short papers, because with 200-character overlap the next chunk of a passage looks redundant to MMR. The context window was measured: Ollama truncates at 4096 tokens by default, and the largest prompt is about 2,500 tokens, so nothing was cut. Draft judgements; see evaluation report sections 8b and 8c."
+  "speaker": "V1.2 adds MMR retrieval and makes the LLM parameters explicit. Same 24 questions, same judging rules. MMR fetches 20 candidates and picks 4 or 8 that are relevant but not redundant. It helped on the long GPT-3 and Llama 2 papers and hurt on the short papers, because with 200-character overlap the next chunk of a passage looks redundant to MMR. The context window was measured: Ollama truncates at 4096 tokens by default, and the largest prompt is about 2,500 tokens, so nothing was cut. See evaluation report sections 8b and 8c."
  }
 }

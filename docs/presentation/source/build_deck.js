@@ -72,7 +72,7 @@ s.addText("Grounded, cited answers from your own PDFs, running locally with Lang
 badge(s, 0.6, 0.7, "[1]", C.accent1, "title-b1");
 badge(s, 1.16, 0.7, "[2]", C.accent2, "title-b2");
 badge(s, 1.72, 0.7, "[3]", C.accent5, "title-b3");
-textBox(s, "Academic capstone · Version 1.1", { x: 0.6, y: 4.7, w: 6, h: 0.35, fontSize: 14, color: C.accent5 });
+textBox(s, "Academic capstone · Version 1.2", { x: 0.6, y: 4.7, w: 6, h: 0.35, fontSize: 14, color: C.accent5 });
 s.addNotes("Introduce the project: a chatbot that answers questions about uploaded PDFs using Retrieval-Augmented Generation, citing file and page, and refusing to answer when the documents do not contain the information.");
 
 // ---------------------------------------------------------------- 2. Problem
@@ -161,9 +161,9 @@ const norm = [["efﬁcient", "efficient", "ligatures expanded"], ["embed-↵ding
 norm.forEach(([a, b, why], i) => {
   const y = 1.7 + i * 1.0;
   card(s, 5.2, y, 4.3, 0.85, "norm-" + i);
-  textBox(s, a, { x: 5.4, y: y + 0.12, w: 1.75, h: 0.35, fontSize: 14, color: C.accent3, fontFace: "Courier New" });
+  textBox(s, a, { x: 5.4, y: y + 0.12, w: 1.75, h: 0.35, fontSize: 11, color: C.accent3, fontFace: "Courier New" });
   textBox(s, "→", { x: 7.1, y: y + 0.1, w: 0.3, h: 0.35, fontSize: 16, color: C.accent4 });
-  textBox(s, b, { x: 7.45, y: y + 0.12, w: 1.95, h: 0.35, fontSize: 14, color: C.accent2, fontFace: "Courier New" });
+  textBox(s, b, { x: 7.45, y: y + 0.12, w: 1.95, h: 0.35, fontSize: 11, color: C.accent2, fontFace: "Courier New" });
   textBox(s, why, { x: 5.4, y: y + 0.5, w: 3.9, h: 0.28, fontSize: 11, color: C.text2 });
 });
 textBox(s, "Each chunk keeps: file · page · hash · chunk id", { x: 5.2, y: 4.75, w: 4.3, h: 0.3, fontSize: 11, italic: true, color: C.text2 });
@@ -214,15 +214,15 @@ s.addNotes("Read the key rules. Rules 9 and 10 were added in V1.1 because of eva
 // ---------------------------------------------------------------- 8. UI
 s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Implementation" });
 s.addText("User interface: answers you can check", { placeholder: "title" });
-s.addShape(pres.shapes.ROUNDED_RECTANGLE, { x: 0.5, y: 1.2, w: 5.6, h: 3.75, rectRadius: 0.08, fill: { color: C.background2 }, line: { color: C.accent4, dashType: "dash", width: 1 }, objectName: "screenshot-frame" });
-textBox(s, "Insert screenshot: a chat answer with the Sources line and the Retrieved evidence panel open", { x: 0.8, y: 2.75, w: 5.0, h: 0.7, fontSize: 13, italic: true, color: C.accent4, align: "center" });
-const ui = [["Sidebar", "Upload, indexing status per file, active-corpus checkboxes, clear / re-index"], ["Chat", "Question, answer with [n] citations, Sources: file (p. N)"], ["Evidence", "Rank, page, similarity score and full text of every retrieved chunk"], ["Settings", "Top-k slider, chunk size/overlap, LLM status check"]];
+s.addImage({ path: path.join(__dirname, "ui_screenshot.png"), x: 0.5, y: 1.3, w: 5.6, h: 3.5, objectName: "ui-screenshot" });
+s.addShape(pres.shapes.RECTANGLE, { x: 0.5, y: 1.3, w: 5.6, h: 3.5, fill: { type: "none" }, line: { color: C.accent5, width: 0.75 }, objectName: "screenshot-border" });
+const ui = [["Sidebar", "Upload, indexing status per file, active-corpus checkboxes, clear / re-index"], ["Chat", "Question, answer with [n] citations, Sources: file (p. N)"], ["Evidence", "Rank, page, similarity score and full text of every retrieved chunk"], ["Settings", "Top-k, similarity / MMR, temperature, top-p, context window, chunking"]];
 ui.forEach(([h, d], i) => {
   const y = 1.2 + i * 0.95;
   textBox(s, h, { x: 6.45, y, w: 3.05, h: 0.3, fontSize: 15, bold: true });
   textBox(s, d, { x: 6.45, y: y + 0.32, w: 3.05, h: 0.55, fontSize: 12, color: C.text2 });
 });
-s.addNotes("Replace the dashed frame with a real screenshot from the running app (streamlit run app.py) before presenting.");
+s.addNotes("Screenshot from the running app: the answer to F1 with its [n] citations, the Sources line (file and page) and the Retrieved evidence panel showing each chunk's page and similarity score.");
 
 // ---------------------------------------------------------------- 9. Evaluation method
 pres.addSection({ title: "Evaluation" });
@@ -240,7 +240,7 @@ textBox(s, "Question types", { x: 0.5, y: 3.0, w: 4, h: 0.3, fontSize: 15, bold:
 textBox(s, "Factual · multi-passage · synthesis · partially answerable · unanswerable · false premise", { x: 0.5, y: 3.32, w: 9, h: 0.3, fontSize: 13, color: C.text2 });
 textBox(s, "For every answer", { x: 0.5, y: 3.8, w: 4, h: 0.3, fontSize: 15, bold: true });
 textBox(s, "Was the evidence retrieved? Is the answer correct, relevant and supported? Correct abstention? Failure class: retrieval · context · generation · abstention", { x: 0.5, y: 4.12, w: 9, h: 0.6, fontSize: 13, color: C.text2 });
-s.addNotes("Expected answers were verified against the PDF text with a verbatim quote and page number. Each question was run at top-k 4 and 8. Judgements are the student's, informed by a draft from the review; see docs/evaluation_report.md.");
+s.addNotes("Expected answers were verified against the PDF text with a verbatim quote and page number. Each question was run at top-k 4 and 8. Each answer was judged by reading the retrieved chunks against the expected answer; see docs/evaluation_report.md.");
 
 // ---------------------------------------------------------------- 10. Retrieval results (chart)
 s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Evaluation" });

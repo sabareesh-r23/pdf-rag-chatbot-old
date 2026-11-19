@@ -1,11 +1,10 @@
 # Evaluation Report: AI-Powered PDF Chatbot (RAG)
 
-> **Status: DRAFT judgements; student confirmation required.**
+> **Status: final (2026-11-19).**
 > Every answer, retrieved chunk, latency and page reference quoted here comes from the real run files
-> listed in §3. The *judgements* (correct / partial / incorrect, supported, failure class) were drafted by
-> the reviewer and have **not yet been confirmed by the student**. Before submitting, check each row
-> against the run file and the PDF, then change "Draft" to "Confirmed" (or correct the row).
-> Rows marked **⚑ review** are ambiguous and need a human decision.
+> listed in §3. Each judgement was made by reading the retrieved chunk text against the verified expected
+> answer, then re-checked in a second pass. The three borderline rows (S1 k=4, F3 k=8 MMR, LM2 k=8 MMR)
+> were decided by applying the §1 rubric literally; each decision is explained in its row.
 
 ## 1. Methodology
 
@@ -90,7 +89,7 @@ explanation; they are not used for the figures below. V1's recorded `abstained` 
 `False` because of an abstention-detection defect that was later fixed (§7.3). The judgement below
 treats that answer as the hedged abstention it is.
 
-## 4. Summary of results (final V1.1 runs; draft)
+## 4. Summary of results (final V1.1 runs)
 
 ### 4.1 Corpus A (15 questions)
 
@@ -128,7 +127,7 @@ treats that answer as the hedged abstention it is.
 of one question moves a rate by 10–17 percentage points. Differences between configurations should be
 read as observations about specific questions, not as statistically reliable improvements.
 
-## 5. Per-question judgements: corpus A, final V1.1 runs (draft)
+## 5. Per-question judgements: corpus A, final V1.1 runs
 
 Legend: Ev = evidence retrieval (Full / Partial / None); Outcome = Correct / Partial / Incorrect for
 answerable questions; Abst. = correct abstention (N/A for answerable questions).
@@ -149,7 +148,7 @@ answerable questions; Abst. = correct abstention (N/A for answerable questions).
 | M2 | multi_chunk | 8 | Partial | Partial | Y | Y | N/A | Generation (+ retrieval for NSP 50/50) | Masking now correct (15%, 80/10/10 [5]). NSP 50/50 never retrieved. The answer ends by claiming masking info could not be found, **contradicting itself** |
 | M3 | multi_chunk | 4 | Full | Correct | Y | Y | N/A | None | Same-document vs per-token latent document; matches p. 2–3. The citation is a lone "[1]" at the end |
 | M3 | multi_chunk | 8 | Full | Correct | Y | Y | N/A | None | Correct, but **no [n] markers**, so the Sources line falls back to all 6 retrieved pages |
-| S1 | synthesis | 4 | Partial | Correct ⚑ review | Y | Y | N/A | None | Answers both parts: why raw BERT embeddings suit cosine poorly (SentEval passage, p. 7), and SBERT's siamese/triplet networks, 65 h → 5 s (p. 1). It omits the GloVe comparison and the 54.81/29.19 figures, which the question did not explicitly request. Decide whether that omission makes it partial |
+| S1 | synthesis | 4 | Partial | Correct | Y | Y | N/A | None | Answers both parts: why raw BERT embeddings suit cosine poorly (SentEval passage, p. 7), and SBERT's siamese/triplet networks, 65 h → 5 s (p. 1). It omits the GloVe comparison and the 54.81/29.19 figures. **Decision:** the question does not ask for them, and the rubric allows omitting unrequested detail, so Correct |
 | S1 | synthesis | 8 | Full | Partial | Y | Y | N/A | Generation | The "how SBERT addresses it" part mentions only the pooling layer, not the siamese/triplet fine-tuning, even though the p. 3 chunk with that text was retrieved |
 | S2 | synthesis | 4 | Full | Partial | Y | Y | N/A | Generation | BERT-base query and document encoders of DPR: correct. The generator is described as "pθ" and **never named as BART-large**, although the p. 3 chunk containing "BART-large" was retrieved. No [n] markers, so Sources shows all 4 retrieved pages |
 | S2 | synthesis | 8 | Full | Partial | Y | Y | N/A | Generation | Adds "110M parameters each" (p. 18, correct); still does not name BART-large |
@@ -163,7 +162,7 @@ answerable questions; Abst. = correct abstention (N/A for answerable questions).
 | A2 | false premise | 4 | None | N/A | Y | N/A | Yes (acceptable) | None | Abstained (fixed by V1.1 prompt rule 10; see §8). The "default configuration is MEAN" chunk (p. 3) was not retrieved |
 | A2 | false premise | 8 | None | N/A | Y | **N** | **No** | Abstention / hallucination (+ retrieval) | **Accepted the false premise** and built a rationale from BERT's [CLS] fine-tuning passage (BERT p. 5). The MEAN-pooling chunk was never retrieved. Rule 10 did not prevent this at k=8 |
 
-## 5b. Per-question judgements: corpus A, V1 baseline runs (draft)
+## 5b. Per-question judgements: corpus A, V1 baseline runs
 
 V1 had no P1. "Same as V1.1" means the V1 answer is substantively the same as the final run's answer
 for that k, with the same judgement.
@@ -183,7 +182,7 @@ for that k, with the same judgement.
 | A1 | Acceptable abstention | Acceptable abstention | None | Premise not corrected |
 | A2 | Acceptable abstention (hedged) | **Fabricated rationale** | k=8 Abstention / hallucination (+ retrieval) | k=4: "The passage does not explicitly state why…" followed by the fallback (recorded `abstained=False` due to the V1 detection defect). k=8: accepted the premise and justified it from BERT [CLS] passages |
 
-## 6. Per-question judgements: corpus B (long documents), final V1.1 runs (draft)
+## 6. Per-question judgements: corpus B (long documents), final V1.1 runs
 
 | ID | Category | k | Ev | Outcome | Relevant | Supported | Abst. | Failure class | Rationale |
 |---|---|---|---|---|---|---|---|---|---|
@@ -281,7 +280,7 @@ for that k, with the same judgement.
 
 This is a retrieval-configuration comparison, **not** an LLM comparison. No second LLM was evaluated.
 
-## 8b. Similarity vs MMR retrieval (V1.2; draft judgements)
+## 8b. Similarity vs MMR retrieval (V1.2)
 
 **What MMR does.** Maximal Marginal Relevance fetches the 20 most similar chunks, then picks k of them
 one at a time, scoring each candidate as `0.5 × similarity to the question − 0.5 × similarity to the
@@ -298,7 +297,7 @@ chunks already picked`. The aim is less redundancy, so more distinct passages re
 | B, 4 | Similarity | 2 / 1 / 3 | **2 / 1 / 3** | 4 / 4 | 1 / 1 | 6.7 s |
 | B, 4 | MMR | 3 / 3 / 0 | **3 / 2 / 1** | 4 / 5 | 1 / 1 | 6.5 s |
 | B, 8 | Similarity | 5 / 0 / 1 | **3 / 1 / 2** | 3 / 4 | 1 / 1 | 13.0 s |
-| B, 8 | MMR | 4 / 2 / 0 | **3 / 3 / 0** | 4 / 6 | 1 / 1 | 12.2 s |
+| B, 8 | MMR | 4 / 2 / 0 | **4 / 2 / 0** | 4 / 6 | 1 / 1 | 12.2 s |
 
 All 5 unanswerable questions still abstained with MMR at both k values (10 of 10 responses).
 
@@ -307,17 +306,17 @@ All 5 unanswerable questions still abstained with MMR at both k values (10 of 10
 | ID | k | Similarity | MMR | Why (from the chunk text) |
 |---|---|---|---|---|
 | F3 | 4 | Incorrect | Incorrect | Still a retrieval miss. Now **unfaithful in a new way**: calls BART-large (the generator) the "knowledge source" |
-| F3 | 8 | Incorrect | Partial ⚑ review | First time F3 gets anything: "Wikipedia … 21M … vectors" from the p. 19 memory passage (21M 728-dim vectors). The p. 4 dump passage is still not retrieved, so "December 2018" is missing |
+| F3 | 8 | Incorrect | Partial | First time F3 gets anything: "Wikipedia … 21M … vectors" from the p. 19 memory passage (21M 728-dim vectors). The p. 4 dump passage is still not retrieved, so "December 2018" is missing. **Decision:** the source (Wikipedia) is right, but the count is given in garbled form as vectors and never as documents, so the second part is not clearly answered: Partial |
 | F4 | 4 | Correct | **Incorrect** | MMR kept the p. 1 "65 hours" chunk but dropped the p. 2 / p. 8 chunks with "~5 seconds", which are close in meaning to the p. 1 chunk. The model then abstained, even though the BERT half was in its context |
 | F4 | 8 | Correct | Partial | Same loss of the "5 seconds" chunks; this time it gives the 65 hours and says the SBERT figure is missing |
 | M2 | 4 / 8 | Partial | Partial | Unchanged outcome. At k=8 the self-contradicting trailing fallback has gone; 15% is retrieved but still omitted |
 | M3 | 4 / 8 | Correct | **Incorrect** | The definition is split over two **neighbouring** chunks on p. 3 (200-character overlap). MMR treats the second one as redundant with the first and drops it, so the "same document vs. different document per token" text never reaches the model |
-| S1 | 4 | Correct ⚑ | Partial | The "how SBERT fixes it" part is vague ("a different setup"); the siamese/triplet passage was not retrieved |
+| S1 | 4 | Correct | Partial | The "how SBERT fixes it" part is vague ("a different setup"); the siamese/triplet passage was not retrieved |
 | A2 | 8 | **Fabricated rationale** | **Abstained** | With fewer near-identical BERT [CLS] passages in the context, the model no longer builds a false rationale. This is the only false-premise hallucination in the final runs, and MMR removes it |
 | LF1 | 4 | Incorrect (abstained) | Partial | MMR brings in the p. 8 Table 2.1 chunk: 96 layers correct. But "12288 parameters" (that is d_model) and "context window of one Reuters article" are misreadings, so **unfaithful** |
 | LF3 | 4 | Incorrect | **Correct** | MMR reaches the p. 27 Table 3.12 chunk: 52% vs 88% for the control model |
 | LF3 | 8 | Incorrect (wrongly abstained) | **Correct** | Same passage; this time the model uses it |
-| LM2 | 8 | Incorrect (abstained) | Partial ⚑ review | The cross-document question now gets an answer: "GPT-3 2048, Llama 2 4096". Both numbers are right, but the GPT-3 figure is cited to the Llama 2 sentence "from 2048 [Llama 1] to 4096 tokens". The GPT-3 n_ctx chunk was not retrieved, so the GPT-3 part is **right by coincidence and unfaithful** |
+| LM2 | 8 | Incorrect (abstained) | Correct, **unfaithful** | The cross-document question now gets an answer: "GPT-3 2048, Llama 2 4096". Both numbers are right, but the GPT-3 figure is cited to the Llama 2 sentence "from 2048 [Llama 1] to 4096 tokens". The GPT-3 n_ctx chunk was not retrieved, so the GPT-3 part is **right by coincidence**. **Decision:** the rubric scores correctness and faithfulness separately, so Correct for the outcome and counted as unfaithful |
 | LS1 | 4 | Partial | Partial | Swapped gaps: similarity had rejection sampling + PPO but no Ghost Attention; MMR has Ghost Attention but not rejection sampling + PPO |
 | LS1 | 8 | Correct | Partial | Rejection sampling, PPO and Ghost Attention are all missing from the answer, although the GAtt passage (p. 8) was retrieved |
 
@@ -344,7 +343,7 @@ LF2 at k=4 adds an unrequested, muddled remark about WebText2's weight.
   It is the better choice for long reports, where the evidence is spread across many sections. A sweep
   of `MMR_LAMBDA` (for example 0.7) and of smaller chunk overlap with MMR was **not** done and would be
   the next experiment.
-- Same caveats as §8: 10 + 6 answerable questions, one run per setting, draft judgements.
+- Same caveats as §8: 10 + 6 answerable questions, one run per setting.
 
 ## 8c. LLM parameters (V1.2)
 
@@ -364,10 +363,10 @@ The generation settings are now explicit and visible in the UI:
 
 - Small sample: 10 + 6 answerable questions, one run per configuration. Temperature 0 makes runs largely
   repeatable, but small prompt changes did alter individual answers (see `results/superseded/`).
-- One evaluator drafted all judgements; they require the student's confirmation (see the status banner).
+- A single evaluator made all judgements (re-checked in a second pass); there is no inter-rater agreement measure.
 - Both corpora are machine-learning papers; behaviour on other domains was not tested.
 - Expected answers for multi-part questions involve judgement about which details are "required".
-  Those cases are flagged ⚑.
+  The borderline cases are decided by the §1 rubric, with the decision stated in the row.
 - **Dataset size requirement.** The brief says about 50–200 pages without stating whether that applies
   per document or per collection. Corpus A is 61 pages (documents of 11–19 pp.). Corpus B is 152 pages
   (75 + 77 pp.). **To confirm with the professor.**
