@@ -2,6 +2,9 @@
 from __future__ import annotations
 
 import functools
+import math
+import re
+from collections import Counter
 from collections import OrderedDict
 
 import numpy as np
@@ -18,6 +21,39 @@ from rag.embeddings import get_embeddings
 # Chroma rejects very large single batches; stay well below its limit.
 _ADD_BATCH_SIZE = 1000
 _GET_BATCH_SIZE = 5000
+# Reciprocal Rank Fusion constant (Cormack et al., 2009); 60 is the standard value.
+_RRF_K = 60
+_TOKEN = re.compile(r"[a-z0-9]+(?:[.\-][a-z0-9]+)*")
+_STOPWORDS = frozenset(
+    "a an and are as at be by does did do for from has have how in is it its of on or that the this to "
+    "was were what when where which who why with according paper document documents".split()
+)
+
+
+def _tokens(text: str) -> list[str]:
+    """Lowercase word tokens for BM25 (keeps identifiers such as rs.ma, gpt-3, 2048)."""
+    return [t for t in _TOKEN.findall(text.lower()) if t not in _STOPWORDS]
+
+
+def _bm25_scores(query: list[str], docs: list[list[str]], k1: float = 1.5, b: float = 0.75) -> list[float]:
+    """Okapi BM25 score of every document for the query tokens."""
+    n = len(docs)
+    if n == 0:
+        return []
+    avgdl = sum(len(d) for d in docs) / n or 1.0
+    df = Counter(t for d in docs for t in set(d))
+    idf = {t: math.log(1 + (n - df[t] + 0.5) / (df[t] + 0.5)) for t in set(query)}
+    scores = []
+    for d in docs:
+        tf = Counter(d)
+        dl = len(d)
+        score = 0.0
+        for t in query:
+            f = tf.get(t, 0)
+            if f:
+                score += idf[t] * f * (k1 + 1) / (f + k1 * (1 - b + b * dl / avgdl))
+        scores.append(score)
+    return scores
 
 
 def _reopen_on_missing(method):
@@ -190,3 +226,52 @@ class VectorStoreManager:
             )
             out.append((doc, 1.0 - float(result["distances"][0][i])))
         return out
+
+    @_reopen_on_missing
+    def hybrid_search(
+        self, query: str, k: int, file_hashes: list[str] | None = None, fetch_k: int = 20
+    ) -> list[tuple[Document, float]]:
+        """Hybrid keyword + semantic search, returning (document, cosine similarity) pairs.
+
+        Ranks the active chunks twice, by cosine similarity of the embeddings (meaning)
+        and by BM25 (exact words), and merges the two rankings with Reciprocal Rank
+        Fusion over the top ``fetch_k`` of each. Exact terms such as "Wikipedia",
+        "RS.MA" or "Core Functions" can therefore pull in a chunk that the embedding
+        alone ranks low. The returned score is the cosine similarity, so it is
+        comparable with `similarity_search`.
+        """
+        if file_hashes is not None and len(file_hashes) == 0:
+            return []
+        if self.count() == 0:
+            return []
+        where = self._where(file_hashes)
+        ids, texts, metas, embs = [], [], [], []
+        total = self.count()
+        for offset in range(0, total, _GET_BATCH_SIZE):
+            batch = self._collection.get(
+                where=where, include=["documents", "metadatas", "embeddings"],
+                limit=_GET_BATCH_SIZE, offset=offset,
+            )
+            ids += batch["ids"]
+            texts += [t or "" for t in batch["documents"]]
+            metas += [m or {} for m in batch["metadatas"]]
+            embs += list(batch["embeddings"])
+        if not ids:
+            return []
+        q = np.asarray(self.embeddings.embed_query(query), dtype=np.float32)
+        m = np.asarray(embs, dtype=np.float32)
+        cos = (m @ q) / (np.linalg.norm(m, axis=1) * (np.linalg.norm(q) or 1.0) + 1e-12)
+        bm25 = _bm25_scores(_tokens(query), [_tokens(t) for t in texts])
+        pool = max(fetch_k, k)
+        dense_rank = [int(i) for i in np.argsort(-cos)[:pool]]
+        # Only chunks that share at least one query word take part in the keyword ranking.
+        keyword_rank = [i for i in sorted(range(len(ids)), key=lambda i: -bm25[i]) if bm25[i] > 0][:pool]
+        fused: dict[int, float] = {}
+        for ranking in (dense_rank, keyword_rank):
+            for rank, i in enumerate(ranking, start=1):
+                fused[i] = fused.get(i, 0.0) + 1.0 / (_RRF_K + rank)
+        best = sorted(fused, key=lambda i: -fused[i])[:k]
+        return [
+            (Document(page_content=texts[i], metadata=dict(metas[i]), id=ids[i]), float(cos[i]))
+            for i in best
+        ]

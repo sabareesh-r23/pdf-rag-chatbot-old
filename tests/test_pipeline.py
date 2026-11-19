@@ -27,7 +27,7 @@ def stub_retrieve(monkeypatch):
     """Replace rag.pipeline.retrieve; returns a dict to configure results / inspect calls."""
     state = {"chunks": [], "calls": []}
 
-    def fake(store, question, k, file_hashes=None, mode="similarity", fetch_k=20, lambda_mult=0.5):
+    def fake(store, question, k, file_hashes=None, mode="similarity", fetch_k=20, lambda_mult=0.5, **_):
         state["calls"].append({"question": question, "k": k, "file_hashes": file_hashes})
         state["opts"] = (mode, fetch_k, lambda_mult)
         return list(state["chunks"])[:k]

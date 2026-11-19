@@ -8,7 +8,7 @@ from rag.config import get_settings
 
 def test_defaults():
     s = get_settings()
-    assert s.retrieval_mode in {"similarity", "mmr"}
+    assert s.retrieval_mode in {"similarity", "mmr", "hybrid"}
     assert 0 <= s.mmr_lambda <= 1 and s.mmr_fetch_k > 0
     assert 0 < s.llm_top_p <= 1 and s.llm_num_ctx >= 512
 
@@ -16,7 +16,7 @@ def test_defaults():
 @pytest.mark.parametrize(
     "overrides",
     [
-        {"retrieval_mode": "hybrid"},
+        {"retrieval_mode": "keyword-only"},
         {"mmr_fetch_k": 0},
         {"mmr_lambda": 1.5},
         {"llm_temperature": -0.1},

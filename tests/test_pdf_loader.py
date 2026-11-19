@@ -152,3 +152,32 @@ def test_normalize_text(raw, expected):
 
 def test_normalize_preserves_case():
     assert normalize_text("BERT and GPT") == "BERT and GPT"
+
+
+# --- running header / footer stripping (V1.3) ---------------------------------------
+
+def test_strip_repeated_lines_removes_running_header_and_page_numbers():
+    from rag.pdf_loader import strip_repeated_lines
+
+    pages = [
+        f"ACME Annual Report 2024\nSection {i} body text about topic {i}.\nMore unique content {i}.\n{i}"
+        for i in range(1, 7)
+    ]
+    out = strip_repeated_lines(pages)
+    # kept once (first page) so the title/date stays searchable, removed elsewhere
+    assert out[0].startswith("ACME Annual Report 2024")
+    assert all("ACME Annual Report" not in p for p in out[1:])
+    # bare page numbers removed after their first occurrence
+    assert all(not p.endswith(f"\n{i}") for i, p in enumerate(out[1:], start=2))
+    # body text untouched
+    assert all(f"Section {i} body text" in out[i - 1] for i in range(1, 7))
+
+
+def test_strip_repeated_lines_keeps_short_docs_and_body_repeats():
+    from rag.pdf_loader import strip_repeated_lines
+
+    short = ["Header\nA", "Header\nB", "Header\nC"]
+    assert strip_repeated_lines(short) == short  # fewer than 4 pages: unchanged
+    # a repeated line in the middle of pages (not at an edge) is content, not a header
+    pages = [f"Top {i}\nl2 {i}\nl3 {i}\nl4 {i}\nRepeated body line\nl6 {i}\nl7 {i}\nl8 {i}\nend {i}" for i in range(6)]
+    assert all("Repeated body line" in p for p in strip_repeated_lines(pages))

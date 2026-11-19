@@ -127,6 +127,8 @@ class RAGPipeline:
             mode=self.settings.retrieval_mode,
             fetch_k=self.settings.mmr_fetch_k,
             lambda_mult=self.settings.mmr_lambda,
+            rerank_model=self.settings.rerank_model if self.settings.rerank else None,
+            rerank_candidates=self.settings.rerank_candidates,
         )
 
         # Optional relevance guard (MIN_RELEVANCE; 0 disables it).

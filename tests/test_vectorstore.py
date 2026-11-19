@@ -176,3 +176,36 @@ def test_mmr_skips_near_duplicates(test_settings, fake_embeddings):
     mmr_texts = [d.page_content for d, _ in mmr]
     assert sim_texts[0] == sim_texts[1]  # plain top-k returns the duplicate twice
     assert len(set(mmr_texts)) == 2  # MMR picks two different passages
+
+
+# --- hybrid (BM25 + dense) search (V1.3) --------------------------------------------
+
+def test_hybrid_search_returns_scores_and_respects_filters(test_settings, fake_embeddings):
+    store = _store(test_settings, fake_embeddings)
+    assert store.hybrid_search("photosynthesis", k=2) == []
+    store.add_chunks(DOC_A + DOC_B)
+    results = store.hybrid_search("When was the Treaty of Versailles signed?", k=3)
+    assert results[0][0].metadata["page"] == 3 and results[0][0].metadata["source"] == "beta.pdf"
+    assert all(-1.0 <= score <= 1.0 for _, score in results)
+    only_a = store.hybrid_search("Versailles", k=5, file_hashes=[HASH_A])
+    assert {d.metadata["file_hash"] for d, _ in only_a} == {HASH_A}
+    assert store.hybrid_search("Versailles", k=3, file_hashes=[]) == []
+
+
+def test_hybrid_search_keyword_rescues_exact_term(test_settings, fake_embeddings):
+    """A chunk containing a rare exact identifier is pulled into the top-k by BM25."""
+    store = _store(test_settings, fake_embeddings)
+    filler = [_chunk(HASH_A, "alpha.pdf", p, 0, f"Incident handling overview and planning note {p}.") for p in range(1, 30)]
+    target = _chunk(HASH_A, "alpha.pdf", 40, 0, "Table 1 lists RS.MA as the identifier.")
+    store.add_chunks(filler + [target])
+    query = "Which identifier is RS.MA?"
+    dense = [d.metadata["page"] for d, _ in store.similarity_search(query, k=30)]
+    hybrid = [d.metadata["page"] for d, _ in store.hybrid_search(query, k=3, fetch_k=20)]
+    assert 40 in hybrid
+    assert dense.index(40) >= 0  # present in the dense ranking too, but BM25 guarantees it
+
+
+def test_bm25_tokens_keep_identifiers():
+    from rag.vectorstore import _tokens
+
+    assert _tokens("What is RS.MA and GPT-3's 2048 context?") == ["rs.ma", "gpt-3", "s", "2048", "context"]

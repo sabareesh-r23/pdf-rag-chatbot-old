@@ -98,3 +98,27 @@ def test_real_model_semantic_retrieval(tmp_path):
         top = retrieve(store, question, k=1)[0]
         assert top.page == page, f"{question!r} -> page {top.page}"
         assert 0.0 < top.score <= 1.0001
+
+
+# --- cross-encoder reranking (V1.3) ---------------------------------------------------
+
+def test_retrieve_with_rerank_reorders_and_truncates(monkeypatch, indexed_store):
+    import rag.reranker as rr
+
+    calls = {}
+
+    def fake_scores(model, question, texts):
+        calls["n"] = len(texts)
+        return [float(i) for i in range(len(texts))]  # last candidate is the most relevant
+
+    monkeypatch.setattr(rr, "rerank_scores", fake_scores)
+    plain = retrieve(indexed_store, "photosynthesis", k=10)
+    chunks = retrieve(indexed_store, "photosynthesis", k=2, rerank_model="fake", rerank_candidates=10)
+    assert calls["n"] == min(10, len(plain))  # reranked the candidate pool, not just k
+    assert len(chunks) == 2
+    assert chunks[0].rerank_score >= chunks[1].rerank_score
+    assert chunks[0].chunk_id == plain[calls["n"] - 1].chunk_id  # best rerank score first
+
+
+def test_retrieve_without_rerank_has_no_rerank_score(indexed_store):
+    assert all(c.rerank_score is None for c in retrieve(indexed_store, "photosynthesis", k=3))

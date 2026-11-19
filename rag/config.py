@@ -63,11 +63,19 @@ class Settings:
     # Optional relevance guard: drop retrieved chunks with cosine similarity below this (0 = disabled)
     min_relevance: float = field(default_factory=lambda: _env_float("MIN_RELEVANCE", 0.0))
     # "similarity" = plain top-k cosine search; "mmr" = Maximal Marginal Relevance
-    # (fetch MMR_FETCH_K candidates, then pick top_k that are relevant but not redundant).
-    retrieval_mode: str = field(default_factory=lambda: os.getenv("RETRIEVAL_MODE", "similarity").lower())
+    # (fetch MMR_FETCH_K candidates, then pick top_k that are relevant but not redundant);
+    # "hybrid" = BM25 keyword ranking + cosine ranking merged with Reciprocal Rank Fusion.
+    retrieval_mode: str = field(default_factory=lambda: os.getenv("RETRIEVAL_MODE", "hybrid").lower())
     mmr_fetch_k: int = field(default_factory=lambda: _env_int("MMR_FETCH_K", 20))
     # 1.0 = pure relevance (same as similarity), 0.0 = maximum diversity.
     mmr_lambda: float = field(default_factory=lambda: _env_float("MMR_LAMBDA", 0.5))
+    # Cross-encoder reranking: retrieve RERANK_CANDIDATES chunks with the search type above,
+    # rescore each (question, chunk) pair with RERANK_MODEL, keep the best top_k.
+    rerank: bool = field(default_factory=lambda: os.getenv("RERANK", "true").strip().lower() in {"1", "true", "yes", "on"})
+    rerank_model: str = field(
+        default_factory=lambda: os.getenv("RERANK_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+    )
+    rerank_candidates: int = field(default_factory=lambda: _env_int("RERANK_CANDIDATES", 30))
 
     # LLM
     llm_provider: str = field(default_factory=lambda: os.getenv("LLM_PROVIDER", "ollama").lower())
@@ -93,8 +101,10 @@ class Settings:
             raise ValueError("CHUNK_OVERLAP must be >= 0 and smaller than CHUNK_SIZE")
         if self.top_k <= 0:
             raise ValueError("TOP_K must be positive")
-        if self.retrieval_mode not in {"similarity", "mmr"}:
-            raise ValueError("RETRIEVAL_MODE must be 'similarity' or 'mmr'")
+        if self.retrieval_mode not in {"similarity", "mmr", "hybrid"}:
+            raise ValueError("RETRIEVAL_MODE must be 'similarity', 'mmr' or 'hybrid'")
+        if self.rerank_candidates <= 0:
+            raise ValueError("RERANK_CANDIDATES must be positive")
         if self.mmr_fetch_k <= 0:
             raise ValueError("MMR_FETCH_K must be positive")
         if not 0.0 <= self.mmr_lambda <= 1.0:

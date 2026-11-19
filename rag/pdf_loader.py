@@ -108,6 +108,60 @@ def normalize_text(text: str) -> str:
     return text.strip()
 
 
+_EDGE_TOP, _EDGE_BOTTOM = 4, 3  # lines at the top / bottom of a page that may be running headers/footers
+# A bare page number: "7", "iv", "Page 7", "7 of 32", "- 7 -".
+_PAGE_NUMBER = re.compile(r"^(?:page\s*)?[-–\s]*(?:\d+|[ivxlcdm]+)(?:\s*(?:of|/)\s*\d+)?[-–\s]*$", re.IGNORECASE)
+
+
+def _line_key(line: str) -> str:
+    """Key for header/footer detection: all page-number lines share one key; any other
+    line must repeat word for word (so body lines that differ only by a number, such as
+    "Table 3 ..." and "Table 4 ...", are never treated as the same line)."""
+    line = line.strip()
+    return "#page-number#" if _PAGE_NUMBER.match(line) else line
+
+
+def strip_repeated_lines(texts: list[str], min_share: float = 0.5, min_pages: int = 3) -> list[str]:
+    """Remove running headers/footers and bare page numbers from a document's pages.
+
+    A line at the top or bottom of a page counts as a running header/footer when the same
+    line (digits ignored) appears at the edge of at least ``min_share`` of the pages, and on
+    at least ``min_pages`` pages. It is kept on the first page where it occurs (so a cover
+    date or title stays searchable once) and removed everywhere else. Repeated headers make
+    every chunk that contains them look similar to questions that name the document, which
+    pushes the real evidence down the ranking (evaluation report §8d, question D1).
+    """
+    if len(texts) < 4:
+        return texts
+    page_lines = [t.split("\n") for t in texts]
+    counts: dict[str, int] = {}
+    for lines in page_lines:
+        n = len(lines)
+        edge = set(range(min(_EDGE_TOP, n))) | set(range(max(0, n - _EDGE_BOTTOM), n))
+        keys = {_line_key(lines[i]) for i in edge if lines[i].strip()}
+        for key in keys:
+            counts[key] = counts.get(key, 0) + 1
+    threshold = max(min_pages, int(min_share * len(texts) + 0.999))
+    repeated = {k for k, c in counts.items() if c >= threshold}
+    if not repeated:
+        return texts
+    seen: set[str] = set()
+    out: list[str] = []
+    for lines in page_lines:
+        n = len(lines)
+        edge = set(range(min(_EDGE_TOP, n))) | set(range(max(0, n - _EDGE_BOTTOM), n))
+        kept = []
+        for i, line in enumerate(lines):
+            key = _line_key(line)
+            if i in edge and key in repeated:
+                if key in seen:
+                    continue
+                seen.add(key)
+            kept.append(line)
+        out.append(_MANY_NL.sub("\n\n", "\n".join(kept)).strip())
+    return out
+
+
 def _check_readable(name: str, path: str) -> int:
     """Open with pypdf to detect corruption/encryption early; returns page count."""
     try:
@@ -159,11 +213,11 @@ def load_pdf_bytes(filename: str, data: bytes, max_file_mb: int = 50) -> LoadRes
         except OSError:
             pass
 
+    texts = strip_repeated_lines([normalize_text(doc.page_content) for doc in raw_pages])
     pages: list[Document] = []
     empty_pages: list[int] = []
-    for i, doc in enumerate(raw_pages):
+    for i, (doc, text) in enumerate(zip(raw_pages, texts)):
         page_no = int(doc.metadata.get("page", i)) + 1  # loader is 0-based
-        text = normalize_text(doc.page_content)
         if not text:
             empty_pages.append(page_no)
             continue

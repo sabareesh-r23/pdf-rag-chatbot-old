@@ -1,0 +1,676 @@
+{
+  "run_id": "20261119_235955",
+  "started_at": "2026-11-19T23:59:55",
+  "finished_at": "2026-11-20T00:01:14",
+  "questions_file": "evaluation/questions_long.json",
+  "pdf_dir": "data/long_pdfs",
+  "config": {
+    "chunk_size": 1000,
+    "chunk_overlap": 200,
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "chroma_dir": "/Users/sabareeshravi/dev/pdf-rag-chatbot/chroma_db",
+    "collection_name": "eval_cs1000_co200_long_pdfs",
+    "top_k": 4,
+    "min_relevance": 0.0,
+    "retrieval_mode": "hybrid",
+    "mmr_fetch_k": 20,
+    "mmr_lambda": 0.5,
+    "rerank": true,
+    "rerank_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+    "rerank_candidates": 30,
+    "llm_provider": "ollama",
+    "llm_model": "llama3.2:3b",
+    "llm_temperature": 0.0,
+    "llm_top_p": 0.9,
+    "llm_num_ctx": 4096,
+    "ollama_base_url": "http://localhost:11434",
+    "max_file_mb": 50
+  },
+  "fallback_answer": "I could not find enough information in the uploaded documents to answer this question.",
+  "environment": {
+    "python": "3.12.12",
+    "platform": "macOS-26.3-arm64-arm-64bit"
+  },
+  "ingestion": [
+    {
+      "filename": "arxiv_2005.14165.pdf",
+      "status": "duplicate",
+      "message": "This file is already indexed; skipped re-indexing.",
+      "pages": 0,
+      "empty_pages": [],
+      "chunks": 0,
+      "file_hash": "97fd272f1fdfc18677462d0292f5fbf26ca86b4d1b485c2dba03269b643a0e83",
+      "seconds": 0.11
+    },
+    {
+      "filename": "arxiv_2307.09288.pdf",
+      "status": "duplicate",
+      "message": "This file is already indexed; skipped re-indexing.",
+      "pages": 0,
+      "empty_pages": [],
+      "chunks": 0,
+      "file_hash": "1df284ce95f783002074bfe8f21d47c646b396ceb1736ea3ec0ea212fc070d91",
+      "seconds": 0.02
+    }
+  ],
+  "human_fields": [
+    "correct",
+    "relevant",
+    "supported",
+    "abstention_correct",
+    "failure_class",
+    "observations"
+  ],
+  "questions": [
+    {
+      "id": "LF1",
+      "category": "factual",
+      "question": "How many parameters and layers does GPT-3 175B have, and what context window do the GPT-3 models use?",
+      "expected_answer": "175.0B parameters with 96 layers (d_model 12288, 96 attention heads of dimension 128); all GPT-3 models use a context window of 2048 tokens.",
+      "expected_sources": [
+        {
+          "source": "arxiv_2005.14165.pdf",
+          "pages": [
+            8
+          ]
+        }
+      ],
+      "notes": "Evidence: Table 2.1 row 'GPT-3 175B or \"GPT-3\" 175.0B 96 12288 96 128 3.2M 0.6x10^-4' and 'All models use a context window of nctx = 2048 tokens.' (p. 8)",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 48,
+          "score": 0.4404,
+          "chunk_id": "97fd272f1fdf-p48-c1",
+          "text": "late 2019 and created a context for GPT-3 175B that consisted of a single Reuters article not in this set of 12. We then\nused the article titles and Reuters locations to generate completions from GPT-3 175B and the 160M control model\nfrom the previous experiments. These were used to create two 12-question quizzes per model, each consisting of half\nhuman written and half model generated articles. Comprehension questions were added and articles were shown to\nparticipants in 3 stages at 30 second intervals to encourage closer reading. Participants were paid $12 for this task.\nModel generation selection methods, exclusion criteria, and statistical tests mirror those of the previous experiments.\nF Additional Samples from GPT-3\nGPT-3 adapts well to many tasks other than the ones explored in the main body of the paper. As an example, in Figure\nF.1, we show four uncurated samples from a prompt suggesting that the model write a poem, with a given title, in the"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 20,
+          "score": 0.5394,
+          "chunk_id": "97fd272f1fdf-p20-c1",
+          "text": "GPT-3 with one example per context versus eight examples per context.\nand MultiRC, we sampled a new set of examples to use in the context for each problem. For WSC and MultiRC, we\nused the same set of randomly drawn examples from the training set as context for all of the problems we evaluated.\nWe observe a wide range in GPT-3’s performance across tasks. On COPA and ReCoRD GPT-3 achieves near-SOTA\nperformance in the one-shot and few-shot settings, with COPA falling only a couple points short and achieving\nsecond place on the leaderboard, where first place is held by a fine-tuned 11 billion parameter model (T5). On WSC,\nperformance is still relatively strong, achieving 80.1% in the few-shot setting (note that GPT-3 achieves 88.6% on the\noriginal Winograd dataset as described in Section 3.4). On BoolQ, MultiRC, and RTE, performance is reasonable,\nroughly matching that of a fine-tuned BERT-Large. On CB, we see signs of life at 75.6% in the few-shot setting."
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 5,
+          "score": 0.367,
+          "chunk_id": "97fd272f1fdf-p5-c0",
+          "text": "Figure 1.3: Aggregate performance for all 42 accuracy-denominated benchmarks While zero-shot performance\nimproves steadily with model size, few-shot performance increases more rapidly, demonstrating that larger models are\nmore proficient at in-context learning. See Figure 3.8 for a more detailed analysis on SuperGLUE, a standard NLP\nbenchmark suite.\nIn this paper, we test this hypothesis by training a 175 billion parameter autoregressive language model, which we call\nGPT-3, and measuring its in-context learning abilities. Specifically, we evaluate GPT-3 on over two dozen NLP datasets,\nas well as several novel tasks designed to test rapid adaptation to tasks unlikely to be directly contained in the training\nset. For each task, we evaluate GPT-3 under 3 conditions: (a) “few-shot learning”, or in-context learning where we\nallow as many demonstrations as will fit into the model’s context window (typically 10 to 100), (b) “one-shot learning”,"
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 8,
+          "score": 0.412,
+          "chunk_id": "97fd272f1fdf-p8-c2",
+          "text": "nlayers is the total number of layers, dmodel is the number of units in each bottleneck layer (we always have the\nfeedforward layer four times the size of the bottleneck layer, dff = 4∗dmodel), anddhead is the dimension of each\nattention head. All models use a context window ofnctx = 2048 tokens. We partition the model across GPUs along\nboth the depth and width dimension in order to minimize data-transfer between nodes. The precise architectural\nparameters for each model are chosen based on computational efficiency and load-balancing in the layout of models\nacross GPU’s. Previous work [KMH+20] suggests that validation loss is not strongly sensitive to these parameters\nwithin a reasonably broad range.\n2.2 Training Dataset\nDatasets for language models have rapidly expanded, culminating in the Common Crawl dataset2 [RSR+19] constituting\nnearly a trillion words. This size of dataset is sufficient to train our largest models without ever updating on the same"
+        }
+      ],
+      "actual_answer": "The number of parameters for GPT-3 175B is not explicitly stated in the provided context passages. However, it is mentioned that a 175 billion parameter autoregressive language model was used, which implies that GPT-3 175B has approximately 175 billion parameters [3].\n\nThe number of layers for GPT-3 175B is also not explicitly stated. The passage mentions that the architecture parameters are chosen based on computational efficiency and load-balancing in the layout of models across GPUs, but it does not provide information on the specific number of layers.\n\nThe context window used by the GPT-3 models is 2048 tokens [4].",
+      "sources": [
+        {
+          "source": "arxiv_2005.14165.pdf",
+          "page": 5
+        },
+        {
+          "source": "arxiv_2005.14165.pdf",
+          "page": 8
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 17.31,
+      "error": null,
+      "expected_page_retrieved": true,
+      "evidence_retrieved": "partial",
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "LF2",
+      "category": "factual",
+      "question": "How many tokens of filtered Common Crawl data were used to train GPT-3, and what weight did it have in the training mix?",
+      "expected_answer": "410 billion tokens, with a 60% weight in the training mix.",
+      "expected_sources": [
+        {
+          "source": "arxiv_2005.14165.pdf",
+          "pages": [
+            9
+          ]
+        }
+      ],
+      "notes": "Evidence: Table 2.2 'Common Crawl (filtered) 410 billion 60% 0.44' (p. 9). Table data: column structure is flattened by extraction.",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 9,
+          "score": 0.6135,
+          "chunk_id": "97fd272f1fdf-p9-c0",
+          "text": "Figure 2.2: Total compute used during training. Based on the analysis in Scaling Laws For Neural Language Models\n[KMH+20] we train much larger models on many fewer tokens than is typical. As a consequence, although GPT-3 3B\nis almost 10x larger than RoBERTa-Large (355M params), both models took roughly 50 petaflop/s-days of compute\nduring pre-training. Methodology for these calculations can be found in Appendix D.\nDataset\nQuantity\n(tokens)\nWeight in\ntraining mix\nEpochs elapsed when\ntraining for 300B tokens\nCommon Crawl (filtered) 410 billion 60% 0.44\nWebText2 19 billion 22% 2.9\nBooks1 12 billion 8% 1.9\nBooks2 55 billion 8% 0.43\nWikipedia 3 billion 3% 3.4\nTable 2.2: Datasets used to train GPT-3. “Weight in training mix” refers to the fraction of examples during training\nthat are drawn from a given dataset, which we intentionally do not make proportional to the size of the dataset. As a"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 43,
+          "score": 0.5425,
+          "chunk_id": "97fd272f1fdf-p43-c2",
+          "text": "same features as were used for classification above. We also fuzzily removed WebText from Common Crawl.\nOverall this decreased dataset size by an average of 10%.\nAfter filtering for duplicates and quality, we also partially removed text occurring in benchmark datasets, described in\nAppendix C.\nB Details of Model Training\nTo train all versions of GPT-3, we use Adam withβ1 = 0.9,β2 = 0.95, andϵ = 10−8, we clip the global norm of the\ngradient at 1.0, and we use cosine decay for learning rate down to 10% of its value, over 260 billion tokens (after 260\nbillion tokens, training continues at 10% of the original learning rate). There is a linear LR warmup over the first 375\nmillion tokens. We also gradually increase the batch size linearly from a small value (32k tokens) to the full value over\nthe first 4-12 billion tokens of training, depending on the model size. Data are sampled without replacement during"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 8,
+          "score": 0.4815,
+          "chunk_id": "97fd272f1fdf-p8-c4",
+          "text": "Details of the first two points (processing of Common Crawl) are described in Appendix A. For the third, we added\nseveral curated high-quality datasets, including an expanded version of the WebText dataset [ RWC+19], collected\nby scraping links over a longer period of time, and first described in [ KMH+20], two internet-based books corpora\n(Books1 and Books2) and English-language Wikipedia.\nTable 2.2 shows the final mixture of datasets that we used in training. The CommonCrawl data was downloaded from\n41 shards of monthly CommonCrawl covering 2016 to 2019, constituting 45TB of compressed plaintext before filtering\nand 570GB after filtering, roughly equivalent to 400 billion byte-pair-encoded tokens. Note that during training, datasets\nare not sampled in proportion to their size, but rather datasets we view as higher-quality are sampled more frequently,\nsuch that CommonCrawl and Books2 datasets are sampled less than once during training, but the other datasets are"
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 14,
+          "score": 0.4518,
+          "chunk_id": "97fd272f1fdf-p14-c2",
+          "text": "concerns. Even with this filtering GPT-2 showed some evidence of multilingual capability and performed non-trivially\nwhen translating between French and English despite only training on 10 megabytes of remaining French text. Since we\nincrease the capacity by over two orders of magnitude from GPT-2 to GPT-3, we also expand the scope of the training\ndataset to include more representation of other languages, though this remains an area for further improvement. As\ndiscussed in 2.2 the majority of our data is derived from raw Common Crawl with only quality-based filtering. Although\nGPT-3’s training data is still primarily English (93% by word count), it also includes 7% of text in other languages.\nThese languages are documented in the supplemental material. In order to better understand translation capability, we\nalso expand our analysis to include two additional commonly studied languages, German and Romanian."
+        }
+      ],
+      "actual_answer": "The filtered Common Crawl data used to train GPT-3 consisted of 400 billion byte-pair-encoded tokens [3], and it had a weight of 60% in the training mix [1].",
+      "sources": [
+        {
+          "source": "arxiv_2005.14165.pdf",
+          "page": 8
+        },
+        {
+          "source": "arxiv_2005.14165.pdf",
+          "page": 9
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 7.51,
+      "error": null,
+      "expected_page_retrieved": true,
+      "evidence_retrieved": "all",
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "LF3",
+      "category": "factual",
+      "question": "How accurately could human evaluators identify news articles written by GPT-3 175B?",
+      "expected_answer": "Mean human accuracy was about 52%, barely above chance (Table 3.11 reports 52% with a 49%-54% confidence interval).",
+      "expected_sources": [
+        {
+          "source": "arxiv_2005.14165.pdf",
+          "pages": [
+            26
+          ]
+        }
+      ],
+      "notes": "Evidence: 'human accuracy at detecting articles that were produced by the 175B parameter model was barely above chance at ~52% (see Table 3.11)' (p. 26).",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 26,
+          "score": 0.6086,
+          "chunk_id": "97fd272f1fdf-p26-c4",
+          "text": "compare human abilities to detect the articles generated by GPT-3 and a control model.\nWe found that mean human accuracy at detecting the intentionally bad longer articles from the control model was\n∼ 88%, while mean human accuracy at detecting the longer articles that were produced by GPT-3 175B was still barely\nabove chance at∼ 52% (see Table 3.12). This indicates that, for news articles that are around 500 words long, GPT-3\ncontinues to produce articles that humans find difficult to distinguish from human written news articles.\n3.9.5 Learning and Using Novel Words\nA task studied in developmental linguistics [CB78] is the ability to learn and utilize new words, for example using a\nword in a sentence after seeing it defined only once, or conversely inferring a word’s meaning from only one usage. Here\nwe qualitatively test GPT-3’s ability to do the former. Specifically, we give GPT-3 the definition of a nonexistent word,"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 26,
+          "score": 0.7421,
+          "chunk_id": "97fd272f1fdf-p26-c3",
+          "text": "G R O V E R[ZHR+19] and GLTR [GSR19] may have greater success at detecting model generated text than human\nevaluators. Automatic detection of these models may be a promising area of future research.\nIppolito et al. [IDCBE19] also note that human accuracy at detecting model generated text increases as humans observe\nmore tokens. To do a preliminary investigation of how good humans are at detecting longer news articles generated\nby GPT-3 175B, we selected 12 world news articles from Reuters with an average length of 569 words and generated\ncompletions of these articles from GPT-3 with an average length of 498 words (298 words longer than our initial\nexperiments). Following the methodology above, we ran two experiments, each on around 80 US-based participants, to\ncompare human abilities to detect the articles generated by GPT-3 and a control model.\nWe found that mean human accuracy at detecting the intentionally bad longer articles from the control model was"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 28,
+          "score": 0.6358,
+          "chunk_id": "97fd272f1fdf-p28-c4",
+          "text": "wearing this.\"\nFigure 3.15: The GPT-3 generated news article that humans found the easiest to distinguish from a human written\narticle (accuracy: 61%)."
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 27,
+          "score": 0.4995,
+          "chunk_id": "97fd272f1fdf-p27-c0",
+          "text": "Figure 3.13: People’s ability to identify whether news articles are model-generated (measured by the ratio of correct\nassignments to non-neutral assignments) decreases as model size increases. Accuracy on the outputs on the deliberatelybad control model (an unconditioned GPT-3 Small model with higher output randomness) is indicated with the dashed\nline at the top, and the random chance (50%) is indicated with the dashed line at the bottom. Line of best fit is a power\nlaw with 95% confidence intervals.\nMean accuracy\n95% Confidence\nInterval (low, hi)\nt compared to\ncontrol (p-value)\n“I don’t know”\nassignments\nControl 88% 84%–91% - 2.7%\nGPT-3 175B 52% 48%–57% 12.7 (3.2 e-23) 10.6%\nTable 3.12: People’s ability to identify whether∼ 500 word articles are model generated (as measured by the ratio of\ncorrect assignments to non-neutral assignments) was 88% on the control model and 52% on GPT-3 175B. This table"
+        }
+      ],
+      "actual_answer": "Human evaluators were able to identify news articles written by GPT-3 175B with a mean accuracy of 52% [2], which is barely above chance. The accuracy decreased as model size increases, and for articles around 500 words long, the ability to distinguish them from human-written articles was still low at 52%.",
+      "sources": [
+        {
+          "source": "arxiv_2005.14165.pdf",
+          "page": 26
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 7.73,
+      "error": null,
+      "expected_page_retrieved": true,
+      "evidence_retrieved": "all",
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "LM1",
+      "category": "multi_chunk",
+      "question": "How many tokens was Llama 2 pretrained on, how much GPU compute did pretraining use, and what were the estimated carbon emissions?",
+      "expected_answer": "2 trillion tokens; a cumulative 3.3M GPU hours on A100-80GB hardware; estimated total emissions of 539 tCO2eq, 100% offset by Meta's sustainability program.",
+      "expected_sources": [
+        {
+          "source": "arxiv_2307.09288.pdf",
+          "pages": [
+            5,
+            7,
+            77
+          ]
+        }
+      ],
+      "notes": "Evidence: 'We trained on 2 trillion tokens of data' (p. 5); 'A cumulative of 3.3M GPU hours of computation was performed on hardware of type A100-80GB ... total emissions for training to be 539 tCO2eq, of which 100% were directly offset' (p. 7); restated in the model card (p. 77).",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 77,
+          "score": 0.7059,
+          "chunk_id": "1df284ce95f7-p77-c2",
+          "text": "compliance laws). Use in languages other than English. Use in any other way\nthat is prohibited by the Acceptable Use Policy and Licensing Agreement for\nLlama 2.\nHardware and Software(Section 2.2)\nTraining Factors We used custom training libraries, Meta’s Research Super Cluster, and production clusters for pretraining. Fine-tuning, annotation, and evaluation were also\nperformed on third-party cloud compute.\nCarbon Footprint Pretraining utilized a cumulative 3.3M GPU hours of computation on hardware\nof type A100-80GB (TDP of 350-400W). Estimated total emissions were 539\ntCO2eq, 100% of which were offset by Meta’s sustainability program.\nTraining Data(Sections 2.1 and 3)\nOverview Llama 2 was pretrained on 2 trillion tokens of data from publicly available\nsources. The fine-tuning data includes publicly available instruction datasets, as\nwellasoveronemillionnewhuman-annotatedexamples. Neitherthepretraining\nnor the fine-tuning datasets include Meta user data."
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 6,
+          "score": 0.4554,
+          "chunk_id": "1df284ce95f7-p6-c1",
+          "text": "We observe that after pretraining on 2T Tokens, the models still did not show any sign of saturation.\nTokenizer. Weusethesametokenizeras Llama 1;itemploysabytepairencoding(BPE)algorithm(Sennrich\net al., 2016) using the implementation from SentencePiece (Kudo and Richardson, 2018). As withLlama 1,\nwe split all numbers into individual digits and use bytes to decompose unknown UTF-8 characters. The total\nvocabulary size is 32k tokens.\n2.2.1 Training Hardware & Carbon Footprint\nTrainingHardware. WepretrainedourmodelsonMeta’sResearchSuperCluster(RSC)(LeeandSengupta,\n2022) as well as internal production clusters. Both clusters use NVIDIA A100s. There are two key differences\nbetween the two clusters, with the first being the type of interconnect available: RSC uses NVIDIA Quantum\nInfiniBand while our production cluster is equipped with a RoCE (RDMA over converged Ethernet) solution\nbased on commodity ethernet Switches. Both of these solutions interconnect 200 Gbps end-points. The"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 6,
+          "score": 0.4485,
+          "chunk_id": "1df284ce95f7-p6-c0",
+          "text": "Training Data Params Context\nLength\nGQA Tokens LR\nLlama 1 See Touvron et al.(2023)\n7B 2k ✗ 1.0T 3.0 × 10−4\n13B 2k ✗ 1.0T 3.0 × 10−4\n33B 2k ✗ 1.4T 1.5 × 10−4\n65B 2k ✗ 1.4T 1.5 × 10−4\nLlama 2 A new mix of publiclyavailable online data\n7B 4k ✗ 2.0T 3.0 × 10−4\n13B 4k ✗ 2.0T 3.0 × 10−4\n34B 4k ✓ 2.0T 1.5 × 10−4\n70B 4k ✓ 2.0T 1.5 × 10−4\nTable 1:Llama 2 family of models.Token counts refer to pretraining data only. All models are trained with\na global batch-size of 4M tokens. Bigger models — 34B and 70B — use Grouped-Query Attention (GQA) for\nimproved inference scalability.\n0 250 500 750 1000 1250 1500 1750 2000\nProcessed Tokens (Billions)\n1.4\n1.5\n1.6\n1.7\n1.8\n1.9\n2.0\n2.1\n2.2Train PPL\nLlama-2\n7B\n13B\n34B\n70B\nFigure 5: Training Loss forLlama 2 models. We compare the training loss of theLlama 2 family of models.\nWe observe that after pretraining on 2T Tokens, the models still did not show any sign of saturation."
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 7,
+          "score": 0.6259,
+          "chunk_id": "1df284ce95f7-p7-c0",
+          "text": "Time\n(GPU hours)\nPower\nConsumption (W)\nCarbon Emitted\n(tCO2eq)\nLlama 2\n7B 184320 400 31.22\n13B 368640 400 62.44\n34B 1038336 350 153.90\n70B 1720320 400 291.42\nTotal 3311616 539.00\nTable 2:CO2 emissions during pretraining.Time: total GPU time required for training each model. Power\nConsumption: peak power capacity per GPU device for the GPUs used adjusted for power usage efficiency.\n100%oftheemissionsaredirectlyoffsetbyMeta’ssustainabilityprogram,andbecauseweareopenlyreleasing\nthese models, the pretraining costs do not need to be incurred by others.\ncan scale almost as well as expensive Infiniband up to 2000 GPUs, which makes pretraining even more\ndemocratizable.\nCarbon Footprint of Pretraining. Following preceding research (Bender et al., 2021a; Patterson et al., 2021;\nWu et al., 2022; Dodge et al., 2022) and using power consumption estimates of GPU devices and carbon\nefficiency, we aim to calculate the carbon emissions resulting from the pretraining ofLlama 2 models. The"
+        }
+      ],
+      "actual_answer": "Llama 2 was pretrained on 2 trillion tokens of data [1].\nPretraining used a cumulative 3.3M GPU hours of computation on hardware of type A100-80GB (TDP of 350-400W) [2].\nThe estimated total carbon emissions were 539 tCO2eq, 100% of which were offset by Meta’s sustainability program [2].",
+      "sources": [
+        {
+          "source": "arxiv_2307.09288.pdf",
+          "page": 77
+        },
+        {
+          "source": "arxiv_2307.09288.pdf",
+          "page": 6
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 10.58,
+      "error": null,
+      "expected_page_retrieved": true,
+      "evidence_retrieved": "all",
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "LM2",
+      "category": "multi_chunk",
+      "question": "Compare the context window length of GPT-3 with that of Llama 2.",
+      "expected_answer": "GPT-3 uses a 2048-token context window; Llama 2 expanded the context window from 2048 tokens (Llama 1) to 4096 tokens, i.e. twice GPT-3's.",
+      "expected_sources": [
+        {
+          "source": "arxiv_2005.14165.pdf",
+          "pages": [
+            8
+          ]
+        },
+        {
+          "source": "arxiv_2307.09288.pdf",
+          "pages": [
+            5,
+            47
+          ]
+        }
+      ],
+      "notes": "Cross-document. Evidence: 'All models use a context window of nctx = 2048 tokens' (GPT-3 p. 8); 'We expand the context window for Llama 2 from 2048 tokens to 4096 tokens' (Llama 2 p. 47); 'doubled the context length' (Llama 2 p. 5).",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 54,
+          "score": 0.3784,
+          "chunk_id": "1df284ce95f7-p54-c1",
+          "text": "attribute, and so, up to 20 turns (we did not extend the human evaluation more, and all the examples had\nless than 4048 tokens in total over the turns). As a comparison,Llama 2-Chat without GAtt can not anymore\nrefer to the attributes after only few turns: from 100% at turn t+1, to 10% at turn t+3 and then 0%.\nGAtt Zero-shot Generalisation. We tried at inference time to set constrain not present in the training of\nGAtt. For instance, “answer in one sentence only”, for which the model remained consistent, as illustrated in\nFigure 28.\nWe applied first GAtt toLlama 1, which was pretrained with a context length of 2048 tokens and then\nfine-tuned with 4096 max length. We tested if GAtt works beyond 2048 tokens, and the model arguably\nmanaged to understand attributes beyond this window. This promising result indicates that GAtt could be\nadapted as an efficient technique for long context attention.\nA.3.6 How Far Can Model-Based Evaluation Go?"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 47,
+          "score": 0.4106,
+          "chunk_id": "1df284ce95f7-p47-c0",
+          "text": "• Armand Joulin, Edouard Grave, Guillaume Lample, and Timothee Lacroix, members of the original\nLlama team who helped get this work started.\n• Drew Hamlin, Chantal Mora, and Aran Mun, who gave us some design input on the figures in the\npaper.\n• Vijai Mohan for the discussions about RLHF that inspired our Figure 20, and his contribution to the\ninternal demo.\n• Earlyreviewersofthispaper,whohelpedusimproveitsquality,includingMikeLewis,JoellePineau,\nLaurens van der Maaten, Jason Weston, and Omer Levy.\nA.2 Additional Details for Pretraining\nA.2.1 Architecture Changes Compared toLlama 1\nContext Length. We expand the context window forLlama 2 from 2048 tokens to 4096 tokens. The longer\ncontext window enables models to process more information, which is particularly useful for supporting\nlonger histories in chat applications, various summarization tasks, and understanding longer documents.\nTable 16 compares the performance of 2k and 4k context pretraining on long-context benchmarks. Both"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 6,
+          "score": 0.3099,
+          "chunk_id": "1df284ce95f7-p6-c0",
+          "text": "Training Data Params Context\nLength\nGQA Tokens LR\nLlama 1 See Touvron et al.(2023)\n7B 2k ✗ 1.0T 3.0 × 10−4\n13B 2k ✗ 1.0T 3.0 × 10−4\n33B 2k ✗ 1.4T 1.5 × 10−4\n65B 2k ✗ 1.4T 1.5 × 10−4\nLlama 2 A new mix of publiclyavailable online data\n7B 4k ✗ 2.0T 3.0 × 10−4\n13B 4k ✗ 2.0T 3.0 × 10−4\n34B 4k ✓ 2.0T 1.5 × 10−4\n70B 4k ✓ 2.0T 1.5 × 10−4\nTable 1:Llama 2 family of models.Token counts refer to pretraining data only. All models are trained with\na global batch-size of 4M tokens. Bigger models — 34B and 70B — use Grouped-Query Attention (GQA) for\nimproved inference scalability.\n0 250 500 750 1000 1250 1500 1750 2000\nProcessed Tokens (Billions)\n1.4\n1.5\n1.6\n1.7\n1.8\n1.9\n2.0\n2.1\n2.2Train PPL\nLlama-2\n7B\n13B\n34B\n70B\nFigure 5: Training Loss forLlama 2 models. We compare the training loss of theLlama 2 family of models.\nWe observe that after pretraining on 2T Tokens, the models still did not show any sign of saturation."
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 8,
+          "score": 0.476,
+          "chunk_id": "1df284ce95f7-p8-c2",
+          "text": "in Table 4,Llama 2 70B is close to GPT-3.5 (OpenAI, 2023) on MMLU and GSM8K, but there is a significant\ngap on coding benchmarks.Llama 2 70B results are on par or better than PaLM (540B) (Chowdhery et al.,\n2022) on almost all benchmarks. There is still a large gap in performance betweenLlama 2 70B and GPT-4\nand PaLM-2-L.\nWe also analysed the potential data contamination and share the details in Section A.6.\nBenchmark (shots) GPT-3.5 GPT-4 PaLM PaLM-2-L Llama 2\nMMLU (5-shot) 70.0 86.4 69.3 78.3 68.9\nTriviaQA (1-shot) – – 81.4 86.1 85.0\nNatural Questions (1-shot) – – 29.3 37.5 33.0\nGSM8K (8-shot) 57.1 92.0 56.5 80.7 56.8\nHumanEval (0-shot) 48.1 67.0 26.2 – 29.9\nBIG-Bench Hard (3-shot) – – 52.3 65.7 51.2\nTable 4: Comparison to closed-source modelson academic benchmarks. Results for GPT-3.5 and GPT-4\nare from OpenAI (2023). Results for the PaLM model are from Chowdhery et al. (2022). Results for the\nPaLM-2-L are from Anil et al. (2023).\n3 Fine-tuning"
+        }
+      ],
+      "actual_answer": "I could not find enough information in the uploaded documents to answer this question.",
+      "sources": [],
+      "abstained": true,
+      "latency_seconds": 8.0,
+      "error": null,
+      "expected_page_retrieved": true,
+      "evidence_retrieved": "partial",
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "LS1",
+      "category": "synthesis",
+      "question": "Summarise how Llama 2-Chat was aligned using reinforcement learning from human feedback.",
+      "expected_answer": "After supervised fine-tuning, Llama 2-Chat was iteratively refined with RLHF using reward models trained on human preference data and two algorithms - rejection sampling fine-tuning and Proximal Policy Optimization (PPO) - over successive versions (RLHF-V1 to V5); Ghost Attention (GAtt) was introduced to keep instructions consistent over multi-turn dialogue.",
+      "expected_sources": [
+        {
+          "source": "arxiv_2307.09288.pdf",
+          "pages": [
+            5,
+            13,
+            16
+          ]
+        }
+      ],
+      "notes": "Evidence: 'iteratively refined using Reinforcement Learning with Human Feedback (RLHF) methodologies, specifically through rejection sampling and Proximal Policy Optimization (PPO)' (p. 5); 'We explored RLHF fine-tuning with two main algorithms: Proximal Policy Optimization (PPO) ... Rejection Sampling fine-tuning' and 'RLHF-V1, ..., RLHF-V5' (p. 13); 'we propose Ghost Attention (GAtt)' (p. 16).",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 5,
+          "score": 0.5756,
+          "chunk_id": "1df284ce95f7-p5-c0",
+          "text": "Figure 4: Training ofLlama 2-Chat: This process begins with thepretraining of Llama 2 using publicly\navailable online sources. Following this, we create an initial version ofLlama 2-Chatthrough the application\nof supervised fine-tuning. Subsequently, the model is iteratively refined using Reinforcement Learning\nwith Human Feedback(RLHF) methodologies, specifically through rejection sampling and Proximal Policy\nOptimization (PPO). Throughout the RLHF stage, the accumulation ofiterative reward modeling datain\nparallel with model enhancements is crucial to ensure the reward models remain within distribution.\n2 Pretraining\nTocreatethenewfamilyof Llama 2models,webeganwiththepretrainingapproachdescribedinTouvronetal.\n(2023), using an optimized auto-regressive transformer, but made several changes to improve performance.\nSpecifically, we performed more robust data cleaning, updated our data mixes, trained on 40% more total"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 77,
+          "score": 0.4775,
+          "chunk_id": "1df284ce95f7-p77-c0",
+          "text": "A.7 Model Card\nTable 52 presents a model card (Mitchell et al., 2018; Anil et al., 2023) that summarizes details of the models.\nModel Details\nModel Developers Meta AI\nVariations Llama 2 comes in a range of parameter sizes—7B, 13B, and 70B—as well as\npretrained and fine-tuned variations.\nInput Models input text only.\nOutput Models generate text only.\nModel Architecture Llama 2isanauto-regressivelanguagemodelthatusesanoptimizedtransformer\narchitecture. The tuned versions use supervised fine-tuning (SFT) and reinforcement learning with human feedback (RLHF) to align to human preferences for\nhelpfulness and safety.\nModel Dates Llama 2 was trained between January 2023 and July 2023.\nStatus This is a static model trained on an offline dataset. Future versions of the tuned\nmodels will be released as we improve model safety with community feedback.\nLicense A custom commercial license is available at: ai.meta.com/resources/\nmodels-and-libraries/llama-downloads/\nWhere to send comments"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 3,
+          "score": 0.5242,
+          "chunk_id": "1df284ce95f7-p3-c3",
+          "text": "the community to advance AI alignment research.\nIn this work, we develop and release Llama 2, a family of pretrained and fine-tuned LLMs,Llama 2 and\nLlama 2-Chat, at scales up to 70B parameters. On the series of helpfulness and safety benchmarks we tested,\nLlama 2-Chat models generally perform better than existing open-source models. They also appear to\nbe on par with some of the closed-source models, at least on the human evaluations we performed (see\nFigures 1 and 3). We have taken measures to increase the safety of these models, using safety-specific data\nannotation and tuning, as well as conducting red-teaming and employing iterative evaluations. Additionally,\nthis paper contributes a thorough description of our fine-tuning methodology and approach to improving\nLLM safety. We hope that this openness will enable the community to reproduce fine-tuned LLMs and\ncontinue to improve the safety of those models, paving the way for more responsible development of LLMs."
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 8,
+          "score": 0.5515,
+          "chunk_id": "1df284ce95f7-p8-c3",
+          "text": "are from OpenAI (2023). Results for the PaLM model are from Chowdhery et al. (2022). Results for the\nPaLM-2-L are from Anil et al. (2023).\n3 Fine-tuning\nLlama 2-Chat is the result of several months of research and iterative applications of alignment techniques,\nincluding both instruction tuning and RLHF, requiring significant computational and annotation resources.\nIn this section, we report on our experiments and findings using supervised fine-tuning (Section 3.1), as\nwell as initial and iterative reward modeling (Section 3.2.2) and RLHF (Section 3.2.3). We also share a\nnew technique, Ghost Attention (GAtt), which we find helps control dialogue flow over multiple turns\n(Section 3.3). See Section 4.2 for safety evaluations on fine-tuned models."
+        }
+      ],
+      "actual_answer": "Llama 2-Chat was aligned using reinforcement learning from human feedback through iterative reward modeling data accumulation and Proximal Policy Optimization (PPO) [1]. The RLHF stage involved rejection sampling and PPO methodologies, with the goal of ensuring the reward models remain within distribution.\n\nI could not find enough information in the uploaded documents to answer this question.",
+      "sources": [
+        {
+          "source": "arxiv_2307.09288.pdf",
+          "page": 5
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 8.53,
+      "error": null,
+      "expected_page_retrieved": true,
+      "evidence_retrieved": "all",
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "LU1",
+      "category": "unanswerable",
+      "question": "How many US dollars did it cost to train GPT-3 175B?",
+      "expected_answer": "Not in the documents - the system should abstain. (GPT-3 reports compute, not a dollar cost.)",
+      "expected_sources": [],
+      "notes": "Absence verified: regex 'dollar|USD|$ followed by a digit' over both long PDFs only matches '$12' participant payments (GPT-3 pp. 46, 48) and '$43 billion' inside a generated news sample (p. 53); no training cost in dollars. Tempting distractors: the $12 figures.",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 39,
+          "score": 0.4209,
+          "chunk_id": "97fd272f1fdf-p39-c2",
+          "text": "6.3 Energy Usage\nPractical large-scale pre-training requires large amounts of computation, which is energy-intensive: training the GPT-3\n175B consumed several thousand petaflop/s-days of compute during pre-training, compared to tens of petaflop/s-days\nfor a 1.5B parameter GPT-2 model (Figure 2.2). This means we should be cognizant of the cost and efficiency of such\nmodels, as advocated by [SDSE19].\nThe use of large-scale pre-training also gives another lens through which to view the efficiency of large models - we\nshould consider not only the resources that go into training them, but how these resources are amortized over the\nlifetime of a model, which will subsequently be used for a variety of purposes and fine-tuned for specific tasks. Though\nmodels like GPT-3 consume significant resources during training, they can be surprisingly efficient once trained: even\nwith the full GPT-3 175B, generating 100 pages of content from a trained model can cost on the order of 0.4 kW-hr, or"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 39,
+          "score": 0.249,
+          "chunk_id": "97fd272f1fdf-p39-c3",
+          "text": "with the full GPT-3 175B, generating 100 pages of content from a trained model can cost on the order of 0.4 kW-hr, or\nonly a few cents in energy costs. Additionally, techniques like model distillation [LHCG19a] can further bring down\nthe cost of such models, letting us adopt a paradigm of training single, large-scale models, then creating more efficient\nversions of them for use in appropriate contexts. Algorithmic progress may also naturally further increase the efficiency\nof such models over time, similar to trends observed in image recognition and neural machine translation [HB20].\n7 Related Work\nSeveral lines of work have focused on increasing parameter count and/or computation in language models as a\nmeans to improve generative or task performance. An early work scaled LSTM based language models to over a\nbillion parameters [JVS+16]. One line of work straightforwardly increases the size of transformer models, scaling"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 48,
+          "score": 0.3159,
+          "chunk_id": "97fd272f1fdf-p48-c1",
+          "text": "late 2019 and created a context for GPT-3 175B that consisted of a single Reuters article not in this set of 12. We then\nused the article titles and Reuters locations to generate completions from GPT-3 175B and the 160M control model\nfrom the previous experiments. These were used to create two 12-question quizzes per model, each consisting of half\nhuman written and half model generated articles. Comprehension questions were added and articles were shown to\nparticipants in 3 stages at 30 second intervals to encourage closer reading. Participants were paid $12 for this task.\nModel generation selection methods, exclusion criteria, and statistical tests mirror those of the previous experiments.\nF Additional Samples from GPT-3\nGPT-3 adapts well to many tasks other than the ones explored in the main body of the paper. As an example, in Figure\nF.1, we show four uncurated samples from a prompt suggesting that the model write a poem, with a given title, in the"
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_2005.14165.pdf",
+          "page": 31,
+          "score": 0.2904,
+          "chunk_id": "97fd272f1fdf-p31-c1",
+          "text": "for contamination and memorization. On the other hand, precisely due to the large amount of data, even GPT-3 175B\ndoes not overfit its training set by a significant amount, measured relative to a held-out validation set with which it was\ndeduplicated (Figure 4.1). Thus, we expect that contamination is likely to be frequent, but that its effects may not be as\nlarge as feared.\nWe initially tried to address the issue of contamination by proactively searching for and attempting to remove any overlap\nbetween our training data and the development and test sets of all benchmarks studied in this paper. Unfortunately, a\nbug resulted in only partial removal of all detected overlaps from the training data. Due to the cost of training, it wasn’t\nfeasible to retrain the model. To address this, we investigate in detail how the remaining detected overlap impacts\nresults.\nFor each benchmark, we produce a ‘clean’ version which removes all potentially leaked examples, defined roughly as"
+        }
+      ],
+      "actual_answer": "I could not find enough information in the uploaded documents to answer this question.",
+      "sources": [],
+      "abstained": true,
+      "latency_seconds": 6.02,
+      "error": null,
+      "expected_page_retrieved": null,
+      "evidence_retrieved": null,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "LU2",
+      "category": "unanswerable",
+      "question": "What score does Llama 2 70B achieve on the MMLU-Pro benchmark?",
+      "expected_answer": "Not in the documents - the system should abstain. (MMLU results exist, but MMLU-Pro is never mentioned.)",
+      "expected_sources": [],
+      "notes": "Absence verified: 0 matches for 'MMLU-Pro' (and 0 for 'Llama 3' / 'GPT-5') across both long PDFs. Plain MMLU scores are reported, which tempts misattribution.",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 8,
+          "score": 0.651,
+          "chunk_id": "1df284ce95f7-p8-c2",
+          "text": "in Table 4,Llama 2 70B is close to GPT-3.5 (OpenAI, 2023) on MMLU and GSM8K, but there is a significant\ngap on coding benchmarks.Llama 2 70B results are on par or better than PaLM (540B) (Chowdhery et al.,\n2022) on almost all benchmarks. There is still a large gap in performance betweenLlama 2 70B and GPT-4\nand PaLM-2-L.\nWe also analysed the potential data contamination and share the details in Section A.6.\nBenchmark (shots) GPT-3.5 GPT-4 PaLM PaLM-2-L Llama 2\nMMLU (5-shot) 70.0 86.4 69.3 78.3 68.9\nTriviaQA (1-shot) – – 81.4 86.1 85.0\nNatural Questions (1-shot) – – 29.3 37.5 33.0\nGSM8K (8-shot) 57.1 92.0 56.5 80.7 56.8\nHumanEval (0-shot) 48.1 67.0 26.2 – 29.9\nBIG-Bench Hard (3-shot) – – 52.3 65.7 51.2\nTable 4: Comparison to closed-source modelson academic benchmarks. Results for GPT-3.5 and GPT-4\nare from OpenAI (2023). Results for the PaLM model are from Chowdhery et al. (2022). Results for the\nPaLM-2-L are from Anil et al. (2023).\n3 Fine-tuning"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 8,
+          "score": 0.6304,
+          "chunk_id": "1df284ce95f7-p8-c1",
+          "text": "• Popular Aggregated Benchmarks. We report the overall results for MMLU (5 shot) (Hendrycks\net al., 2020), Big Bench Hard (BBH) (3 shot) (Suzgun et al., 2022), and AGI Eval (3–5 shot) (Zhong\net al., 2023). For AGI Eval, we only evaluate on the English tasks and report the average.\nAs shown in Table 3,Llama 2 models outperformLlama 1 models. In particular,Llama 2 70B improves the\nresultsonMMLUandBBHby ≈5and ≈8points, respectively, comparedtoLlama 1 65B. Llama 2 7Band30B\nmodelsoutperformMPTmodelsofthecorrespondingsizeonallcategoriesbesidescodebenchmarks. Forthe\nFalcon models,Llama 2 7B and 34B outperform Falcon 7B and 40B models on all categories of benchmarks.\nAdditionally,Llama 2 70B model outperforms all open-source models.\nIn addition to open-source models, we also compareLlama 2 70B results to closed-source models. As shown\nin Table 4,Llama 2 70B is close to GPT-3.5 (OpenAI, 2023) on MMLU and GSM8K, but there is a significant"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 19,
+          "score": 0.4644,
+          "chunk_id": "1df284ce95f7-p19-c0",
+          "text": "Figure12: Humanevaluationresults for Llama 2-Chatmodelscomparedtoopen-andclosed-sourcemodels\nacross ~4,000 helpfulness prompts with three raters per prompt.\nThe largestLlama 2-Chat model is competitive with ChatGPT.Llama 2-Chat 70B model has a win rate of\n36% and a tie rate of 31.5% relative to ChatGPT.Llama 2-Chat 70B model outperforms PaLM-bison chat\nmodel by a large percentage on our prompt set. More results and analysis is available in Section A.3.7.\nInter-Rater Reliability (IRR). In our human evaluations, three different annotators provided independent\nassessments for each model generation comparison. High IRR scores (closer to 1.0) are typically seen as\nbetter from a data quality perspective, however, context is important. Highly subjective tasks like evaluating\nthe overall helpfulness of LLM generations will usually have lower IRR scores than more objective labelling\ntasks. There are relatively few public benchmarks for these contexts, so we feel sharing our analysis here will"
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 70,
+          "score": 0.5098,
+          "chunk_id": "1df284ce95f7-p70-c2",
+          "text": "Llama 2-Chat\n7B 57.04 60.59 96.45\n13B 62.18 65.73 96.45\n34B 67.2 70.01 97.06\n70B 64.14 67.07 97.06\nTable 44: Evaluation results on TruthfulQA across different model generations.\nLimitations of Benchmarks. It is important to note that these evaluations using automatic metrics are by\nno means fully comprehensive, due to the complex nature of toxicity and bias in LLMs, but the benchmarks\nwe selected are representative of our understanding thatLlama 2-Chat improves on critical aspects of LLM\nsafety. Benchmark evaluation is important for assessing AI models, including chat-oriented LLMs, because\nbenchmarks provide a standardized and measurable way to compare different models and track progress in\nthe field.\nHowever, it’s crucial to be aware of the benchmarks’ limitations in evaluating safety. Most of them were\ninitially developed for pretrained LLMs, and there are certain limitations to consider when using them to"
+        }
+      ],
+      "actual_answer": "I could not find enough information in the uploaded documents to answer this question.",
+      "sources": [],
+      "abstained": true,
+      "latency_seconds": 7.81,
+      "error": null,
+      "expected_page_retrieved": null,
+      "evidence_retrieved": null,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "LA1",
+      "category": "adversarial",
+      "question": "Why did Meta pretrain Llama 2 on data from its own products such as Facebook and Instagram?",
+      "expected_answer": "False premise: the pretraining corpus is a new mix of publicly available data that does not include data from Meta's products or services. The system should correct the premise (or abstain), not invent a rationale.",
+      "expected_sources": [
+        {
+          "source": "arxiv_2307.09288.pdf",
+          "pages": [
+            5
+          ]
+        }
+      ],
+      "notes": "Evidence: 'Our training corpus includes a new mix of data from publicly available sources, which does not include data from Meta's products or services.' (p. 5)",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 77,
+          "score": 0.5968,
+          "chunk_id": "1df284ce95f7-p77-c3",
+          "text": "wellasoveronemillionnewhuman-annotatedexamples. Neitherthepretraining\nnor the fine-tuning datasets include Meta user data.\nData Freshness The pretraining data has a cutoff of September 2022, but some tuning data is\nmore recent, up to July 2023.\nEvaluation Results\nSee evaluations for pretraining (Section 2); fine-tuning (Section 3); and safety (Section 4).\nEthical Considerations and Limitations(Section 5.2)\nLlama 2 is a new technology that carries risks with use. Testing conducted to date has been in\nEnglish, and has not covered, nor could it cover all scenarios. For these reasons, as with all LLMs,\nLlama 2’s potential outputs cannot be predicted in advance, and the model may in some instances\nproduce inaccurate or objectionable responses to user prompts. Therefore, before deploying any\napplications of Llama 2, developers should perform safety testing and tuning tailored to their\nspecific applications of the model. Please see the Responsible Use Guide available available at"
+        },
+        {
+          "rank": 2,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 34,
+          "score": 0.428,
+          "chunk_id": "1df284ce95f7-p34-c2",
+          "text": "knowledge updates post-pretraining, potential for non-factual generation such as unqualified advice, and a\npropensity towards hallucinations.\nFurthermore, our initial version ofLlama 2-Chat predominantly concentrated on English-language data.\nWhile our experimental observations suggest the model has garnered some proficiency in other languages,\nits proficiency is limited, due primarily to the limited amount of pretraining data available in non-English\nlanguages (as documented in Table 10). Consequently, the model’s performance in languages other than\nEnglish remains fragile and should be used with caution.\nLike other LLMs,Llama 2 may generate harmful, offensive, or biased content due to its training on publicly\navailable online datasets. We attempted to mitigate this via fine-tuning, but some issues may remain,\nparticularly for languages other than English where publicly available datasets were not available. We will"
+        },
+        {
+          "rank": 3,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 77,
+          "score": 0.5537,
+          "chunk_id": "1df284ce95f7-p77-c2",
+          "text": "compliance laws). Use in languages other than English. Use in any other way\nthat is prohibited by the Acceptable Use Policy and Licensing Agreement for\nLlama 2.\nHardware and Software(Section 2.2)\nTraining Factors We used custom training libraries, Meta’s Research Super Cluster, and production clusters for pretraining. Fine-tuning, annotation, and evaluation were also\nperformed on third-party cloud compute.\nCarbon Footprint Pretraining utilized a cumulative 3.3M GPU hours of computation on hardware\nof type A100-80GB (TDP of 350-400W). Estimated total emissions were 539\ntCO2eq, 100% of which were offset by Meta’s sustainability program.\nTraining Data(Sections 2.1 and 3)\nOverview Llama 2 was pretrained on 2 trillion tokens of data from publicly available\nsources. The fine-tuning data includes publicly available instruction datasets, as\nwellasoveronemillionnewhuman-annotatedexamples. Neitherthepretraining\nnor the fine-tuning datasets include Meta user data."
+        },
+        {
+          "rank": 4,
+          "source": "arxiv_2307.09288.pdf",
+          "page": 20,
+          "score": 0.4215,
+          "chunk_id": "1df284ce95f7-p20-c2",
+          "text": "modelsbroadlywillreducetheneedforotherstotrainsimilarmodels. Noadditionalfilteringwasconducted\non the datasets, to allowLlama 2 to be more widely usable across tasks (e.g., it can be better used for hate\nspeechclassification), whileavoidingthepotentialfortheaccidentaldemographicerasuresometimescaused\nby over-scrubbing. Importantly, this allowsLlama 2-Chat to generalize more effectively during safety tuning\nwith fewer examples (Welbl et al., 2021; Korbak et al., 2023; Xu et al., 2021). As a result,Llama 2 models\nshould be used carefully and deployed only after significant safety tuning is applied.\nDemographic Representation: Pronouns. Bias in model generations may result from biases inherited\nfrom the training data itself. For instance, Bailey et al. (2022) shows that in massive text corpora, words\nrepresenting “people” are often used in more similar contexts to words representing“men”than to words"
+        }
+      ],
+      "actual_answer": "I could not find enough information in the uploaded documents to answer this question.",
+      "sources": [],
+      "abstained": true,
+      "latency_seconds": 6.44,
+      "error": null,
+      "expected_page_retrieved": false,
+      "evidence_retrieved": "none",
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    }
+  ]
+}

@@ -18,6 +18,7 @@ from rag.embeddings import EmbeddingInitError, get_embeddings
 from rag.generation import LLMInitError
 from rag.ingest import ingest_file
 from rag.pipeline import RAGPipeline
+from rag.reranker import RerankerInitError
 from rag.vectorstore import VectorStoreManager
 
 try:  # optional helper (not in CONTRACTS.md); degrade gracefully if absent
@@ -27,7 +28,7 @@ except ImportError:  # pragma: no cover
 
 st.set_page_config(page_title="PDF RAG Chatbot", page_icon=":page_facing_up:", layout="wide")
 
-APP_ERRORS = (EmbeddingInitError, LLMInitError, ValueError)
+APP_ERRORS = (EmbeddingInitError, LLMInitError, RerankerInitError, ValueError)
 
 
 # --------------------------------------------------------------------------- #
@@ -105,12 +106,13 @@ with st.sidebar:
     with st.expander("Settings", expanded=False):
         st.markdown("**Retrieval**")
         top_k = st.slider("Top-k retrieved chunks", 1, 10, value=min(max(base_settings.top_k, 1), 10))
-        modes = ["similarity", "mmr"]
+        modes = ["similarity", "mmr", "hybrid"]
         retrieval_mode = st.radio(
             "Search type", modes, index=modes.index(base_settings.retrieval_mode), horizontal=True,
-            format_func=lambda m: {"similarity": "Similarity", "mmr": "MMR (diverse)"}[m],
-            help="Similarity returns the k closest chunks. MMR (Maximal Marginal Relevance) first "
-                 "fetches more candidates, then picks k that are relevant but not near-duplicates.",
+            format_func=lambda m: {"similarity": "Similarity", "mmr": "MMR (diverse)", "hybrid": "Hybrid (keyword + meaning)"}[m],
+            help="Similarity returns the k closest chunks by meaning. MMR (Maximal Marginal Relevance) first "
+                 "fetches more candidates, then picks k that are relevant but not near-duplicates. Hybrid "
+                 "combines a keyword (BM25) ranking with the meaning ranking, so exact terms are not missed.",
         )
         mmr_fetch_k, mmr_lambda = base_settings.mmr_fetch_k, base_settings.mmr_lambda
         if retrieval_mode == "mmr":
@@ -118,6 +120,11 @@ with st.sidebar:
             mmr_lambda = st.slider(
                 "MMR lambda (1 = relevance, 0 = diversity)", 0.0, 1.0, value=float(mmr_lambda), step=0.1
             )
+        rerank = st.checkbox(
+            "Rerank with cross-encoder", value=base_settings.rerank,
+            help=f"Retrieve {base_settings.rerank_candidates} candidates, rescore each against the question with "
+                 f"{base_settings.rerank_model}, keep the best top-k. Slower, usually more accurate.",
+        )
         st.markdown("**LLM**")
         llm_temperature = st.slider(
             "Temperature", 0.0, 1.0, value=min(float(base_settings.llm_temperature), 1.0), step=0.1,
@@ -150,7 +157,7 @@ with st.sidebar:
 try:
     settings = get_settings(
         top_k=int(top_k), chunk_size=int(chunk_size), chunk_overlap=int(chunk_overlap),
-        retrieval_mode=retrieval_mode, mmr_fetch_k=int(mmr_fetch_k), mmr_lambda=float(mmr_lambda),
+        retrieval_mode=retrieval_mode, mmr_fetch_k=int(mmr_fetch_k), mmr_lambda=float(mmr_lambda), rerank=bool(rerank),
         llm_temperature=float(llm_temperature), llm_top_p=float(llm_top_p), llm_num_ctx=int(llm_num_ctx),
     )
 except ValueError as exc:
@@ -163,6 +170,7 @@ with st.sidebar.expander("Effective configuration", expanded=False):
         f"- **Embedding model:** `{settings.embedding_model}`\n"
         f"- **Retrieval:** {settings.retrieval_mode}, top-k {settings.top_k}"
         + (f" (MMR fetch_k {settings.mmr_fetch_k}, lambda {settings.mmr_lambda})" if settings.retrieval_mode == "mmr" else "")
+        + (f", reranked from {settings.rerank_candidates} candidates" if settings.rerank else "")
         + "\n"
         f"- **Min relevance:** {settings.min_relevance}\n"
         f"- **LLM:** {settings.llm_provider} / `{settings.llm_model}` (temperature {settings.llm_temperature}, top-p {settings.llm_top_p}, context {settings.llm_num_ctx} tokens)\n"
@@ -372,7 +380,8 @@ def render_assistant(msg: dict) -> None:
         for i, c in enumerate(chunks, start=1):
             st.markdown(
                 f"**#{i}** - `{c['source']}` page {c['page']} - similarity **{c['score']:.3f}** "
-                f"- chunk_id `{c['chunk_id']}`"
+                + (f"- rerank **{c['rerank']:.2f}** " if c.get("rerank") is not None else "")
+                + f"- chunk_id `{c['chunk_id']}`"
             )
             st.text(c["text"])
             st.divider()
@@ -401,7 +410,8 @@ if question:
     with st.chat_message("user"):
         st.markdown(question)
     with st.chat_message("assistant"):
-        entry: dict = {"role": "assistant", "top_k": settings.top_k, "mode": settings.retrieval_mode}
+        entry: dict = {"role": "assistant", "top_k": settings.top_k,
+                       "mode": settings.retrieval_mode + (" + rerank" if settings.rerank else "")}
         try:
             with st.spinner("Retrieving and generating..."):
                 pipeline = get_pipeline(settings)
@@ -412,7 +422,7 @@ if question:
                 sources=list(resp.sources),
                 chunks=[
                     {"text": c.text, "source": c.source, "page": c.page,
-                     "score": float(c.score), "chunk_id": c.chunk_id}
+                     "score": float(c.score), "chunk_id": c.chunk_id, "rerank": c.rerank_score}
                     for c in resp.chunks
                 ],
             )
