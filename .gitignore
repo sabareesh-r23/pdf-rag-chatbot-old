@@ -9,3 +9,6 @@ chroma_test*/
 
 # Deck build dependencies
 docs/presentation/source/node_modules/
+
+# Office lock files
+~$*
