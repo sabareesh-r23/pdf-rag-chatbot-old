@@ -69,6 +69,8 @@ python3.12 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
+# For the exact tested versions instead: pip install -r requirements-lock.txt
+
 cp .env.example .env    # then edit if needed
 ```
 
@@ -202,6 +204,7 @@ pdf-rag-chatbot/
 ├── SUBMISSION.md             # index of all deliverables
 ├── tests/                    # pytest suite (fixtures generated with reportlab)
 ├── requirements.txt
+├── requirements-lock.txt     # exact tested versions
 ├── pytest.ini
 └── .env.example
 ```

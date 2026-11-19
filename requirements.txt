@@ -6,7 +6,8 @@ langchain-chroma>=0.2
 langchain-huggingface>=0.1
 langchain-ollama>=0.2
 chromadb>=0.5
-sentence-transformers>=3.0
+sentence-transformers>=3.0   # embeddings and the cross-encoder reranker
+numpy>=1.26
 pypdf>=4.0
 # UI + config
 streamlit>=1.38
