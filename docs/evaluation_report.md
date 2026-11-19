@@ -3,23 +3,28 @@
 > **Status: final (2026-11-20).**
 > Every answer, retrieved chunk, latency and page reference quoted here comes from the real run files
 > listed in §3. Each judgement was made by reading the retrieved chunk text against the verified expected
-> answer, then re-checked in a second pass. The three borderline rows (S1 k=4, F3 k=8 MMR, LM2 k=8 MMR)
-> were decided by applying the §1 rubric literally; each decision is explained in its row.
+> answer, then re-checked in a second pass. Borderline rows (S1 k=4, F3 k=8 MMR, LM2 k=8 MMR, LF2 in
+> §8e) were decided by applying the §1 rubric literally; each decision is explained in its row.
+> Sections §4–§8d describe earlier versions and keep their findings as they were at the time; where a
+> later version changed a conclusion, the section says so and points to §8e.
 
 ## Headline: final system (V1.3) vs the starting point
 
 The report follows the project's history: V1/V1.1 baseline (§4–§8), MMR and LLM parameters (V1.2,
 §8b–§8c), a different-domain check (§8d), and the **V1.3 improvements** that came out of those findings
 (§8e). The final configuration is **hybrid BM25 + embedding search, cross-encoder reranking, top-k 4,
-running headers stripped, `llama3.2:3b` at temperature 0**.
+running headers stripped, `llama3.2:3b` at temperature 0** (final runs `results_20261120_010040`,
+`010255`, `010426`).
 
 | 22 answerable questions over 3 corpora | Correct | Partial | Incorrect | Unanswerable correctly declined |
 |---|---|---|---|---|
 | Starting point (similarity search, top-k 4) | 11 | 4 | **7** | 7 / 7 |
 | **Final (V1.3)** | **12** | 8 | **2** | 7 / 7 |
 
-Wrong answers fell from 7 to 2 without losing any correct abstention. The cost is about 1.5 s more per
-answer. Details, the ablation (which change helped), a top-k 6 check and an LLM comparison are in §8e.
+Wrong answers fell from 7 to 2 without losing any correct abstention. The cost is about 1.6 s more per
+answer (6.5 s → 8.1 s on an 8 GB M1). Details, the ablation (which change helped), a top-k 6 check, an LLM
+comparison and three further ideas that were tried and **not** adopted (table extraction, query
+decomposition, a premise check) are in §8e.
 
 ## 1. Methodology
 
@@ -34,7 +39,8 @@ it should.
 2. `python -m evaluation.run_eval` ingests the corpus into a dedicated collection, asks every question
    through the same `RAGPipeline` the UI uses, and stores the retrieved chunks (rank, file, page, score,
    text), the answer, the sources shown, the abstention flag and the latency.
-3. Each question was run at **top-k 4** (the default) and **top-k 8**.
+3. In V1.1 each question was run at **top-k 4** (the default) and **top-k 8**. Later versions add the
+   configurations listed in §3 (MMR, corpus C, and the V1.3 retrieval and LLM comparisons).
 4. Each answer was judged by reading the retrieved chunk text and comparing it with the verified expected
    answer. Semantically equivalent wording counts as correct. Retrieving the right *page* was not taken
    as proof that the right *passage* was retrieved.
@@ -76,6 +82,7 @@ snippet is "28.4 BLEU". The judgements below are therefore based on the chunk te
 |---|---|---|---|---|
 | **A** (`data/sample_pdfs/`) | Attention Is All You Need (1706.03762, 15 pp.), BERT (1810.04805, 16 pp.), Sentence-BERT (1908.10084, 11 pp.), RAG (2005.11401, 19 pp.) | 61 | 286 (V1.1) | 15 (`evaluation/questions.json`): 4 factual, 3 multi-passage, 2 synthesis, 1 partially answerable, 3 unanswerable, 2 false premise |
 | **B** (`data/long_pdfs/`) | GPT-3, *Language Models are Few-Shot Learners* (2005.14165, 75 pp.); Llama 2 (2307.09288, 77 pp.) | 152 | 659 | 9 (`evaluation/questions_long.json`): 3 factual, 2 multi-passage (1 cross-document), 1 synthesis, 2 unanswerable, 1 false premise |
+| **C** (`data/domain_pdfs/`, V1.2) | NIST Cybersecurity Framework 2.0 (NIST CSWP 29, US government, public domain) | 32 | 111 (96 after V1.3 header stripping) | 9 (`evaluation/questions_domain.json`): 2 factual, 2 multi-part, 1 synthesis, 1 partially answerable, 2 unanswerable, 1 false premise |
 
 V1 used the 14 corpus A questions (P1 was added in V1.1). Corpus B was added in V1.1 so that two
 sources longer than 70 pages are included (see §9 on the dataset-size question).
@@ -102,7 +109,9 @@ sources longer than 70 pages are included (see §9 on the dataset-size question)
 | **`results_20261119_235736` / `235955` / `20261120_000130`** | **V1.3 final: hybrid + rerank** | A / B / C | 4 | 15 / 9 / 9 | 8.3 / 8.9 / 7.7 s |
 | `results_20261120_000505` / `000800` / `001024` | V1.3 hybrid + rerank | A / B / C | 6 | 15 / 9 / 9 | 10.6 / 10.7 / 8.6 s |
 | `results_20261120_001401` / `001604` / `001727` | V1.3 final retrieval, **`qwen2.5:3b`** | A / B / C | 4 | 15 / 9 / 9 | 7.3 / 7.7 / 5.9 s |
-| `results_20261120_002226` | V1.3 final retrieval, **`llama3.1:8b`** | C | 4 | 9 | 33.8 s |
+| `results_20261120_002226` | V1.3 final retrieval, **`llama3.1:8b`** | C | 4 | 9 | 33.1 s |
+| `results_20261120_005436` / `005658` / `005831` | V1.3 hybrid + rerank + **query decomposition** (experiment, not adopted) | A / B / C | 4 | 15 / 9 / 9 | 8.6 / 8.8 / 8.1 s |
+| **`results_20261120_010040` / `010255` / `010426`** | **V1.3 final code and default configuration** (answers identical to `235736` / `235955` / `000130`) | A / B / C | 4 | 15 / 9 / 9 | 8.1 / 8.6 / 7.7 s |
 
 The V1.2 runs use MMR retrieval (`--retrieval-mode mmr`, fetch_k 20, lambda 0.5). Everything else is
 unchanged (same prompt, chunking, embeddings, LLM, temperature 0, context window 4096). They are
@@ -248,8 +257,9 @@ for that k, with the same judgement.
   - Ligature normalisation (V1.1) raised the score from 0.473 to 0.481 without changing the rank.
   - Swapping in `BAAI/bge-small-en-v1.5` (same 384 dimensions) moved the chunk from rank 22 to rank 13.
     That is still outside the top 8, and the change lost F2's evidence, so the default model was kept.
-- **Status.** Not fixed. A reranker or hybrid BM25 + dense retrieval is the evidence-based next step
-  (the exact term "Wikipedia" would be matched by BM25). Neither was implemented, per the brief's
+- **Status (V1.1).** Not fixed. A reranker or hybrid BM25 + dense retrieval is the evidence-based next step
+  (the exact term "Wikipedia" would be matched by BM25). **Update V1.3:** both were then implemented
+  (§8e); F3 is now partial (Wikipedia and 21M), the p. 4 passage is still not retrieved. In V1.1 neither was implemented, per the brief's
   "no complex retrieval without evidence" guidance; this evaluation now provides that evidence.
 
 ### 7.2 Incorrect BLEU value 38.1 vs 28.4 (mitigated; verified on a fixed set of phrasings)
@@ -302,7 +312,8 @@ for that k, with the same judgement.
   default. Retrieval quality (reranking) looks more promising than simply raising k. This is based on
   15 + 9 questions and one run per configuration.
 
-This is a retrieval-configuration comparison, **not** an LLM comparison. No second LLM was evaluated.
+This is a retrieval-configuration comparison, **not** an LLM comparison. (An LLM comparison was added in
+V1.3, §8e.)
 
 ## 8b. Similarity vs MMR retrieval (V1.2)
 
@@ -362,12 +373,12 @@ LF2 at k=4 adds an unrequested, muddled remark about WebText2's weight.
 - **Less redundancy reduced one hallucination but added misattributions.** A2's fabricated rationale
   disappeared at k=8, but LF1 (k=4) and LM2 (k=8) built answers from loosely related numbers. More
   diverse context gives a 3B model more unrelated numbers to confuse.
-- **Decision.** **Similarity stays the default** (it is better on corpus A, and the default is what most
+- **Decision (V1.2; superseded by V1.3, §8e, where hybrid + rerank became the default).** **Similarity stays the default** (it is better on corpus A, and the default is what most
   users of a few short PDFs will hit). MMR is available as a setting in the UI and in `RETRIEVAL_MODE`.
   It is the better choice for long reports, where the evidence is spread across many sections. A sweep
   of `MMR_LAMBDA` (for example 0.7) and of smaller chunk overlap with MMR was **not** done and would be
   the next experiment.
-- Same caveats as §8: 10 + 6 answerable questions, one run per setting.
+- Same caveats as §8: 10 + 6 answerable questions in this comparison, one run per setting.
 
 ## 8c. LLM parameters (V1.2)
 
@@ -379,8 +390,9 @@ The generation settings are now explicit and visible in the UI:
 | Temperature | 0.0 | Deterministic, most literal use of the context. Grounded QA needs faithfulness, not variety |
 | Top-p | 0.9 | Ollama's default. With temperature 0 decoding is greedy, so top-p has no effect; it matters only if temperature is raised |
 | Context window (`num_ctx`) | 4096 tokens | Measured: Ollama 0.17.4 cuts prompts to 4096 tokens by default on this machine. The largest prompt in any run (S1, top-k 8) is **2,545 tokens**, so prompt and answer fit and no evaluated run was truncated. Raise it for chunk sizes above 1000 or top-k above 10 |
-| Retrieval top-k | 4 (UI 1–10) | §8 |
-| Retrieval mode | similarity (MMR optional) | §8b |
+| Retrieval top-k (chunks) | 4 (UI 1–10) | §8; top-k 6 re-checked in §8e |
+| Retrieval mode | similarity in V1.2; **hybrid + cross-encoder rerank in V1.3** (MMR and similarity optional) | §8b, §8e |
+| Sampling top-k (LLM) | 40 (Ollama default; `LLM_TOP_K`, added in V1.3) | Like top-p, no effect at temperature 0. Not the same as retrieval top-k |
 | Chunk size / overlap | 1000 / 200 characters | §7.1 sweep |
 
 ## 8d. Different-domain check: a government policy document (corpus C)
@@ -432,7 +444,7 @@ rules as §1.
 - Checks: without the document name ("What are the six Core Functions?") the chunk rises from 55th to
   25th, which is still outside the top 8. So the header explains part of the miss and chunk dilution
   the rest.
-- **Fix (not implemented):** strip repeated running headers and footers during PDF normalisation,
+- **Fix (implemented in V1.3, §8e):** strip repeated running headers and footers during PDF normalisation,
   and/or hybrid BM25 search, which would match the exact words "Core Functions".
 
 ### Observations
@@ -449,7 +461,7 @@ rules as §1.
 4. **Tables remain the weak spot.** D4 (a flattened table) is the only question that produced
    invented facts, at k=8 and with MMR.
 5. **MMR vs similarity is again question-dependent.** MMR fixed D3 and D5 and lost D2. With 6
-   answerable questions this is not evidence that either is better on this document; similarity stays
+   answerable questions this is not evidence that either is better on this document; (V1.2) similarity stays
    the default.
 
 ## 8e. Improving the system (V1.3)
@@ -468,8 +480,10 @@ passage (§7.1) and repeated page headers (§8d). Three changes target exactly t
 
 Before changing the default, the four retrieval options were compared on the evidence check alone: does
 the full verified evidence (all `evidence_snippets`) appear in the top-k chunks? Same 26 questions with
-evidence snippets (answerable and false-premise), header-stripped index. This hint has false negatives
-(§1), but they affect every method equally.
+evidence snippets (answerable and false-premise), header-stripped index, 30 candidates per method.
+This hint has false negatives (§1), but they affect every method equally. Reproduce with
+`python -m evaluation.retrieval_experiment`. (The hybrid LLM runs in Step 2 used a candidate pool of 20,
+where the same check gives 10 / 26 for hybrid at top 4.)
 
 | Retrieval | Full evidence in top 4 | Full evidence in top 8 |
 |---|---|---|
@@ -478,8 +492,9 @@ evidence snippets (answerable and false-premise), header-stripped index. This hi
 | Similarity + rerank | 15 / 26 | 19 / 26 |
 | **Hybrid + rerank** | **16 / 26** | **20 / 26** |
 
-Reranking is the largest single gain; hybrid adds a little on top. Rescued at top 4 include D1 (rank 55 →
-top 4), D4 (Table 1, rank 25 → top 4), F4, M1, LF3 and LS1. Still missed: F3, M2, M3, S1, S2, LF1, LM2, D6.
+Reranking is the largest single gain; hybrid adds a little on top. Newly complete at top 4 include D1
+(via the p. 2 abstract and p. 31 glossary, which also list the six Functions; the p. 8 chunk itself
+still ranks outside the top 4), D4 (Table 1, rank 25 → top 4), F4, M1, LF3 and LS1. Still missed: F3, M2, M3, S1, S2, LF1, LM2, D6.
 
 ### Step 2: full evaluation with the LLM (answerable questions, n = 22)
 
@@ -488,11 +503,12 @@ top 4), D4 (Table 1, rank 25 → top 4), F4, M1, LF3 and LS1. Still missed: F3, 
 | Starting point: similarity (V1.1/V1.2) | 7 / 2 / 1 | 2 / 1 / 3 | 2 / 1 / 3 | **11 / 4 / 7** | 6.5 s |
 | + header stripping (similarity) | 7 / 2 / 1 | 2 / 1 / 3 | 2 / 1 / 3 | 11 / 4 / 7 | 6.6 s |
 | + hybrid search (no rerank) | 7 / 2 / 1 | 3 / 1 / 2 | 1 / 2 / 3 | 11 / 5 / 6 | 6.3 s |
-| **+ rerank = final (hybrid + rerank)** | **6 / 4 / 0** | **3 / 2 / 1** | **3 / 2 / 1** | **12 / 8 / 2** | 8.3 s |
+| **+ rerank = final (hybrid + rerank)** | **6 / 4 / 0** | **3 / 2 / 1** | **3 / 2 / 1** | **12 / 8 / 2** | 8.3 s (final code: 8.1 s) |
 | Hybrid + rerank, top-k 6 | 6 / 4 / 0 | 2 / 4 / 0 | 3 / 2 / 1 | 11 / 10 / 1 | 10.0 s |
 
 Unanswerable questions: 7 / 7 correctly declined in every configuration. Faithful non-abstained
-answers in the final runs: A 8 / 10, B 5 / 5, C 4 / 6 (starting point: 9 / 10, 4 / 4, 2 / 3; more
+answers in the final runs (every answer that is not an abstention, as in §1): A 8 / 11 (F3, S1 and A2's
+garbled parenthetical are unfaithful), B 5 / 5, C 4 / 6 (starting point: 9 / 10, 4 / 4, 2 / 3; more
 answers are now attempted).
 
 **Per-question changes, starting point → final:**
@@ -525,7 +541,15 @@ one, and about 2 s slower. Not better overall, so top-k 4 stays.
 |---|---|---|---|---|---|
 | **`llama3.2:3b` (default)** | 6 / 4 / 0 | 3 / 2 / 1 | 3 / 2 / 1 | 7.7–8.9 s | |
 | `qwen2.5:3b` | 2 / 1 / 7 | 2 / 0 / 4 | 2 / 0 / 4 | 5.9–7.7 s | Declines 15 of 22 answerable questions although it receives the same chunks: the prompt rules (tuned on Llama) make it over-cautious. Correct: F1, P1, LF2 (410B), LM1, D1, D2; partial: S2 |
-| `llama3.1:8b` (corpus C only) | — | — | 4 / 1 / 1 | **33.8 s** | Reads tables and lists better (D4 all four Categories, D5 exact) but misses D3's date and says D6's first step is not stated. On the 8 GB M1 it overflowed GPU memory and ran ~4× slower, so it is not practical as the default on this hardware |
+| `llama3.1:8b` (corpus C only) | — | — | 4 / 1 / 1 | **33.1 s** | Reads tables and lists better (D4 all four Categories, D5 exact) but misses D3's date and says D6's first step is not stated. On the 8 GB M1 it overflowed GPU memory and ran ~4× slower, so it is not practical as the default on this hardware |
+
+### Step 4: ideas tried and not adopted
+
+| Idea | Target | What was tried | Result | Decision |
+|---|---|---|---|---|
+| **Table-aware extraction** | BLEU case, D4, LF1 | `pdfplumber` table detection on all 7 PDFs, both "lines" (ruled tables) and "text" strategies | Only the NIST document has real ruled tables (Table 1 and the Tier table came out clean, row by row). In the 6 arXiv papers the detector returned **figures and diagrams as tables** (e.g. 33-column "tables" of letter fragments from attention visualisations on Transformer p. 13–15) and found none of the target tables with the "lines" strategy. The "text" strategy recovered GPT-3 Table 2.1 with a garbled header but turned ordinary paragraphs into tables elsewhere (NIST p. 20) and missed Transformer Table 2 entirely. Llama 2 alone added 15 s of extraction time | **Not adopted.** It would add junk text to 6 of 7 documents. Reliable table extraction from LaTeX papers needs a layout model (out of scope for a local prototype) |
+| **Query decomposition** for comparisons (`QUERY_DECOMPOSITION`, `decompose_question`) | LM2 | Questions matching compare / versus / difference between are split by the LLM into one search query per subject; each retrieves its own chunks, merged round-robin; the answer is still generated for the original question. Runs `005436` / `005658` / `005831` | LM2 still declined: the Llama 2 sub-query found p. 47 ("from 2048 to 4096 tokens"), but the GPT-3 sub-query again missed the table-heavy n_ctx chunk. D5 (contains "versus") was decomposed into queries about **cerebrospinal fluid** — the 3B model expanded "CSF" wrongly — and its answer happened to become correct by luck. M3 stayed correct | **Implemented as an option, off by default.** It fixed nothing it was aimed at and can generate misleading queries with a 3B model |
+| **Premise check** before answering | A1, LA1, DA1 | Analysed, not built | These three already decline, which the rubric counts as acceptable; A2 is now corrected. A real check needs extra LLM calls on **every** question (about doubling answer time on this laptop), and a cheaper trigger on "why …" questions would also fire on legitimate ones such as S1 | **Not built**; best done with a stronger LLM |
 
 **Conclusion of §8e.** The verified root causes led to targeted fixes that reduced wrong answers from
 7 to 2 of 22, kept every correct abstention, and generalised across all three corpora. The remaining
@@ -535,7 +559,7 @@ LS1); the 8B model fixes some of them but needs more memory than this laptop has
 
 ## 9. Limitations of this evaluation
 
-- Small sample: 10 + 6 answerable questions, one run per configuration. Temperature 0 makes runs largely
+- Small sample: 22 answerable questions over three corpora (10 + 6 + 6), one run per configuration. Temperature 0 makes runs largely
   repeatable, but small prompt changes did alter individual answers (see `results/superseded/`).
 - A single evaluator made all judgements (re-checked in a second pass); there is no inter-rater agreement measure.
 - Corpora A and B are machine-learning papers. One different-domain document (corpus C, NIST CSF 2.0,
@@ -543,15 +567,15 @@ LS1); the 8B model fixes some of them but needs more memory than this laptop has
   reports, non-English text) was not tested.
 - Expected answers for multi-part questions involve judgement about which details are "required".
   The borderline cases are decided by the §1 rubric, with the decision stated in the row.
-- **Dataset size requirement.** The brief says about 50–200 pages without stating whether that applies
-  per document or per collection. Corpus A is 61 pages (documents of 11–19 pp.). Corpus B is 152 pages
-  (75 + 77 pp.). **To confirm with the professor.**
+- **Dataset size.** The brief says about 50–200 pages. Corpus A is 61 pages (documents of 11–19 pp.),
+  corpus B 152 pages (75 + 77 pp.), corpus C 32 pages.
 
 ## 10. Conclusions
 
-1. **Abstention on unanswerable questions is reliable in these tests.** All 5 unanswerable questions
-   abstained at both k values in V1.1 (10 of 10 responses), without using tempting near-miss context.
-2. **Retrieval is the dominant failure source.** Of the incorrect or partial answers in the final runs,
+1. **Abstention on unanswerable questions is reliable in these tests.** All 7 unanswerable questions
+   (A, B and C) were declined in every configuration tested, including with the other two LLMs, without
+   using tempting near-miss context.
+2. **Retrieval was the dominant failure source (V1.1–V1.2).** Of the incorrect or partial answers in the V1.1 runs,
    F3, LF1 (k=4), LF3 (k=4), LM2, LS1 (k=4) and M2's missing details trace to evidence that was not
    retrieved. Cross-document comparisons (LM2) and passages whose wording differs from the question (F3)
    are the weak spots. More of these misses occur on the long documents.
@@ -560,8 +584,9 @@ LS1); the 8B model fixes some of them but needs more memory than this laptop has
    - one misattributed fact (LF1 at k=8)
    - self-contradictory trailing fallbacks (M2 at k=8, F3 at k=8)
    - one over-cautious abstention (LF3 at k=8)
-4. **False premises remain the main hallucination risk.** The system never corrected a premise. It
-   abstained in 5 of 6 false-premise responses and fabricated once (A2, k=8).
+4. **False premises were the main hallucination risk.** Up to V1.2 the system never corrected a premise:
+   it abstained in 5 of 6 V1.1 false-premise responses and fabricated once (A2, k=8). In V1.3 A2 is
+   corrected (it states that MEAN is the default) and the other three still decline.
 5. **Targeted fixes worked (§8e).** Header stripping, hybrid search and cross-encoder reranking cut
    wrong answers from 7 to 2 of 22 across all three corpora, with every unanswerable question still
    declined. The reranker contributed most. The remaining errors are mainly the 3B model misreading
@@ -572,7 +597,8 @@ LS1); the 8B model fixes some of them but needs more memory than this laptop has
    invented facts.
 7. **MMR (V1.2) is corpus-dependent.** It helped on the long documents (no incorrect answers at k=8,
    LF3 fixed at both k) and removed the A2 hallucination, but hurt on the short papers (M3, F4) by
-   dropping neighbouring chunks. Similarity stays the default (§8b).
+   dropping neighbouring chunks. It remains an option; with reranking on, the reranker only reorders
+   MMR's selection (§8e).
 8. **V1.1 fixes:**
    - **Measured on these questions:** A2 at k=4 (fabrication → abstention), S1 at k=4 (partial →
      correct), citations limited to cited pages, P1 partial-answer behaviour.
@@ -585,27 +611,32 @@ LS1); the 8B model fixes some of them but needs more memory than this laptop has
 | Wording-mismatch retrieval misses | F3, LF3, D1, D4 | **Addressed in V1.3**: hybrid BM25 + embeddings and cross-encoder reranking (§8e). D1, D3, LF3 now correct; D4 and F3 partial. F3's p. 4 passage is still not retrieved |
 | Repeated page headers dominate retrieval | D1 (§8d) | **Addressed in V1.3**: running headers/footers stripped during loading |
 | Reading errors on retrieved text (wrong list item, wrong step, contradictory trailing fallback) | D5, D6, S1, LF1, LS1 | Remaining. `llama3.1:8b` fixes some but exceeds this laptop's GPU memory (§8e); use a 16 GB+ machine or the OpenAI-compatible setting |
-| Cross-document comparisons | LM2 | Remaining. Query decomposition (one sub-query per document) |
-| Table numbers and rows | BLEU case, D4 (3 of 4 rows), LF1 (layers) | Remaining. Table-aware extraction |
+| Cross-document comparisons | LM2 | Remaining. Query decomposition was tried (§8e Step 4): it found the Llama 2 side but not GPT-3's; kept as an option, off by default |
+| Table numbers and rows | BLEU case, D4 (3 of 4 rows), LF1 (layers) | Remaining. `pdfplumber` table extraction was tried (§8e Step 4) and returned figures as tables in the arXiv papers; needs a layout-aware extractor |
 | MMR drops neighbouring chunks that continue a passage | M3, F4 (§8b) | Not needed for the default (MMR is optional); merge adjacent chunks if MMR is used |
-| False premises are declined rather than corrected | A1, LA1, DA1 | Partly: A2 is now corrected (§8e). A premise-check step or a stronger LLM would go further |
+| False premises are declined rather than corrected | A1, LA1, DA1 | Partly: A2 is now corrected (§8e). A premise check was analysed and not built (cost on every question; §8e Step 4) |
 
 ## 12. How to reproduce
 
 ```bash
 .venv/bin/pytest -q
+# Final configuration (the defaults: hybrid + rerank, top-k 4). --reindex rebuilds the evaluation index.
 .venv/bin/python -m evaluation.run_eval --questions evaluation/questions.json --top-k 4 --reindex
-.venv/bin/python -m evaluation.run_eval --questions evaluation/questions.json --top-k 8
 .venv/bin/python -m evaluation.run_eval --questions evaluation/questions_long.json --pdf-dir data/long_pdfs --top-k 4 --reindex
-.venv/bin/python -m evaluation.run_eval --questions evaluation/questions_long.json --pdf-dir data/long_pdfs --top-k 8
-# V1.3 final configuration (hybrid + rerank, top-k 4) is the default; on a fresh clone run with --reindex first
-.venv/bin/python -m evaluation.run_eval --questions evaluation/questions.json --top-k 4 --reindex
-.venv/bin/python -m evaluation.run_eval --questions evaluation/questions.json --retrieval-mode similarity --no-rerank   # the starting point
-# Corpus C (different domain): NIST CSF 2.0
-.venv/bin/python -m evaluation.run_eval --questions evaluation/questions_domain.json --pdf-dir data/domain_pdfs --top-k 4
-# V1.2: MMR retrieval (repeat with --top-k 8, and with the long corpus)
-.venv/bin/python -m evaluation.run_eval --questions evaluation/questions.json --top-k 4 --retrieval-mode mmr
+.venv/bin/python -m evaluation.run_eval --questions evaluation/questions_domain.json --pdf-dir data/domain_pdfs --top-k 4 --reindex
+# Retrieval-only experiment (§8e Step 1)
+.venv/bin/python -m evaluation.retrieval_experiment
+# Earlier configurations
+.venv/bin/python -m evaluation.run_eval --questions evaluation/questions.json --top-k 4 --retrieval-mode similarity --no-rerank   # V1.1/V1.2 retrieval
+.venv/bin/python -m evaluation.run_eval --questions evaluation/questions.json --top-k 8 --retrieval-mode similarity --no-rerank
+.venv/bin/python -m evaluation.run_eval --questions evaluation/questions.json --top-k 4 --retrieval-mode mmr --no-rerank          # §8b
+.venv/bin/python -m evaluation.run_eval --questions evaluation/questions.json --top-k 4 --retrieval-mode hybrid --no-rerank       # §8e ablation
+.venv/bin/python -m evaluation.run_eval --questions evaluation/questions.json --top-k 4 --decompose                               # §8e Step 4
+.venv/bin/python -m evaluation.run_eval --questions evaluation/questions.json --top-k 4 --llm-model qwen2.5:3b                     # needs `ollama pull qwen2.5:3b`
 ```
+
+Note: V1.1/V1.2 runs were made before header stripping existed, so re-running them now uses the
+header-stripped text (for corpora A and B this only removes page numbers).
 
 New runs write new timestamped files. With temperature 0, individual answers are usually but not always
 identical to those quoted here.

@@ -153,6 +153,34 @@ def build_messages(question: str, chunks: list["RetrievedChunk"]) -> list:
     return [SystemMessage(content=SYSTEM_PROMPT), HumanMessage(content=human)]
 
 
+DECOMPOSE_PROMPT = (
+    "Split the user's question into 2 or 3 short, self-contained search queries, one per line, "
+    "one for each thing being compared. Name the subject explicitly in every query. "
+    "Output only the queries, no numbering, no explanations."
+)
+
+
+def decompose_question(llm, question: str, max_parts: int = 3) -> list[str]:
+    """Ask the LLM to split a comparison question into self-contained search queries.
+
+    Used only for retrieval: each sub-query fetches its own evidence (for example one per
+    document being compared), while the answer is still generated for the original
+    question. Returns [] if the model output is unusable, so the caller falls back to
+    normal retrieval.
+    """
+    try:
+        result = llm.invoke([SystemMessage(content=DECOMPOSE_PROMPT), HumanMessage(content=question.strip())])
+    except Exception:  # decomposition is an optimisation; never fail the question because of it
+        return []
+    text = str(getattr(result, "content", result))
+    parts: list[str] = []
+    for line in text.splitlines():
+        line = line.strip().lstrip("-•*0123456789.) \t").strip()
+        if len(line) >= 8 and line.lower() not in {p.lower() for p in parts}:
+            parts.append(line)
+    return parts[:max_parts] if len(parts) >= 2 else []
+
+
 def generate_answer(llm, question: str, chunks: list["RetrievedChunk"]) -> str:
     """Generate a grounded answer; returns FALLBACK_ANSWER without calling the LLM if no chunks."""
     if not chunks:

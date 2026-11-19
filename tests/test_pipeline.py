@@ -203,3 +203,49 @@ def test_pipeline_passes_retrieval_mode_settings(stub_retrieve):
     resp = RAGPipeline(settings, store=None, llm=FakeListChatModel(responses=["Fact [1]."])).ask("Q?")
     assert stub_retrieve["opts"] == ("mmr", 12, 0.3)
     assert resp.config["retrieval_mode"] == "mmr"
+
+
+# --- query decomposition (V1.3) --------------------------------------------------------
+
+@pytest.mark.parametrize(
+    "question, expected",
+    [
+        ("Compare the context window length of GPT-3 with that of Llama 2.", True),
+        ("What is the difference between RAG-Sequence and RAG-Token?", True),
+        ("GPT-3 versus Llama 2: which has the longer context?", True),
+        ("Why are raw BERT outputs poor compared with cosine similarity?", False),  # 'compared' explains, not a comparison task
+        ("How many layers does the encoder have?", False),
+    ],
+)
+def test_is_comparison(question, expected):
+    from rag.pipeline import is_comparison
+
+    assert is_comparison(question) is expected
+
+
+def test_merge_round_robin_interleaves_and_dedupes():
+    from rag.pipeline import merge_round_robin
+
+    a = [chunk("a.pdf", 1, text="a1"), chunk("a.pdf", 2, text="a2")]
+    b = [chunk("b.pdf", 1, text="b1"), a[0], chunk("b.pdf", 3, text="b3")]
+    merged = merge_round_robin([a, b], k=4)
+    assert [c.chunk_id for c in merged] == [a[0].chunk_id, b[0].chunk_id, a[1].chunk_id, b[2].chunk_id]
+
+
+def test_decompose_question_parses_lines_and_falls_back():
+    from rag.generation import decompose_question
+
+    llm = FakeListChatModel(responses=["1. Context window of GPT-3\n- Context window of Llama 2\n\n"])
+    assert decompose_question(llm, "Compare X and Y") == ["Context window of GPT-3", "Context window of Llama 2"]
+    assert decompose_question(FakeListChatModel(responses=["just one line"]), "Compare X and Y") == []
+
+
+def test_pipeline_uses_sub_queries_for_comparisons(stub_retrieve):
+    stub_retrieve["chunks"] = [chunk("a.pdf", 1), chunk("b.pdf", 2)]
+    llm = FakeListChatModel(responses=["Context window of GPT-3\nContext window of Llama 2", "Answer [1]."])
+    settings = get_settings(query_decomposition=True)
+    resp = RAGPipeline(settings, store=None, llm=llm).ask("Compare the context window of GPT-3 with Llama 2.")
+    assert resp.sub_queries == ["Context window of GPT-3", "Context window of Llama 2"]
+    assert [c["question"] for c in stub_retrieve["calls"]] == resp.sub_queries
+    off = RAGPipeline(get_settings(query_decomposition=False), store=None, llm=FakeListChatModel(responses=["A [1]."]))
+    assert off.ask("Compare X with Y.").sub_queries == []

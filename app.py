@@ -125,6 +125,11 @@ with st.sidebar:
             help=f"Retrieve {base_settings.rerank_candidates} candidates, rescore each against the question with "
                  f"{base_settings.rerank_model}, keep the best top-k. Slower, usually more accurate.",
         )
+        query_decomposition = st.checkbox(
+            "Split comparison questions", value=base_settings.query_decomposition,
+            help="For questions like 'compare X with Y', the LLM first writes one search query per subject, "
+                 "so each side retrieves its own evidence. Adds one LLM call to comparison questions only.",
+        )
         st.markdown("**LLM**")
         llm_temperature = st.slider(
             "Temperature", 0.0, 1.0, value=min(float(base_settings.llm_temperature), 1.0), step=0.1,
@@ -162,7 +167,7 @@ with st.sidebar:
 try:
     settings = get_settings(
         top_k=int(top_k), chunk_size=int(chunk_size), chunk_overlap=int(chunk_overlap),
-        retrieval_mode=retrieval_mode, mmr_fetch_k=int(mmr_fetch_k), mmr_lambda=float(mmr_lambda), rerank=bool(rerank),
+        retrieval_mode=retrieval_mode, mmr_fetch_k=int(mmr_fetch_k), mmr_lambda=float(mmr_lambda), rerank=bool(rerank), query_decomposition=bool(query_decomposition),
         llm_temperature=float(llm_temperature), llm_top_p=float(llm_top_p), llm_top_k=int(llm_top_k), llm_num_ctx=int(llm_num_ctx),
     )
 except ValueError as exc:
@@ -389,6 +394,8 @@ def render_assistant(msg: dict) -> None:
         src = "; ".join(f"{s['source']} (p. {s['page']})" for s in msg["sources"])
         st.caption(f"**Sources:** {src}")
     chunks = msg.get("chunks", [])
+    if msg.get("sub_queries"):
+        st.caption("**Searched as:** " + " · ".join(msg["sub_queries"]))
     with st.expander(f"Retrieved evidence ({len(chunks)} chunks, top-k={msg.get('top_k')}, {msg.get('mode', 'similarity')})"):
         if not chunks:
             st.write("No chunks retrieved.")
@@ -440,6 +447,7 @@ if question:
                      "score": float(c.score), "chunk_id": c.chunk_id, "rerank": c.rerank_score}
                     for c in resp.chunks
                 ],
+                sub_queries=list(resp.sub_queries),
             )
         except APP_ERRORS as exc:
             entry["error"] = f"{type(exc).__name__}: {exc}"

@@ -51,7 +51,8 @@ design rationale and limitations.
     ollama pull llama3.2:3b # ~2 GB; fits an 8 GB Apple-Silicon Mac
     ```
   - **OpenAI-compatible API:** an API key (and optionally a base URL for a compatible server).
-- ~1 GB free disk for dependencies and the embedding model (downloaded automatically on first use).
+- ~3 GB free disk for dependencies (PyTorch is the largest) plus ~200 MB for the embedding and reranker
+  models (downloaded automatically on first use).
 
 ## Setup
 
@@ -178,7 +179,9 @@ pdf-rag-chatbot/
 ├── evaluation/
 │   ├── questions.json        # 15 verified questions (corpus A)
 │   ├── questions_long.json   # 9 verified questions (corpus B, long documents)
+│   ├── questions_domain.json # 9 verified questions (corpus C, NIST CSF 2.0)
 │   ├── run_eval.py           # batch evaluation CLI
+│   ├── retrieval_experiment.py  # retrieval-only comparison (report §8e)
 │   └── results/              # final run files (+ superseded/ intermediate runs)
 ├── data/
 │   ├── sample_pdfs/          # corpus A: 4 public arXiv papers, 61 pages
@@ -191,9 +194,12 @@ pdf-rag-chatbot/
 │   ├── requirements_matrix.md
 │   ├── evaluation_template.md  # blank template (superseded by evaluation_report.md)
 │   ├── demo_walkthrough.md
+│   ├── demo_voiceover.md     # timed narration script for the demo video
 │   ├── submission_checklist.md
 │   ├── audit_report.md       # independent audit of V1
 │   └── presentation/         # RAG_PDF_Chatbot_Capstone.pptx + source/
+├── submission/               # demo video (RAG_PDF_Chatbot_Demo.mp4)
+├── SUBMISSION.md             # index of all deliverables
 ├── tests/                    # pytest suite (fixtures generated with reportlab)
 ├── requirements.txt
 ├── pytest.ini
@@ -217,19 +223,27 @@ pdf-rag-chatbot/
 
 ## Data
 
-`data/sample_pdfs/` contains four public arXiv papers used as the evaluation dataset:
-Attention Is All You Need (1706.03762), BERT (1810.04805), Sentence-BERT (1908.10084) and
-Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks (2005.11401).
+Three document sets are used for the demo and the evaluation (`data/download_datasets.sh` re-downloads them):
+
+- `data/sample_pdfs/` (corpus A, 61 pages): four public arXiv papers: Attention Is All You Need
+  (1706.03762), BERT (1810.04805), Sentence-BERT (1908.10084) and Retrieval-Augmented Generation for
+  Knowledge-Intensive NLP Tasks (2005.11401).
+- `data/long_pdfs/` (corpus B, 152 pages): GPT-3 (2005.14165, 75 pp.) and Llama 2 (2307.09288, 77 pp.).
+- `data/domain_pdfs/` (corpus C, 32 pages): NIST Cybersecurity Framework 2.0 (US government work, public
+  domain), a different-domain check.
 
 ## Limitations
 
 - No OCR: scanned/image-only PDFs are rejected; image-only pages are skipped.
-- Tables, figures and equations are extracted as flat (sometimes garbled) text; multi-column layouts may interleave.
+- Tables, figures and equations are extracted as flat (sometimes garbled) text; multi-column layouts may
+  interleave. A table extractor (`pdfplumber`) was tried and rejected: it returned figures as tables in the
+  arXiv papers (evaluation report §8e).
 - Chunks never span pages, so sentences across a page break are split.
-- A 3B local model can miss multi-part answers or occasionally ignore grounding instructions. In the
-  evaluation it never corrected a false premise and once fabricated a rationale (see the evaluation report).
-- Dense retrieval only (no keyword/BM25 hybrid or re-ranker): passages worded differently from the
-  question can be missed (evaluation question F3).
+- A 3B local model sometimes misreads correctly retrieved text (a wrong list item or step, a contradictory
+  trailing fallback). This is now the main error source; `llama3.1:8b` reads better but did not fit an
+  8 GB M1's GPU memory (evaluation report §8e).
+- Some passages are still missed even with hybrid search and reranking (F3's p. 4 passage; the GPT-3 side
+  of the cross-document question LM2).
 - Some PDFs extract with words glued together (e.g. parts of the Llama 2 paper), which normalisation
   cannot repair.
 - Single-user, local application (one shared index, no authentication).
@@ -240,10 +254,11 @@ Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks (2005.11401).
 |---|---|
 | Sidebar says Ollama is not running / connection refused | Start it: `ollama serve` (or open the Ollama app). Check `OLLAMA_BASE_URL`. |
 | "Model ... is not pulled" | `ollama pull llama3.2:3b` (or the model in `LLM_MODEL`); verify with `ollama list`. |
-| First start is slow / embedding model download error | The embedding model (~90 MB) is downloaded from Hugging Face on first use and cached in `~/.cache/huggingface`. Ensure internet access for the first run and enough disk space. |
+| First start is slow / model download error | The embedding model and the reranker (~90 MB each) are downloaded from Hugging Face on first use and cached in `~/.cache/huggingface`. Ensure internet access for the first run and enough disk space. The app loads the reranker at start-up ("Loading reranker model..."). |
+| Reranker cannot be loaded (offline) | Untick **Rerank with cross-encoder** in Settings, or set `RERANK=false`. |
 | "probably a scanned or image-only PDF" error | The PDF has no text layer. OCR is out of scope; run it through an OCR tool (e.g. `ocrmypdf`) first. |
 | "password-protected/encrypted" error | Upload an unencrypted copy. |
-| Answers are slow or the Mac swaps | Close other apps; keep top-k small; use a smaller model or an API provider. |
+| Answers are slow or the Mac swaps | Close other apps; keep top-k small; untick reranking (saves ~2 s per answer); use a smaller model or an API provider. |
 | Answers ignore a document | Make sure it is ticked in **Active corpus**. |
 | `OPENAI_API_KEY is not set` | Set it in `.env` when `LLM_PROVIDER=openai`, or switch back to `ollama`. |
 | Changed `CHUNK_SIZE` but nothing changed | Chunking applies at indexing time — use **Re-index with current settings** or clear the corpus and re-upload. |

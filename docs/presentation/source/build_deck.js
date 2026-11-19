@@ -131,8 +131,8 @@ const stack = [
   ["Streamlit", "UI", "Chat, upload and evidence panel in pure Python; quick to build"],
   ["LangChain", "Orchestration", "Standard loaders, splitter and vector-store interfaces"],
   ["PyPDFLoader", "Extraction", "Text per page with page numbers; no system dependencies"],
-  ["all-MiniLM-L6-v2", "Embeddings", "Local, 384-dim, ~90 MB, strong for its size, no API key"],
-  ["Chroma", "Vector DB", "Embedded and persistent, metadata filters, no server"],
+  ["MiniLM + cross-encoder", "Embeddings + reranker", "all-MiniLM-L6-v2 (384-dim) for search; ms-marco cross-encoder reranks the top 30"],
+  ["Chroma + BM25", "Vector DB + keywords", "Persistent vector store with metadata filters; BM25 keyword ranking fused in"],
   ["Llama 3.2 3B · Ollama", "LLM", "Free, private, fits an 8 GB laptop; swappable via config"],
 ];
 stack.forEach(([name, role, why], i) => {
@@ -143,7 +143,7 @@ stack.forEach(([name, role, why], i) => {
   textBox(s, name, { x: x + 0.2, y: y + 0.42, w: 2.45, h: 0.35, fontSize: 16, bold: true, fontFace: THEME.headFontFace });
   textBox(s, why, { x: x + 0.2, y: y + 0.82, w: 2.45, h: 0.75, fontSize: 12, color: C.text2 });
 });
-s.addNotes("Justify each choice: everything except the optional API LLM runs locally on the student's 8 GB M1 laptop. The LLM provider can be switched to any OpenAI-compatible API by setting LLM_PROVIDER=openai, with no code change.");
+s.addNotes("Justify each choice. Retrieval combines BM25 keyword ranking with embedding search (Reciprocal Rank Fusion), then a small cross-encoder reranks the top 30. Everything except the optional API LLM runs locally on the student's 8 GB M1 laptop. The LLM provider can be switched to any OpenAI-compatible API by setting LLM_PROVIDER=openai, with no code change.");
 
 // ---------------------------------------------------------------- 5. Ingestion
 pres.addSection({ title: "Implementation" });
@@ -240,7 +240,7 @@ textBox(s, "Question types", { x: 0.5, y: 3.0, w: 4, h: 0.3, fontSize: 15, bold:
 textBox(s, "Factual · multi-passage · synthesis · partially answerable · unanswerable · false premise", { x: 0.5, y: 3.32, w: 9, h: 0.3, fontSize: 13, color: C.text2 });
 textBox(s, "For every answer", { x: 0.5, y: 3.8, w: 4, h: 0.3, fontSize: 15, bold: true });
 textBox(s, "Was the evidence retrieved? Is the answer correct, relevant and supported? Correct abstention? Failure class: retrieval · context · generation · abstention", { x: 0.5, y: 4.12, w: 9, h: 0.6, fontSize: 13, color: C.text2 });
-s.addNotes("Expected answers were verified against the PDF text with a verbatim quote and page number. Corpora A and B were run at top-k 4 and 8 with similarity and MMR; corpus C (a different-domain check) at top-k 4 and 8 and with MMR. Each answer was judged by reading the retrieved chunks against the expected answer; see docs/evaluation_report.md.");
+s.addNotes("Expected answers were verified against the PDF text with a verbatim quote and page number. Corpora A and B were first run at top-k 4 and 8 with similarity and MMR; corpus C (a different-domain check) at top-k 4 and 8 and with MMR. All three were then run with the V1.3 options (header stripping, hybrid, reranking, top-k 6) and with two other LLMs. Each answer was judged by reading the retrieved chunks against the expected answer; see docs/evaluation_report.md.");
 
 // ---------------------------------------------------------------- 10. Retrieval results (chart)
 s = pres.addSlide({ masterName: "CONTENT", sectionTitle: "Evaluation" });

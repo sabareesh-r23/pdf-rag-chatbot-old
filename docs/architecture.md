@@ -169,8 +169,12 @@ configuration that produced them.
 - **Small LLM quality.** A 3B model can miss facts spread over several chunks, paraphrase imprecisely,
   ignore citation instructions, or answer from prior knowledge despite the prompt. Use a larger model
   via `LLM_MODEL` / `LLM_PROVIDER=openai` when quality matters.
-- **Pure dense retrieval.** No keyword/BM25 hybrid or re-ranker; exact identifiers, numbers and rare
-  terms can be missed by the embedding model.
+- **Retrieval still misses some passages.** Hybrid BM25 + embeddings with cross-encoder reranking (V1.3)
+  fixed most misses, but a passage worded very differently from the question can still rank outside
+  the 30 candidates (F3), and comparison questions can retrieve only one side (LM2). BM25 is computed
+  in memory over the selected chunks, fine for a few thousand chunks, not for very large collections.
+- **Optional query decomposition is off by default.** With a 3B model it sometimes writes misleading
+  sub-queries (it expanded "CSF" as cerebrospinal fluid); see evaluation report §8e.
 - **Single user, local.** One shared Chroma collection, no authentication, no concurrent-write
   handling; intended for local, single-user use.
 - **English-centric** embedding model.

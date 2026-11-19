@@ -1,92 +1,86 @@
 # Voice-over script for `submission/RAG_PDF_Chatbot_Demo.mp4`
 
-The video is 4:56. Timestamps match the on-screen captions to within a few seconds. Each block is sized
-for a calm pace (about 140 words per minute). If you fall behind, skip the sentences in *(brackets)*.
+The video is 4:47. Timestamps match the on-screen captions to within a few seconds (checked against
+frames taken every 4 s). Each block is sized for a calm pace (about 140 words per minute). If you fall
+behind, skip the sentences in *(brackets)*.
 
 **How to record it (Mac):** open iMovie → new project → drag in the MP4 → move the playhead to 0:00 →
 Window → Record Voiceover → click the red button and read while the video plays → File → Share → File.
 Alternatively, play the video full screen and record the screen with QuickTime (File → New Screen
-Recording, Options → Microphone).
+Recording, Options → Microphone). Save the result over `submission/RAG_PDF_Chatbot_Demo.mp4`.
 
 ---
 
-### 0:00 – 0:20 · Title
+### 0:00 – 0:16 · Title
 Hello, this is my capstone project: an AI-powered PDF chatbot built with Retrieval-Augmented Generation.
-The problem it solves is simple. General chatbots answer from general knowledge and can invent facts.
-This chatbot answers only from the PDFs you upload, and it cites the file and page for every fact, so you
-can check every answer.
+General chatbots answer from general knowledge and can invent facts. This one answers only from the PDFs
+you upload, and cites the file and page for every fact, so every answer can be checked.
 
-### 0:20 – 0:28 · Tools
-Everything runs locally on my laptop: Streamlit for the interface, PyPDF for text extraction, MiniLM
-embeddings, a Chroma vector database, and Llama 3.2 3B through Ollama.
+### 0:16 – 0:28 · Tools
+Everything runs locally on my laptop: Streamlit for the interface, PyPDF to read the PDFs, MiniLM
+embeddings and a Chroma vector database, keyword search plus a reranker, and Llama 3.2 3B through
+Ollama.
 
 ### 0:28 – 0:44 · Upload and index
-First, I upload four research papers, about sixty pages in total: the Transformer, BERT, Sentence-BERT
-and RAG papers. When I click Index, each file is validated, the text is extracted page by page and
-cleaned, split into chunks of a thousand characters with two hundred characters of overlap, embedded,
-and stored in Chroma together with its file name and page number.
+I upload four research papers, about sixty pages: the Transformer, BERT, Sentence-BERT and RAG papers.
+When I click Index, each file is validated, read page by page, cleaned, including removing repeated
+page headers, split into chunks of a thousand characters, embedded, and stored with its file name and
+page number.
 
 ### 0:44 – 0:56 · Indexing report and active corpus
-The indexing report shows the pages and chunks for each file, 286 chunks in total. Below it is the
-active corpus: only the files that are ticked here are searched when answering.
+The report shows the pages and chunks per file. Below it is the active corpus: only the files that are
+ticked are searched.
 
 ### 0:56 – 1:32 · Factual question and evidence
-Now a factual question: how many layers are in the Transformer's encoder, and what is the model
-dimension? The question is embedded with the same model, and the four most similar chunks are
-retrieved and passed to the LLM with strict rules: answer only from these passages and cite them.
-The answer is six layers and a model dimension of 512, with citations one and two, and the Sources line
-points to page 3 of the Transformer paper.
-I'll open Retrieved evidence. Here are the exact chunks the model saw, with page numbers and similarity
-scores. The top chunk, from page 3, contains both facts. *(This is what makes the answers checkable:
-nothing is hidden.)*
+A factual question: how many layers does the Transformer's encoder have, and what is the model
+dimension? The system searches in two ways at once, by keywords and by meaning, takes the thirty best
+candidates, and a reranker model reads each one together with the question and keeps the best four.
+The answer: six layers and a model dimension of 512, with citations, from page 3 of the Transformer
+paper.
+In Retrieved evidence I can see exactly which passages the model used, with their page, similarity and
+rerank scores. *(The top passage contains both facts.)*
 
-### 1:32 – 1:56 · Multi-part question
-Next, a multi-part question that needs facts from different parts of the paper: the BLEU scores on two
-translation tasks, and how long and on what hardware the model was trained. It answers 28.4 for
-English-to-German, 41.0 for English-to-French, and 3.5 days on eight P100 GPUs, all cited to page 8.
+### 1:32 – 1:52 · Multi-part question
+A multi-part question: the BLEU scores on two translation tasks, and the training time and hardware.
+It answers 28.4 and 41.0, and 3.5 days on eight P100 GPUs, citing pages 1 and 8.
 
-### 1:56 – 2:12 · Partially answerable question
-This question is only half answerable. The papers give the number of layers but never the training cost
-in dollars. The chatbot answers the first part and clearly says it cannot find the second part,
-instead of inventing a number.
+### 1:52 – 2:12 · Partially answerable
+This question is half answerable: the papers give the number of layers but never a training cost in
+dollars. The chatbot answers the first part and says clearly that it cannot find the second, instead
+of inventing a number.
 
-### 2:12 – 2:28 · Unanswerable question
-Now something that is not in the documents at all: how many parameters GPT-4 has. The chatbot gives
-its fixed fallback answer: "I could not find enough information in the uploaded documents." In my
-evaluation, every unanswerable question was declined like this.
+### 2:12 – 2:28 · Unanswerable
+Something that is not in the documents at all: how many parameters GPT-4 has. It gives its fixed
+fallback answer. In my evaluation every unanswerable question was declined like this.
 
 ### 2:28 – 2:48 · False premise
-This question has a false premise. It asks why Sentence-BERT uses the CLS token by default, but the
-paper says the default is mean pooling. The chatbot does not invent a reason; it declines. I added a
-specific prompt rule for this after the evaluation showed a failure of this kind.
+This question has a false premise: it asks why the Transformer uses LSTM layers, but it doesn't use
+any. The chatbot does not make up a reason; it declines. *(A specific prompt rule handles this.)*
 
-### 2:48 – 3:16 · Active corpus filter
-Next, the document filter. I untick the BERT paper, so it stays indexed but is no longer searched.
-I ask a detail that only the BERT paper contains: what percentage of tokens BERT masks. Since no BERT
-chunk can be retrieved, the chatbot falls back instead of guessing. Then I tick the paper again.
+### 2:48 – 3:20 · Active corpus filter
+Now I untick the BERT paper. It stays indexed but is no longer searched. I ask a detail that only the
+BERT paper contains, how many tokens BERT masks, and since no BERT passage can be retrieved, the
+chatbot falls back instead of guessing. Then I tick the paper again.
 
-### 3:16 – 3:48 · Settings and MMR
-The Settings panel shows the parameters that control quality. Top-k is the number of chunks
-retrieved, four by default. Temperature is zero, which gives faithful and repeatable answers. Top-p is
-0.9, and the context window is 4096 tokens. I measured the largest prompt at about 2,500 tokens, so
-nothing gets cut off.
-The search type can be plain similarity or MMR, Maximal Marginal Relevance. MMR first fetches twenty
-candidates, then picks chunks that are relevant but not repetitive. *(I evaluated both.)*
+### 3:20 – 3:36 · Settings
+The Settings panel shows the parameters: top-k, the search type, reranking, temperature, top-p, the
+context window and chunking. The defaults were chosen by my evaluation: hybrid search with the
+reranker, four chunks, and temperature zero for faithful, repeatable answers. *(I measured the largest
+prompt at about 2,500 tokens, so the 4,096-token context window never cuts anything off.)*
 
-### 3:48 – 4:20 · MMR in action
-Here is the same chatbot with MMR. I ask for the parameter counts of BERT-Base and BERT-Large, and it
-answers 110 million and 340 million, from page 3 of the BERT paper. In my evaluation, MMR helped on long
-documents, like the 75-page GPT-3 paper, because it reaches more sections. It hurt on short papers,
-because it drops the neighbouring chunk that continues a passage. So similarity stays the default, and
-MMR is an option for long reports.
+### 3:36 – 4:12 · Two-passage answer
+This answer needs two passages: 65 hours with BERT, from page 1, and about 5 seconds with SBERT, from
+page 2. Both are retrieved and cited, and the evidence panel shows their rerank scores.
+*(Keyword search helps with exact terms, and the reranker with sentences that are a small part of a
+long chunk.)*
 
-### 4:20 – 4:36 · Evaluation
-I evaluated it manually with 33 questions: two sets of research papers, plus a government cybersecurity
-document to check a different domain. Every unanswerable question was correctly declined. Most wrong
-answers came from retrieval missing the right passage. *(Hybrid keyword-plus-semantic search and
-removing repeated page headers are the next improvements.)*
+### 4:12 – 4:28 · Evaluation
+I evaluated it manually with 33 questions on three document sets, including a government
+cybersecurity document. My first evaluation showed most errors came from retrieval missing the right
+passage, so I added the header cleaning, hybrid search and the reranker: wrong answers fell from 7 to
+2 out of 22, and every unanswerable question was still declined.
 
-### 4:36 – 4:56 · Close
-The code, the evaluation report and the slides are on GitHub. To sum up: a local chatbot that answers
-only from your PDFs, shows its evidence, and says so when the answer isn't there. Thank you for
-watching.
+### 4:28 – 4:47 · Close
+I also compared other language models and tried table extraction and query decomposition; the report
+explains why they were not adopted. The code, the evaluation and the slides are on GitHub. Thank you
+for watching.

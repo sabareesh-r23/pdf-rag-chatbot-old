@@ -1,6 +1,6 @@
 # Requirements compliance matrix
 
-Status as of 2026-10-11 (Version 1.1: V1 plus the audit fixes). Each status means:
+Status as of 2026-11-20 (Version 1.3: hybrid search, reranking, header stripping; see the evaluation report §8e). Each status means:
 
 - **Complete and verified**: implemented, covered by automated tests and/or observed in a real run (real embeddings, real Ollama `llama3.2:3b`).
 - **Implemented, not verified**: code exists, but this project has not yet observed it working end to end (for example, a browser path that `AppTest` cannot drive).
@@ -16,7 +16,7 @@ Status as of 2026-10-11 (Version 1.1: V1 plus the audit fixes). Each status mean
 |---|---|---|---|
 | A1 | Upload one or more PDFs | Complete and verified | `app.py` (`st.file_uploader(..., accept_multiple_files=True)`); multi-file ingest in `tests/test_ingest.py::test_multiple_files`; the upload widget was driven in real Chrome (Playwright) for the demo recording: 4 files uploaded and indexed |
 | A2 | Reject unsupported formats with a clear error | Complete and verified | `rag/pdf_loader.py::validate_pdf_bytes` (extension, `%PDF-` header, empty, size); tests in `tests/test_pdf_loader.py`; the audit live-tested a `.txt` renamed to `.pdf` |
-| A3 | Extract text from text-based PDFs | Complete and verified | `PyPDFLoader` in `rag/pdf_loader.py::load_pdf_bytes`; all 6 dataset PDFs (213 pages) load with no empty pages |
+| A3 | Extract text from text-based PDFs | Complete and verified | `PyPDFLoader` in `rag/pdf_loader.py::load_pdf_bytes`; all 7 dataset PDFs (245 pages) load with no empty pages |
 | A4 | Preserve filename and page metadata | Complete and verified | `source`, 1-based `page`, `file_hash`, `chunk_id` metadata; `tests/test_pdf_loader.py`, `tests/test_chunking.py` |
 | A5 | Empty pages, corrupted, encrypted, duplicate and no-text PDFs handled gracefully | Complete and verified | `tests/test_pdf_loader.py` (blank, corrupted, encrypted); `tests/test_ingest.py` (duplicate detected **before parsing** since V1.1, regression test `test_duplicate_detected_before_parsing`) |
 | A6 | Normalise text without losing meaning | Complete and verified | `rag/pdf_loader.py::normalize_text`. V1.3: running headers/footers and page numbers stripped (`strip_repeated_lines`; audited on all 7 PDFs, tests in `tests/test_pdf_loader.py`). V1.1 expands ligatures (`ﬁ`→`fi`) and keeps real compounds when rejoining hyphenated line breaks (`English-to-German`, `self-attention`); regression cases in `tests/test_pdf_loader.py::test_normalize_text`. Known residual: some PDFs (Llama 2) come out of extraction with words glued together (`doubledthecontextlength`), which normalisation cannot repair |
@@ -58,9 +58,11 @@ Status as of 2026-10-11 (Version 1.1: V1 plus the audit fixes). Each status mean
 | # | Requirement | Status | Evidence |
 |---|---|---|---|
 | E1 | Question plus retrieved context passed to the LLM | Complete and verified | `rag/generation.py::build_messages`; pipeline tests |
-| E2 | Explicit system prompt restricting answers to the context | Complete and verified | `SYSTEM_PROMPT` (9 numbered rules, including prompt-injection hygiene and, since V1.1, a rule about numbers in tables) |
+| E2 | Explicit system prompt restricting answers to the context | Complete and verified | `SYSTEM_PROMPT` (10 numbered rules, including prompt-injection hygiene and, since V1.1, rules about numbers in tables and false premises) |
 | E2b | LLM parameters explicit and adjustable (V1.2) | Complete and verified | Temperature, top-p and context window (`num_ctx`) in `rag/config.py`, the UI sidebar and `run_eval.py` flags; `tests/test_generation.py::test_get_llm_passes_sampling_and_context_settings`; rationale in evaluation report §8c |
-| E3 | No silent use of general knowledge | Implemented, partially verified: a **known residual risk** | Enforced only by the prompt. The 3 unanswerable questions abstained in every run, but the A2 false premise produced a fabricated rationale at k=8 in V1 (see the evaluation report for V1.1 behaviour). A 3B model cannot guarantee this |
+| E2c | Sampling top-k exposed (V1.3) | Complete and verified | `LLM_TOP_K` (default 40, Ollama's default), UI slider, `--llm-top-k`; test in `tests/test_generation.py` |
+| E2d | Query decomposition for comparison questions (V1.3, optional) | Complete and verified; **off by default** | `decompose_question`, `QUERY_DECOMPOSITION`, UI checkbox, `--decompose`; tests in `tests/test_pipeline.py`; evaluated and not adopted as default (report §8e Step 4) |
+| E3 | No silent use of general knowledge | Implemented, partially verified: a **known residual risk** | Enforced by the prompt. All 7 unanswerable questions (three corpora) were declined in every configuration tested. The A2 false premise produced a fabricated rationale at k=8 in V1 and V1.1; in V1.3 (top-k 4) it is corrected. A 3B model cannot guarantee this |
 | E4 | Exact fallback when the context is insufficient | Complete and verified | `FALLBACK_ANSWER`; returned without calling the LLM when nothing is retrieved; observed for U1–U3 / LU1–LU2 |
 | E5 | Partial answers say which part is unsupported | Implemented, partially verified | Prompt rule 4; question P1 was added to test this (see evaluation report); S1/S2 in V1 omitted parts without saying so |
 | E6 | Source filename and page for substantive answers | Complete and verified | V1.1: the Sources line lists only the passages the answer cites (`rag/pipeline.py::cited_sources`), falling back to all retrieved pages if there are no `[n]` markers; abstentions show no sources; tests in `tests/test_pipeline.py` |
@@ -70,7 +72,7 @@ Status as of 2026-10-11 (Version 1.1: V1 plus the audit fixes). Each status mean
 
 | # | Requirement | Status | Evidence |
 |---|---|---|---|
-| F1 | Multi-PDF upload | Implemented, not verified in a browser | See A1 |
+| F1 | Multi-PDF upload | Complete and verified | See A1 (4 files uploaded and indexed in real Chrome for the demo) |
 | F2 | Ingestion and indexing status | Complete and verified (rendering via `AppTest`) | `st.status` with progress and per-file results |
 | F3 | Success / failure feedback | Complete and verified | Per-file indexed / duplicate / error messages |
 | F4 | Chat interface with question and answer | Complete and verified | `st.chat_input` / `st.chat_message`; `tests/test_app_smoke.py`; the audit drove a real question through `AppTest` with live Ollama |
@@ -82,14 +84,14 @@ Status as of 2026-10-11 (Version 1.1: V1 plus the audit fixes). Each status mean
 
 | # | Requirement | Status | Evidence |
 |---|---|---|---|
-| Q1 | Modular code | Complete | `rag/{config,pdf_loader,chunking,embeddings,vectorstore,retrieval,ingest,generation,pipeline}.py`, `app.py`, `evaluation/run_eval.py` |
+| Q1 | Modular code | Complete | `rag/{config,pdf_loader,chunking,embeddings,vectorstore,retrieval,reranker,ingest,generation,pipeline}.py`, `app.py`, `evaluation/run_eval.py`, `evaluation/retrieval_experiment.py` |
 | Q2 | Automated tests for the critical components | Complete and verified | See the evaluation report §2 for the actual count and result |
 | Q3 | `.gitignore`, dependency file, `.env.example`, no secrets | Complete | Dependencies use lower bounds only; a lock file is recommended (see "Remaining") |
 | D-1 | Working app plus README | Complete and verified | `streamlit run app.py` starts (audit health check); README commands verified by the audit |
 | D-2 | Architecture document and diagram | Complete | `docs/architecture.md` (Mermaid) |
-| D-3 | Manual evaluation report, about 10–15 questions | Complete | `docs/evaluation_report.md`: 15 main-corpus questions plus 9 long-corpus questions, each run with similarity and MMR at top-k 4 and 8, with judgements and rationale |
-| D-4 | Presentation | Complete | `docs/presentation/RAG_PDF_Chatbot_Capstone.pptx` (15 slides with speaker notes; slide 8 has a real app screenshot; slide 12 covers MMR and LLM parameters) |
-| D-5 | 5–10 minute demo video | Complete | `submission/RAG_PDF_Chatbot_Demo.mp4` (4:56, captioned screen recording of the real app) |
+| D-3 | Manual evaluation report, about 10–15 questions | Complete | `docs/evaluation_report.md`: 33 questions over three corpora (15 + 9 + 9), per-question judgements with rationale for every configuration (similarity, MMR, hybrid, hybrid + rerank; top-k 4/6/8; three LLMs) |
+| D-4 | Presentation | Complete | `docs/presentation/RAG_PDF_Chatbot_Capstone.pptx` (16 slides with speaker notes; slide 8 has a real app screenshot; slide 12 covers MMR and LLM parameters; slide 13 the V1.3 improvements and LLM comparison) |
+| D-5 | 5–10 minute demo video | Complete | `submission/RAG_PDF_Chatbot_Demo.mp4` (4:47, captioned screen recording of the final app; narration script in `docs/demo_voiceover.md`) |
 | D-6 | Dataset included with the submission | Needs professor clarification (licensing) | See A8 |
 
 ## Optional / out of scope (not prerequisites)
@@ -99,5 +101,7 @@ Status as of 2026-10-11 (Version 1.1: V1 plus the audit fixes). Each status mean
 | Comparing 2–3 LLMs | Done (V1.3) | `llama3.2:3b` (default) vs `qwen2.5:3b` on all 33 questions and `llama3.1:8b` on corpus C, same retrieval (report §8e). An embedding comparison (MiniLM vs bge-small) was also run |
 | MMR retrieval | Done (V1.2) | Implemented and evaluated (report §8b); optional, not the default |
 | Reranker / hybrid BM25 search | Done (V1.3), default | Implemented after the evaluation identified retrieval misses as the main failure; measured gain in report §8e |
-| Cloud deployment, authentication, multi-user, persistent chat memory | Out of scope | A local demo was accepted by the professor |
+| Table-aware extraction | Tried, not adopted (V1.3) | `pdfplumber` returned figures as tables in the arXiv papers (report §8e Step 4) |
+| Premise check before answering | Analysed, not built | Would add LLM calls to every question; false premises are already declined (report §8e Step 4) |
+| Cloud deployment, authentication, multi-user, persistent chat memory | Out of scope | The class session confirmed a demo video is sufficient; local app |
 | LLM-as-a-judge / automatic metrics | Optional enhancement | Manual evaluation was requested; no pass-rate threshold was specified |

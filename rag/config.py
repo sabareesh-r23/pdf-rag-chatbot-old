@@ -76,6 +76,11 @@ class Settings:
         default_factory=lambda: os.getenv("RERANK_MODEL", "cross-encoder/ms-marco-MiniLM-L-6-v2")
     )
     rerank_candidates: int = field(default_factory=lambda: _env_int("RERANK_CANDIDATES", 30))
+    # Comparison questions ("compare X with Y", "X versus Y") are split by the LLM into one
+    # search query per subject, so each side retrieves its own evidence.
+    query_decomposition: bool = field(
+        default_factory=lambda: os.getenv("QUERY_DECOMPOSITION", "false").strip().lower() in {"1", "true", "yes", "on"}
+    )
 
     # LLM
     llm_provider: str = field(default_factory=lambda: os.getenv("LLM_PROVIDER", "ollama").lower())

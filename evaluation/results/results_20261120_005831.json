@@ -1,0 +1,718 @@
+{
+  "run_id": "20261120_005831",
+  "started_at": "2026-11-20T00:58:31",
+  "finished_at": "2026-11-20T00:59:44",
+  "questions_file": "evaluation/questions_domain.json",
+  "pdf_dir": "data/domain_pdfs",
+  "config": {
+    "chunk_size": 1000,
+    "chunk_overlap": 200,
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "chroma_dir": "/Users/sabareeshravi/dev/pdf-rag-chatbot/chroma_db",
+    "collection_name": "eval_cs1000_co200_domain_pdfs",
+    "top_k": 4,
+    "min_relevance": 0.0,
+    "retrieval_mode": "hybrid",
+    "mmr_fetch_k": 20,
+    "mmr_lambda": 0.5,
+    "rerank": true,
+    "rerank_model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+    "rerank_candidates": 30,
+    "query_decomposition": true,
+    "llm_provider": "ollama",
+    "llm_model": "llama3.2:3b",
+    "llm_temperature": 0.0,
+    "llm_top_p": 0.9,
+    "llm_top_k": 40,
+    "llm_num_ctx": 4096,
+    "ollama_base_url": "http://localhost:11434",
+    "max_file_mb": 50
+  },
+  "fallback_answer": "I could not find enough information in the uploaded documents to answer this question.",
+  "environment": {
+    "python": "3.12.12",
+    "platform": "macOS-26.3-arm64-arm-64bit"
+  },
+  "ingestion": [
+    {
+      "filename": "NIST.CSWP.29.pdf",
+      "status": "duplicate",
+      "message": "This file is already indexed; skipped re-indexing.",
+      "pages": 0,
+      "empty_pages": [],
+      "chunks": 0,
+      "file_hash": "3c31f46fee98cac0c4323453e5109291a213b4de7fef8c058af9bf67f717433c",
+      "seconds": 0.07
+    }
+  ],
+  "human_fields": [
+    "correct",
+    "relevant",
+    "supported",
+    "abstention_correct",
+    "failure_class",
+    "observations"
+  ],
+  "questions": [
+    {
+      "id": "D1",
+      "category": "factual",
+      "question": "What are the six Core Functions of the NIST Cybersecurity Framework 2.0?",
+      "expected_answer": "GOVERN, IDENTIFY, PROTECT, DETECT, RESPOND and RECOVER.",
+      "expected_sources": [
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "pages": [
+            8
+          ]
+        }
+      ],
+      "notes": "Evidence: 'The CSF Core Functions — GOVERN, IDENTIFY, PROTECT, DETECT, RESPOND, and RECOVER — organize cybersecurity outcomes at their highest level.' (p. 8)",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 6,
+          "score": 0.6143,
+          "rerank_score": 6.353,
+          "chunk_id": "3c31f46fee98-p6-c0",
+          "text": "1. Cybersecurity Framework (CSF) Overview\nThis document is version 2.0 of the NIST Cybersecurity Framework (Framework or CSF). It\nincludes the following components:\n• CSF Core, the nucleus of the CSF, which is a taxonomy of high-level cybersecurity\noutcomes that can help any organization manage its cybersecurity risks. The CSF Core\ncomponents are a hierarchy of Functions, Categories, and Subcategories that detail each\noutcome. These outcomes can be understood by a broad audience, including\nexecutives, managers, and practitioners, regardless of their cybersecurity expertise.\nBecause the outcomes are sector-, country-, and technology-neutral, they provide an\norganization with the flexibility needed to address its unique risks, technologies, and\nmission considerations.\n• CSF Organizational Profiles, which are a mechanism for describing an organization’s\ncurrent and/or target cybersecurity posture in terms of the CSF Core’s outcomes."
+        },
+        {
+          "rank": 2,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 2,
+          "score": 0.6644,
+          "rerank_score": 4.531,
+          "chunk_id": "3c31f46fee98-p2-c0",
+          "text": "T he NIST Cybersecurity Framework (CSF) 2.0\ni\nNIST CSWP 29\nAbstract\nT\nhe NIST Cybersecurity Framework (CSF) 2.0 provides guidance to industry, government\nagencies, and other organizations to manage cybersecurity risks. It offers a taxonomy of highlevel cybersecurity outcomes that can be used by any organization — regardless of its size,\nsector, or maturity — to better understand, assess, prioritize, and communicate its\ncybersecurity efforts. The CSF does not prescribe how outcomes should be achieved. Rather, it\nlinks to online resources that provide additional guidance on practices and controls that could\nbe used to achieve those outcomes. This document describes CSF 2.0, its components, and\nsome of the many ways that it can be used.\nKeywords\ncybersecurity; Cybersecurity Framework (CSF); cybersecurity risk governance; cybersecurity risk\nmanagement; enterprise risk management; Profiles; Tiers.\nAudience"
+        },
+        {
+          "rank": 3,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 9,
+          "score": 0.5128,
+          "rerank_score": 3.781,
+          "chunk_id": "3c31f46fee98-p9-c0",
+          "text": "improvement opportunities for the organization’s policies, plans, processes, procedures,\nand practices that support cybersecurity risk management to inform efforts under all six\nFunctions.\n• PROTECT (PR) — Safeguards to manage the organization’s cybersecurity risks are used.\nOnce assets and risks are identified and prioritized, PROTECT supports the ability to\nsecure those assets to prevent or lower the likelihood and impact of adverse\ncybersecurity events, as well as to increase the likelihood and impact of taking\nadvantage of opportunities. Outcomes covered by this Function include identity\nmanagement, authentication, and access control; awareness and training; data security;\nplatform security (i.e., securing the hardware, software, and services of physical and\nvirtual platforms); and the resilience of technology infrastructure.\n• DETECT (DE) — Possible cybersecurity attacks and compromises are found and analyzed."
+        },
+        {
+          "rank": 4,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 31,
+          "score": 0.5363,
+          "rerank_score": 3.448,
+          "chunk_id": "3c31f46fee98-p31-c1",
+          "text": "attempting to achieve) and characterizes how or to what extent each outcome is being achieved.\nCSF Function\nThe highest level of organization for cybersecurity outcomes. There are six CSF Functions: Govern, Identify,\nProtect, Detect, Respond, and Recover.\nCSF Implementation Example\nA concise, action-oriented, notional illustration of a way to help achieve a CSF Core outcome.\nCSF Informative Reference\nA mapping that indicates a relationship between a CSF Core outcome and an existing standard, guideline,\nregulation, or other content.\nCSF Organizational Profile\nA mechanism for describing an organization’s current and/or target cybersecurity posture in terms of the CSF\nCore’s outcomes.\nCSF Quick Start Guide\nA supplementary resource that gives brief, actionable guidance on specific CSF-related topics.\nCSF Subcategory\nA group of more specific outcomes of technical and management cybersecurity activities that comprise a CSF\nCategory.\nCSF Target Profile"
+        }
+      ],
+      "sub_queries": [],
+      "actual_answer": "The six Core Functions of the NIST Cybersecurity Framework 2.0 are:\n\n1. Govern [2]\n2. Identify [2]\n3. Protect [3]\n4. Detect [3]\n5. Respond [2]\n6. Recover [2]\n\nThese functions are listed as the highest level of organization for cybersecurity outcomes in passage [4].",
+      "sources": [
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "page": 2
+        },
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "page": 9
+        },
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "page": 31
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 12.59,
+      "error": null,
+      "expected_page_retrieved": false,
+      "evidence_retrieved": "all",
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "D2",
+      "category": "factual",
+      "question": "What are the four CSF Tiers?",
+      "expected_answer": "Partial (Tier 1), Risk Informed (Tier 2), Repeatable (Tier 3) and Adaptive (Tier 4).",
+      "expected_sources": [
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "pages": [
+            12,
+            31
+          ]
+        }
+      ],
+      "notes": "Evidence: '... as Partial (Tier 1), Risk Informed (Tier 2), Repeatable (Tier 3), and Adaptive (Tier 4).' (p. 12, split over a line break); glossary 'There are four Tiers: Partial (Tier 1), Risk Informed (Tier 2), Repeatable (Tier 3), and Adaptive (Tier 4).'",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 31,
+          "score": 0.6004,
+          "rerank_score": 8.24,
+          "chunk_id": "3c31f46fee98-p31-c2",
+          "text": "CSF Subcategory\nA group of more specific outcomes of technical and management cybersecurity activities that comprise a CSF\nCategory.\nCSF Target Profile\nA part of an Organizational Profile that specifies the desired Core outcomes that an organization has selected and\nprioritized for achieving its cybersecurity risk management objectives.\nCSF Tier\nA characterization of the rigor of an organization’s cybersecurity risk governance and management practices .\nThere are four Tiers: Partial (Tier 1), Risk Informed (Tier 2), Repeatable (Tier 3), and Adaptive (Tier 4)."
+        },
+        {
+          "rank": 2,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 12,
+          "score": 0.544,
+          "rerank_score": 6.854,
+          "chunk_id": "3c31f46fee98-p12-c3",
+          "text": "3.2. CSF Tiers\nAn organization can choose to use the Tiers to inform its Current and Target Profiles. Tiers\ncharacterize the rigor of an organization’s cybersecurity risk governance and management\npractices, and they provide context for how an organization views cybersecurity risks and the\nprocesses in place to manage those risks. The Tiers, as shown in Fig. 4 and notionally illustrated\nin Appendix B, reflect an organization’s practices for managing cybersecurity risk as Partial (Tier\n1), Risk Informed (Tier 2), Repeatable (Tier 3), and Adaptive (Tier 4). The Tiers describe a\nprogression from informal, ad hoc responses to approaches that are agile, risk-informed, and"
+        },
+        {
+          "rank": 3,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 13,
+          "score": 0.5272,
+          "rerank_score": 4.863,
+          "chunk_id": "3c31f46fee98-p13-c1",
+          "text": "Fig. 4. CSF Tiers for cybersecurity risk governance and management\nTiers should complement an organization’s cybersecurity risk management methodology rather\nthan replace it. For example, an organization can use the Tiers to communicate internally as a\nbenchmark for an organization-wide1\n1 For the purposes of this document, the terms “organization-wide” and “enterprise” have the same meaning.\napproach to managing cybersecurity risks. Progression to\nhigher Tiers is encouraged when risks or mandates are greater or when a cost-benefit analysis\nindicates a feasible and cost-effective reduction of negative cybersecurity risks.\nThe NIST CSF website provides additional information on using Profiles a nd Tiers. It includes\npointers to NIST-hosted O rganizational Profile templates and a repository of Community\nProfiles in a variety of machine-read able and human-usable formats."
+        },
+        {
+          "rank": 4,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 29,
+          "score": 0.5542,
+          "rerank_score": 4.162,
+          "chunk_id": "3c31f46fee98-p29-c0",
+          "text": "Appendix B. CSF Tiers\nTable 2 contains a notional illustration of the CSF Tiers discussed in Sec. 3. The Tiers\ncharacterize the rigor of an organization’s cybersecurity risk governance practices (GOVERN) and\ncybersecurity risk management practices (IDENTIFY, PROTECT, DETECT, RESPOND, and RECOVER).\nTable 2. Notional Illustration of the CSF Tiers\nTier Cybersecurity Risk Governance Cybersecurity Risk Management\nTier 1:\nPartial\nApplication of the organizational\ncybersecurity risk strategy is managed\nin an ad hoc manner.\nPrioritization is ad hoc and not\nformally based on objectives or threat\nenvironment.\nThere is limited awareness of cybersecurity risks at the\norganizational level.\nThe organization implements cybersecurity risk\nmanagement on an irregular, case-by-case basis.\nThe organization may not have processes that enable\ncybersecurity information to be shared within the\norganization.\nThe organization is generally unaware of the\ncybersecurity risks associated with its suppliers and the"
+        }
+      ],
+      "sub_queries": [],
+      "actual_answer": "The four CSF Tiers are:\n\n1. Partial (Tier 1) [1]\n2. Risk Informed (Tier 2) [1]\n3. Repeatable (Tier 3) [1]\n4. Adaptive (Tier 4) [1]\n\nI could not find enough information in the uploaded documents to answer this question regarding what each Tier entails, beyond their names and descriptions of progression from informal to more agile approaches.",
+      "sources": [
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "page": 31
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 8.33,
+      "error": null,
+      "expected_page_retrieved": true,
+      "evidence_retrieved": "all",
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "D3",
+      "category": "multi_chunk",
+      "question": "What was the Cybersecurity Framework called before version 2.0, and on what date was CSF 2.0 published?",
+      "expected_answer": "It was called the 'Framework for Improving Critical Infrastructure Cybersecurity'; CSF 2.0 is dated February 26, 2024.",
+      "expected_sources": [
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "pages": [
+            1,
+            2
+          ]
+        }
+      ],
+      "notes": "Evidence: 'Before version 2.0, the Cybersecurity Framework was called the \"Framework for Improving Critical Infrastructure Cybersecurity.\"' (p. 2); 'February 26, 2024' (p. 1 and every page header).",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 2,
+          "score": 0.7504,
+          "rerank_score": 5.303,
+          "chunk_id": "3c31f46fee98-p2-c2",
+          "text": "who set and communicate priorities for cybersecurity risk management.\nSupplemental Content\nNIST will continue to build and host additional resources to help organizations implement the\nCSF, including Quick Start Guides and Community Profiles. All resources are made publicly\navailable on the NIST CSF website. Suggestions for additional resources to reference on the\nNIST CSF website can always be shared with NIST at cyberframework@nist.gov.\nNote to Readers\nUnless otherwise noted, documents cited, referenced, or excerpted in this publication are not\nwholly incorporated into this publication.\nBefore version 2.0, the Cybersecurity Framework was called the “Framework for Improving\nCritical Infrastructure Cybersecurity.” This title is not used for CSF 2.0."
+        },
+        {
+          "rank": 2,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 1,
+          "score": 0.6957,
+          "rerank_score": 4.686,
+          "chunk_id": "3c31f46fee98-p1-c0",
+          "text": "National Institute of Standards and Technology\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.CSWP.29\nFebruary 26, 2024\nThe NIST Cybersecurity\nFramework (CSF) 2.0"
+        },
+        {
+          "rank": 3,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 6,
+          "score": 0.636,
+          "rerank_score": 2.509,
+          "chunk_id": "3c31f46fee98-p6-c0",
+          "text": "1. Cybersecurity Framework (CSF) Overview\nThis document is version 2.0 of the NIST Cybersecurity Framework (Framework or CSF). It\nincludes the following components:\n• CSF Core, the nucleus of the CSF, which is a taxonomy of high-level cybersecurity\noutcomes that can help any organization manage its cybersecurity risks. The CSF Core\ncomponents are a hierarchy of Functions, Categories, and Subcategories that detail each\noutcome. These outcomes can be understood by a broad audience, including\nexecutives, managers, and practitioners, regardless of their cybersecurity expertise.\nBecause the outcomes are sector-, country-, and technology-neutral, they provide an\norganization with the flexibility needed to address its unique risks, technologies, and\nmission considerations.\n• CSF Organizational Profiles, which are a mechanism for describing an organization’s\ncurrent and/or target cybersecurity posture in terms of the CSF Core’s outcomes."
+        },
+        {
+          "rank": 4,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 2,
+          "score": 0.7018,
+          "rerank_score": 2.235,
+          "chunk_id": "3c31f46fee98-p2-c0",
+          "text": "T he NIST Cybersecurity Framework (CSF) 2.0\ni\nNIST CSWP 29\nAbstract\nT\nhe NIST Cybersecurity Framework (CSF) 2.0 provides guidance to industry, government\nagencies, and other organizations to manage cybersecurity risks. It offers a taxonomy of highlevel cybersecurity outcomes that can be used by any organization — regardless of its size,\nsector, or maturity — to better understand, assess, prioritize, and communicate its\ncybersecurity efforts. The CSF does not prescribe how outcomes should be achieved. Rather, it\nlinks to online resources that provide additional guidance on practices and controls that could\nbe used to achieve those outcomes. This document describes CSF 2.0, its components, and\nsome of the many ways that it can be used.\nKeywords\ncybersecurity; Cybersecurity Framework (CSF); cybersecurity risk governance; cybersecurity risk\nmanagement; enterprise risk management; Profiles; Tiers.\nAudience"
+        }
+      ],
+      "sub_queries": [],
+      "actual_answer": "The Cybersecurity Framework was called the \"Framework for Improving Critical Infrastructure Cybersecurity\" before version 2.0 [1]. CSF 2.0 was published on February 26, 2024 [2].",
+      "sources": [
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "page": 2
+        },
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "page": 1
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 6.41,
+      "error": null,
+      "expected_page_retrieved": true,
+      "evidence_retrieved": "all",
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "D4",
+      "category": "multi_chunk",
+      "question": "Which Categories make up the RESPOND Function, and what are their identifiers?",
+      "expected_answer": "Incident Management (RS.MA), Incident Analysis (RS.AN), Incident Response Reporting and Communication (RS.CO) and Incident Mitigation (RS.MI).",
+      "expected_sources": [
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "pages": [
+            20
+          ]
+        }
+      ],
+      "notes": "Evidence: Table 1 rows 'Respond (RS) Incident Management RS.MA / Incident Analysis RS.AN / Incident Response Reporting and Communication RS.CO / Incident Mitigation RS.MI' (p. 20). A flattened-table question, like LF2 and the BLEU case.",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 20,
+          "score": 0.2097,
+          "rerank_score": 0.073,
+          "chunk_id": "3c31f46fee98-p20-c2",
+          "text": "Function Category Category Identifier\nGovern (GV) Organizational Context GV.OC\nRisk Management Strategy GV.RM\nRoles, Responsibilities, and Authorities GV.RR\nPolicy GV.PO\nOversight GV.OV\nCybersecurity Supply Chain Risk Management GV.SC\nIdentify (ID) Asset Management ID.AM\nRisk Assessment ID.RA\nImprovement ID.IM\nProtect (PR) Identity Management, Authentication, and Access Control PR.AA\nAwareness and Training PR.AT\nData Security PR.DS\nPlatform Security PR.PS\nTechnology Infrastructure Resilience PR.IR\nDetect (DE) Continuous Monitoring DE.CM\nAdverse Event Analysis DE.AE\nRespond (RS) Incident Management RS.MA\nIncident Analysis RS.AN\nIncident Response Reporting and Communication RS.CO\nIncident Mitigation RS.MI\nRecover (RC) Incident Recovery Plan Execution RC.RP\nIncident Recovery Communication RC.CO"
+        },
+        {
+          "rank": 2,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 10,
+          "score": 0.4688,
+          "rerank_score": -1.194,
+          "chunk_id": "3c31f46fee98-p10-c0",
+          "text": "Fig. 2. CSF Functions\nThe Functions should be addressed concurrently. Actions that support GOVERN, IDENTIFY, PROTECT,\nand DETECT should all happen continuously, and actions that support RESPOND and RECOVER\nshould be ready at all times and happen when cybersecurity incidents occur. All Functions have\nvital roles related to cybersecurity incidents. GOVERN, IDENTIFY, and PROTECT outcomes help\nprevent and prepare for incidents, while GOVERN, DETECT, RESPOND, and RECOVER outcomes help\ndiscover and manage incidents.\nEach Function is named after a verb that summarizes its contents. Each Function is divided into\nCategories, which are related cybersecurity outcomes that collectively comprise the Function.\nSubcategories further divide each Category into more specific outcomes of technical and\nmanagement activities. The Subcategories are not exhaustive, but they describe detailed\noutcomes that support each Category."
+        },
+        {
+          "rank": 3,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 20,
+          "score": 0.3767,
+          "rerank_score": -1.54,
+          "chunk_id": "3c31f46fee98-p20-c0",
+          "text": "Appendix A. CSF Core\nThis appendix describes the Functions, Categories, and Subcategories of the CSF Core. Table 1\nlists the CSF 2.0 Core Function and Category names and unique alphabetic identifiers. Each\nFunction name in the table is linked to its portion of the appendix. The order of Functions,\nCategories, and Subcategories of the Core is not alphabetical; it is intended to resonate most\nwith those charged with operationalizing risk management within an organization. The\nnumbering of the Subcategories is intentionally not sequential; gaps in numbering indicate CSF\n1.1 Subcategories that were relocated in CSF 2.0.\nTable 1. CSF 2.0 Core Function and Category names and identifiers"
+        },
+        {
+          "rank": 4,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 10,
+          "score": 0.3303,
+          "rerank_score": -4.722,
+          "chunk_id": "3c31f46fee98-p10-c1",
+          "text": "management activities. The Subcategories are not exhaustive, but they describe detailed\noutcomes that support each Category.\nThe Functions, Categories, and Subcategories apply to all ICT used by an organization, including\ninformation technology (IT), the Internet of Things (IoT), and operational technology (OT). They\nalso apply to all types of technology environments, including cloud, mobile, and artificial\nintelligence systems. The CSF Core is forward-looking and intended to apply to future changes\nin technologies and environments."
+        }
+      ],
+      "sub_queries": [],
+      "actual_answer": "The RESPOND Function is composed of the following Categories:\n- Incident Analysis RS.AN\n- Incident Response Reporting and Communication RS.CO\n- Incident Mitigation RS.MI\n\nThese identifiers are mentioned in [2] (source: NIST.CSWP.29.pdf, page 20) as part of Table 1, which lists the CSF 2.0 Core Function and Category names and unique alphabetic identifiers for the RESPOND Function.",
+      "sources": [
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "page": 10
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 7.95,
+      "error": null,
+      "expected_page_retrieved": true,
+      "evidence_retrieved": "all",
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "D5",
+      "category": "synthesis",
+      "question": "Why is GOVERN placed at the centre of the CSF Functions wheel, and which Functions help prevent incidents versus discover and manage them?",
+      "expected_answer": "GOVERN is in the centre because it informs how an organization implements the other five Functions. GOVERN, IDENTIFY and PROTECT help prevent and prepare for incidents; GOVERN, DETECT, RESPOND and RECOVER help discover and manage incidents.",
+      "expected_sources": [
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "pages": [
+            9,
+            10
+          ]
+        }
+      ],
+      "notes": "Evidence: 'GOVERN is in the center of the wheel because it informs how an organization will implement the other five Functions.' (p. 9); 'GOVERN, IDENTIFY, and PROTECT outcomes help prevent and prepare for incidents, while GOVERN, DETECT, RESPOND, and RECOVER outcomes help discover and manage incidents.' (p. 10)",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 9,
+          "score": 0.4937,
+          "rerank_score": 0.998,
+          "chunk_id": "3c31f46fee98-p9-c2",
+          "text": "Figure 2 shows the CSF Functions as a wheel because all of the Functions relate to one another.\nFor example, an organization will categorize assets under IDENTIFY and take steps to secure\nthose assets under PROTECT. Investments in planning and testing in the GOVERN and IDENTIFY\nFunctions will support timely detection of unexpected events in the DETECT Function, as well as\nenabling incident response and recovery actions for cybersecurity incidents in the RESPOND and\nRECOVER Functions. GOVERN is in the center of the wheel because it informs how an organization\nwill implement the other five Functions."
+        },
+        {
+          "rank": 2,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 10,
+          "score": 0.5228,
+          "rerank_score": 2.776,
+          "chunk_id": "3c31f46fee98-p10-c0",
+          "text": "Fig. 2. CSF Functions\nThe Functions should be addressed concurrently. Actions that support GOVERN, IDENTIFY, PROTECT,\nand DETECT should all happen continuously, and actions that support RESPOND and RECOVER\nshould be ready at all times and happen when cybersecurity incidents occur. All Functions have\nvital roles related to cybersecurity incidents. GOVERN, IDENTIFY, and PROTECT outcomes help\nprevent and prepare for incidents, while GOVERN, DETECT, RESPOND, and RECOVER outcomes help\ndiscover and manage incidents.\nEach Function is named after a verb that summarizes its contents. Each Function is divided into\nCategories, which are related cybersecurity outcomes that collectively comprise the Function.\nSubcategories further divide each Category into more specific outcomes of technical and\nmanagement activities. The Subcategories are not exhaustive, but they describe detailed\noutcomes that support each Category."
+        },
+        {
+          "rank": 3,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 31,
+          "score": 0.2659,
+          "rerank_score": -1.022,
+          "chunk_id": "3c31f46fee98-p31-c1",
+          "text": "attempting to achieve) and characterizes how or to what extent each outcome is being achieved.\nCSF Function\nThe highest level of organization for cybersecurity outcomes. There are six CSF Functions: Govern, Identify,\nProtect, Detect, Respond, and Recover.\nCSF Implementation Example\nA concise, action-oriented, notional illustration of a way to help achieve a CSF Core outcome.\nCSF Informative Reference\nA mapping that indicates a relationship between a CSF Core outcome and an existing standard, guideline,\nregulation, or other content.\nCSF Organizational Profile\nA mechanism for describing an organization’s current and/or target cybersecurity posture in terms of the CSF\nCore’s outcomes.\nCSF Quick Start Guide\nA supplementary resource that gives brief, actionable guidance on specific CSF-related topics.\nCSF Subcategory\nA group of more specific outcomes of technical and management cybersecurity activities that comprise a CSF\nCategory.\nCSF Target Profile"
+        }
+      ],
+      "sub_queries": [
+        "What are the functions of the cerebrospinal fluid (CSF) in the brain, and why is it located at the center of the CSF Functions wheel?",
+        "Why do incident response and threat detection functions help prevent security incidents, and how do they differ from detection and management functions?",
+        "How do the functions of the cerebrospinal fluid (CSF) relate to the human body's defense mechanisms against infection and disease?"
+      ],
+      "actual_answer": "GOVERN is placed at the center of the CSF Functions wheel because it informs how an organization will implement the other five Functions [1]. \nThe Functions that help prevent incidents are GOVERN, IDENTIFY, and PROTECT, while those that help discover and manage incidents are GOVERN, DETECT, RESPOND, and RECOVER [2].",
+      "sources": [
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "page": 9
+        },
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "page": 10
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 13.57,
+      "error": null,
+      "expected_page_retrieved": true,
+      "evidence_retrieved": "all",
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "D6",
+      "category": "adversarial",
+      "question": "What is the first step in creating a CSF Organizational Profile, and how much does it cost an organization to implement the CSF?",
+      "expected_answer": "The first step is to scope the Organizational Profile (document the high-level facts and assumptions that define its scope). The document does not state an implementation cost, so that part should be reported as not covered.",
+      "expected_sources": [
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "pages": [
+            12
+          ]
+        }
+      ],
+      "notes": "Evidence: '1. Scope the Organizational Profile. Document the high-level facts and assumptions on which the Profile will be based to define its scope.' (p. 12). Absence: 'cost' occurs only in 'cost-benefit analysis' / 'cost-effective' (p. 13); no implementation cost.",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 11,
+          "score": 0.5942,
+          "rerank_score": 1.077,
+          "chunk_id": "3c31f46fee98-p11-c2",
+          "text": "A Community P rofile is a baseline of CSF outcomes that is created and published to address\nshared interests and goals among a number of organizations. A Community Profile is\ntypically developed for a particular sector, subsector, technology, threat type, or other use\ncase. An organization can use a Community Profile as the basis for its own Target Profile.\nExamples of Community Profiles can be found on the NIST CSF website.\nThe\nsteps shown in Fig. 3 and summarized below illustrate one way that an organization could\nuse an Organizational Profile to help inform continuous improvement of its cybersecurity.\n\nFig. 3. Steps for creating and using a CSF Organizational Profile"
+        },
+        {
+          "rank": 2,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 12,
+          "score": 0.5985,
+          "rerank_score": 0.907,
+          "chunk_id": "3c31f46fee98-p12-c1",
+          "text": "procedures and safeguards), and work roles.\n3. Create the Organizational Profile. Determine what types of information the Profile\nshould include for the selected CSF outcomes, and document the needed information.\nConsider the risk implications of the Current Profile to inform Target Profile planning\nand prioritization. Also, consider using a Community Profile as the basis for the Target\nProfile.\n4. Analyze the gaps between the Current and Target Profiles, and create an action plan.\nConduct a gap analysis to identify and analyze the differences between the Current and\nTarget Profiles, and develop a prioritized action plan (e.g., risk register, risk detail report,\nPlan of Action and Milestones [POA&M]) to address those gaps.\n5. Implement the action plan, and update the Organizational Profile. Follow the action\nplan to address the gaps and move the organization toward the Target Profile. An action\nplan may have an overall deadline or be ongoing."
+        },
+        {
+          "rank": 3,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 11,
+          "score": 0.6641,
+          "rerank_score": 0.443,
+          "chunk_id": "3c31f46fee98-p11-c0",
+          "text": "3. Introduction to CSF Profiles and Tiers\nThis section defines the concepts of CSF Profiles and Tiers.\n3.1. CSF Profiles\nA CSF Organizational Profile describes an organization’s current and/or target cybersecurity\nposture in terms of the Core’s outcomes. Organizational Profiles are used to understand, tailor,\nassess, prioritize, and communicate the Core’s outcomes by considering an organization’s\nmission objectives, stakeholder expectations, threat landscape, and requirements. An\norganization can then prioritize its actions to achieve specific outcomes and communicate that\ninformation to stakeholders.\nEvery Organizational Profile includes one or both of the following:\n1. A Cur\nrent Profile specifies the Core outcomes that an organization is currently achieving\n(or attempting to achieve) and characterizes how or to what extent each outcome is\nbeing achieved.\n2. A Target Profile specifies the desired outcomes that an organization has selected and"
+        },
+        {
+          "rank": 4,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 14,
+          "score": 0.4383,
+          "rerank_score": 0.388,
+          "chunk_id": "3c31f46fee98-p14-c2",
+          "text": "achieve the outcomes of the Subcategories. Verbs used to express Examples include share,\ndocument, develop, perform, monitor, analyze, assess, and exercise. The Examples are not a\ncomprehensive list of all actions that could be taken by an organization to achieve an outcome,\nnor do they represent a baseline of required actions to address cybersecurity risks.\nQuick-Start Guides (QSGs) are brief documents on specific CSF-related topics and are often\ntailored to specific audiences. QSGs can help an organization implement the CSF because they\ndistill specific portions of the CSF into actionable “first steps” that an organization can consider\non the path to improving their cybersecurity posture and management of associated risks. The\nguides are revised in their own time frames, and new guides are added as needed.\nSuggestions for new Informative References for CSF 2.0 can always be shared with NIST at"
+        }
+      ],
+      "sub_queries": [],
+      "actual_answer": "The first step in creating a CSF Organizational Profile is to Create the Organizational Profile [3.1 (source: NIST.CSWP.29.pdf, page 11)]. \n\nI could not find enough information in the uploaded documents to answer the second part of your question about how much it costs an organization to implement the CSF.",
+      "sources": [
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "page": 11
+        },
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "page": 12
+        },
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "page": 14
+        }
+      ],
+      "abstained": false,
+      "latency_seconds": 7.76,
+      "error": null,
+      "expected_page_retrieved": true,
+      "evidence_retrieved": "none",
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "DU1",
+      "category": "unanswerable",
+      "question": "What is the maximum fine for an organization that does not comply with CSF 2.0?",
+      "expected_answer": "Not in the document - the system should abstain. (The CSF is voluntary guidance and states no fines.)",
+      "expected_sources": [],
+      "notes": "Absence verified: regex 'fine\\b|fines|penalt' over the extracted text only matches 'define'. Tempting distractor: 'adopted voluntarily and through governmental policies and mandates' (p. 7).",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 5,
+          "score": 0.4769,
+          "rerank_score": -0.666,
+          "chunk_id": "3c31f46fee98-p5-c0",
+          "text": "Preface\nT\nhe Cybersecurity Framework (CSF) 2.0 is designed to help organizations of all sizes and sectors\n— including industry, government, academia, and nonprofit — to manage and reduce their\ncybersecurity risks. It is useful regardless of the maturity level and technical sophistication of an\norganization’s cybersecurity programs. Nevertheless, the CSF does not embrace a one-size-fitsall approach. Each organization has both common and unique risks, as well as varying risk\nappetites and tolerances, specific missions, and objectives to achieve those missions. By\nnecessity, the way organizations implement the CSF will vary.\nIdeally, the CSF will be used to address cybersecurity risks alongside other risks of the\nenterprise, including those that are financial, privacy, supply chain, reputational, technological,\nor physical in nature.\nThe CSF describes desired outcomes that are intended to be understood by a broad audience,"
+        },
+        {
+          "rank": 2,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 2,
+          "score": 0.4056,
+          "rerank_score": -1.805,
+          "chunk_id": "3c31f46fee98-p2-c0",
+          "text": "T he NIST Cybersecurity Framework (CSF) 2.0\ni\nNIST CSWP 29\nAbstract\nT\nhe NIST Cybersecurity Framework (CSF) 2.0 provides guidance to industry, government\nagencies, and other organizations to manage cybersecurity risks. It offers a taxonomy of highlevel cybersecurity outcomes that can be used by any organization — regardless of its size,\nsector, or maturity — to better understand, assess, prioritize, and communicate its\ncybersecurity efforts. The CSF does not prescribe how outcomes should be achieved. Rather, it\nlinks to online resources that provide additional guidance on practices and controls that could\nbe used to achieve those outcomes. This document describes CSF 2.0, its components, and\nsome of the many ways that it can be used.\nKeywords\ncybersecurity; Cybersecurity Framework (CSF); cybersecurity risk governance; cybersecurity risk\nmanagement; enterprise risk management; Profiles; Tiers.\nAudience"
+        },
+        {
+          "rank": 3,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 5,
+          "score": 0.433,
+          "rerank_score": -3.647,
+          "chunk_id": "3c31f46fee98-p5-c2",
+          "text": "Guides (QSGs). Also, various tools offer downloadable formats to help organizations that\nchoose to automate some of their processes. The QSGs suggest initial ways to use the CSF and\ninvite the reader to explore the CSF and related resources in greater depth. Available through\nthe NIST CSF website, the CSF and these supplementary resources from NIST and others should\nbe viewed as a “CSF portfolio” to help manage and reduce risks. Regardless of how it is applied,\nthe CSF prompts its users to consider their cybersecurity posture in context and then adapt the\nCSF to their specific needs.\nBuilding on previous versions, CSF 2.0 contains new features tha t highlight the importance of\ngovernance and supply chains. Special attention is paid to the QSGs to ensure that the CSF is\nrelevant and readily accessible by smaller organizations as well as their larger counterparts.\nNIST now provides Implementation Examples and Informative References, which are available"
+        },
+        {
+          "rank": 4,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 2,
+          "score": 0.4438,
+          "rerank_score": -3.757,
+          "chunk_id": "3c31f46fee98-p2-c2",
+          "text": "who set and communicate priorities for cybersecurity risk management.\nSupplemental Content\nNIST will continue to build and host additional resources to help organizations implement the\nCSF, including Quick Start Guides and Community Profiles. All resources are made publicly\navailable on the NIST CSF website. Suggestions for additional resources to reference on the\nNIST CSF website can always be shared with NIST at cyberframework@nist.gov.\nNote to Readers\nUnless otherwise noted, documents cited, referenced, or excerpted in this publication are not\nwholly incorporated into this publication.\nBefore version 2.0, the Cybersecurity Framework was called the “Framework for Improving\nCritical Infrastructure Cybersecurity.” This title is not used for CSF 2.0."
+        }
+      ],
+      "sub_queries": [],
+      "actual_answer": "I could not find enough information in the uploaded documents to answer this question.",
+      "sources": [],
+      "abstained": true,
+      "latency_seconds": 5.56,
+      "error": null,
+      "expected_page_retrieved": null,
+      "evidence_retrieved": null,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "DU2",
+      "category": "unanswerable",
+      "question": "Which encryption algorithm does CSF 2.0 require for protecting data at rest?",
+      "expected_answer": "Not in the document - the system should abstain. (The CSF lists outcomes such as data security, not specific algorithms.)",
+      "expected_sources": [],
+      "notes": "Absence verified: 'AES' and 'encryption algorithm' do not occur. Tempting distractor: the Data Security category (PR.DS) and its data-at-rest Subcategory.",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 2,
+          "score": 0.4474,
+          "rerank_score": -1.451,
+          "chunk_id": "3c31f46fee98-p2-c0",
+          "text": "T he NIST Cybersecurity Framework (CSF) 2.0\ni\nNIST CSWP 29\nAbstract\nT\nhe NIST Cybersecurity Framework (CSF) 2.0 provides guidance to industry, government\nagencies, and other organizations to manage cybersecurity risks. It offers a taxonomy of highlevel cybersecurity outcomes that can be used by any organization — regardless of its size,\nsector, or maturity — to better understand, assess, prioritize, and communicate its\ncybersecurity efforts. The CSF does not prescribe how outcomes should be achieved. Rather, it\nlinks to online resources that provide additional guidance on practices and controls that could\nbe used to achieve those outcomes. This document describes CSF 2.0, its components, and\nsome of the many ways that it can be used.\nKeywords\ncybersecurity; Cybersecurity Framework (CSF); cybersecurity risk governance; cybersecurity risk\nmanagement; enterprise risk management; Profiles; Tiers.\nAudience"
+        },
+        {
+          "rank": 2,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 1,
+          "score": 0.4295,
+          "rerank_score": -1.526,
+          "chunk_id": "3c31f46fee98-p1-c0",
+          "text": "National Institute of Standards and Technology\nThis publication is available free of charge from: https://doi.org/10.6028/NIST.CSWP.29\nFebruary 26, 2024\nThe NIST Cybersecurity\nFramework (CSF) 2.0"
+        },
+        {
+          "rank": 3,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 20,
+          "score": 0.4904,
+          "rerank_score": -1.769,
+          "chunk_id": "3c31f46fee98-p20-c1",
+          "text": "The CSF Core, Informative References, and Implementation Examples are available on the CSF\n2.0 website a nd through the CSF 2.0 Reference Tool, which allows users to explore t hem and\nexport them in human- and machine-readable formats. The CSF 2.0 Core is also available in a\nlegacy format s imilar to that of CSF 1.1."
+        },
+        {
+          "rank": 4,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 5,
+          "score": 0.3906,
+          "rerank_score": -2.109,
+          "chunk_id": "3c31f46fee98-p5-c0",
+          "text": "Preface\nT\nhe Cybersecurity Framework (CSF) 2.0 is designed to help organizations of all sizes and sectors\n— including industry, government, academia, and nonprofit — to manage and reduce their\ncybersecurity risks. It is useful regardless of the maturity level and technical sophistication of an\norganization’s cybersecurity programs. Nevertheless, the CSF does not embrace a one-size-fitsall approach. Each organization has both common and unique risks, as well as varying risk\nappetites and tolerances, specific missions, and objectives to achieve those missions. By\nnecessity, the way organizations implement the CSF will vary.\nIdeally, the CSF will be used to address cybersecurity risks alongside other risks of the\nenterprise, including those that are financial, privacy, supply chain, reputational, technological,\nor physical in nature.\nThe CSF describes desired outcomes that are intended to be understood by a broad audience,"
+        }
+      ],
+      "sub_queries": [],
+      "actual_answer": "I could not find enough information in the uploaded documents to answer this question.",
+      "sources": [],
+      "abstained": true,
+      "latency_seconds": 4.69,
+      "error": null,
+      "expected_page_retrieved": null,
+      "evidence_retrieved": null,
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    },
+    {
+      "id": "DA1",
+      "category": "adversarial",
+      "question": "Which specific security controls does CSF 2.0 prescribe that every organization must implement?",
+      "expected_answer": "False premise: the CSF does not prescribe controls or how outcomes should be achieved; it describes desired outcomes and links to online resources (Informative References, Implementation Examples) for guidance. Abstaining or correcting the premise is acceptable.",
+      "expected_sources": [
+        {
+          "source": "NIST.CSWP.29.pdf",
+          "pages": [
+            2,
+            6
+          ]
+        }
+      ],
+      "notes": "Evidence: 'The CSF does not prescribe how outcomes should be achieved.' (p. 2); 'It does not prescribe outcomes nor how they may be achieved.' (p. 6)",
+      "retrieved_chunks": [
+        {
+          "rank": 1,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 2,
+          "score": 0.6551,
+          "rerank_score": 4.114,
+          "chunk_id": "3c31f46fee98-p2-c0",
+          "text": "T he NIST Cybersecurity Framework (CSF) 2.0\ni\nNIST CSWP 29\nAbstract\nT\nhe NIST Cybersecurity Framework (CSF) 2.0 provides guidance to industry, government\nagencies, and other organizations to manage cybersecurity risks. It offers a taxonomy of highlevel cybersecurity outcomes that can be used by any organization — regardless of its size,\nsector, or maturity — to better understand, assess, prioritize, and communicate its\ncybersecurity efforts. The CSF does not prescribe how outcomes should be achieved. Rather, it\nlinks to online resources that provide additional guidance on practices and controls that could\nbe used to achieve those outcomes. This document describes CSF 2.0, its components, and\nsome of the many ways that it can be used.\nKeywords\ncybersecurity; Cybersecurity Framework (CSF); cybersecurity risk governance; cybersecurity risk\nmanagement; enterprise risk management; Profiles; Tiers.\nAudience"
+        },
+        {
+          "rank": 2,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 5,
+          "score": 0.6365,
+          "rerank_score": 3.373,
+          "chunk_id": "3c31f46fee98-p5-c0",
+          "text": "Preface\nT\nhe Cybersecurity Framework (CSF) 2.0 is designed to help organizations of all sizes and sectors\n— including industry, government, academia, and nonprofit — to manage and reduce their\ncybersecurity risks. It is useful regardless of the maturity level and technical sophistication of an\norganization’s cybersecurity programs. Nevertheless, the CSF does not embrace a one-size-fitsall approach. Each organization has both common and unique risks, as well as varying risk\nappetites and tolerances, specific missions, and objectives to achieve those missions. By\nnecessity, the way organizations implement the CSF will vary.\nIdeally, the CSF will be used to address cybersecurity risks alongside other risks of the\nenterprise, including those that are financial, privacy, supply chain, reputational, technological,\nor physical in nature.\nThe CSF describes desired outcomes that are intended to be understood by a broad audience,"
+        },
+        {
+          "rank": 3,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 5,
+          "score": 0.5836,
+          "rerank_score": 1.635,
+          "chunk_id": "3c31f46fee98-p5-c1",
+          "text": "or physical in nature.\nThe CSF describes desired outcomes that are intended to be understood by a broad audience,\nincluding executives, managers, and practitioners, regardless of their cybersecurity expertise.\nBecause these outcomes are sector-, country-, and technology-neutral, they provide an\norganization with the flexibility needed to address their unique risks, technologies, and mission\nconsiderations. Outcomes are mapped directly to a list of potential security controls for\nimmediate consideration to mitigate cybersecurity risks.\nAlthough not prescriptive, the CSF assists its users in learning about and selecting specific\noutcomes. Suggestions for how specific outcomes may be achieved are provided in an\nexpanding suite of online resources that complement the CSF, including a series of Quick Start\nGuides (QSGs). Also, various tools offer downloadable formats to help organizations that\nchoose to automate some of their processes. The QSGs suggest initial ways to use the CSF and"
+        },
+        {
+          "rank": 4,
+          "source": "NIST.CSWP.29.pdf",
+          "page": 14,
+          "score": 0.5095,
+          "rerank_score": 1.594,
+          "chunk_id": "3c31f46fee98-p14-c2",
+          "text": "achieve the outcomes of the Subcategories. Verbs used to express Examples include share,\ndocument, develop, perform, monitor, analyze, assess, and exercise. The Examples are not a\ncomprehensive list of all actions that could be taken by an organization to achieve an outcome,\nnor do they represent a baseline of required actions to address cybersecurity risks.\nQuick-Start Guides (QSGs) are brief documents on specific CSF-related topics and are often\ntailored to specific audiences. QSGs can help an organization implement the CSF because they\ndistill specific portions of the CSF into actionable “first steps” that an organization can consider\non the path to improving their cybersecurity posture and management of associated risks. The\nguides are revised in their own time frames, and new guides are added as needed.\nSuggestions for new Informative References for CSF 2.0 can always be shared with NIST at"
+        }
+      ],
+      "sub_queries": [],
+      "actual_answer": "I could not find enough information in the uploaded documents to answer this question.",
+      "sources": [],
+      "abstained": true,
+      "latency_seconds": 5.98,
+      "error": null,
+      "expected_page_retrieved": true,
+      "evidence_retrieved": "all",
+      "human_judgement": {
+        "correct": "",
+        "relevant": "",
+        "supported": "",
+        "abstention_correct": "",
+        "failure_class": "",
+        "observations": ""
+      }
+    }
+  ]
+}

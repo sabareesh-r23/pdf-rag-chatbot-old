@@ -6,7 +6,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from rag.config import FALLBACK_ANSWER, Settings
-from rag.generation import generate_answer, get_llm
+from rag.generation import decompose_question, generate_answer, get_llm
 from rag.retrieval import RetrievedChunk, retrieve
 
 
@@ -18,6 +18,7 @@ class RAGResponse:
     sources: list[dict]  # unique [{"source", "page"}] in rank order; [] when abstained
     abstained: bool  # True when the answer is (or starts with) the fallback
     config: dict = field(default_factory=dict)
+    sub_queries: list[str] = field(default_factory=list)  # set when the question was decomposed
 
 
 def _normalize(text: str) -> str:
@@ -34,6 +35,30 @@ _PARAPHRASE_RE = re.compile(
     r"^(sorry |i'm sorry |unfortunately )?i (could not|couldn't|cannot|can't|did not|didn't) find "
     r"(enough|sufficient|any) (relevant )?information"
 )
+
+
+_COMPARISON_RE = re.compile(
+    r"\b(compare|comparison|versus|vs\.?|difference between|differences between|differ from)\b", re.IGNORECASE
+)
+
+
+def is_comparison(question: str) -> bool:
+    """Questions that ask to compare two or more things (not e.g. 'compared with' in an explanation)."""
+    return bool(_COMPARISON_RE.search(question or ""))
+
+
+def merge_round_robin(lists: list[list[RetrievedChunk]], k: int) -> list[RetrievedChunk]:
+    """Interleave ranked lists (1st of each, then 2nd of each, ...), dropping duplicates, up to k."""
+    out: list[RetrievedChunk] = []
+    seen: set[str] = set()
+    for rank in range(max((len(x) for x in lists), default=0)):
+        for lst in lists:
+            if rank < len(lst) and lst[rank].chunk_id not in seen:
+                seen.add(lst[rank].chunk_id)
+                out.append(lst[rank])
+                if len(out) == k:
+                    return out
+    return out
 
 
 # Words allowed around an uncited fallback for it to still count as an abstention.
@@ -119,17 +144,27 @@ class RAGPipeline:
         if k <= 0:
             raise ValueError("top_k must be positive")
 
-        chunks = retrieve(
-            self.store,
-            question,
-            k,
-            file_hashes,
-            mode=self.settings.retrieval_mode,
-            fetch_k=self.settings.mmr_fetch_k,
-            lambda_mult=self.settings.mmr_lambda,
-            rerank_model=self.settings.rerank_model if self.settings.rerank else None,
-            rerank_candidates=self.settings.rerank_candidates,
-        )
+        def _retrieve(query: str, n: int) -> list[RetrievedChunk]:
+            return retrieve(
+                self.store,
+                query,
+                n,
+                file_hashes,
+                mode=self.settings.retrieval_mode,
+                fetch_k=self.settings.mmr_fetch_k,
+                lambda_mult=self.settings.mmr_lambda,
+                rerank_model=self.settings.rerank_model if self.settings.rerank else None,
+                rerank_candidates=self.settings.rerank_candidates,
+            )
+
+        sub_queries: list[str] = []
+        if self.settings.query_decomposition and is_comparison(question) and (file_hashes is None or file_hashes):
+            sub_queries = decompose_question(self.llm, question)
+        if sub_queries:
+            per_query = max(2, -(-k // len(sub_queries)))  # ceil(k / n), at least 2
+            chunks = merge_round_robin([_retrieve(q, per_query) for q in sub_queries], k)
+        else:
+            chunks = _retrieve(question, k)
 
         # Optional relevance guard (MIN_RELEVANCE; 0 disables it).
         threshold = self.settings.min_relevance
@@ -151,4 +186,5 @@ class RAGPipeline:
             sources=[] if abstained else cited_sources(answer, chunks),
             abstained=abstained,
             config=config,
+            sub_queries=sub_queries,
         )

@@ -1,4 +1,11 @@
-# Demo Video Script (5–10 minutes)
+# Live Demo Notes (for presenting the app live)
+
+> **The submitted video is `submission/RAG_PDF_Chatbot_Demo.mp4`, narrated with
+> `docs/demo_voiceover.md`.** These notes are for a live demonstration. They were written for V1.1/V1.2;
+> since V1.3 the default search is **hybrid + reranker**, the false-premise example A2 is answered by
+> correcting the premise (it says MEAN is the default) rather than declining, and A1 ("Why did the authors
+> … use LSTM layers …") is the cleaner false-premise example. Results quoted below are V1.1/V1.2 unless
+> stated; current results are in `docs/evaluation_report.md` §8e.
 
 Target length: about 8 minutes. Questions refer to IDs in `evaluation/questions.json`; the verified
 expected answers are listed so you can check what the app says live. Do **not** claim results in the
@@ -94,7 +101,7 @@ Open **Settings** -> move **Top-k retrieved chunks** from 4 to 8. Re-ask M2 (BER
 - Switch **Search type** to **MMR (diverse)** and re-ask LF3 on the long corpus if it is loaded
   ("How accurately could human evaluators identify news articles written by GPT-3 175B?"): in the evaluation, MMR
   reached the 52% table that similarity search missed. Say honestly that MMR hurt on the short papers
-  (it drops the neighbouring chunk that continues a passage), so similarity stays the default.
+  (it drops the neighbouring chunk that continues a passage), so it is an option, not the default; the V1.3 default is hybrid + reranker.
 - Point at the **LLM** settings: temperature 0 (faithful, repeatable), top-p 0.9 (no effect at
   temperature 0), context window 4096 tokens (largest prompt measured: about 2,500 tokens).
 - Optionally untick a paper in **Active corpus** and ask F2 (BERT parameters) to show that only selected
@@ -110,4 +117,5 @@ and the chat input is disabled again.
   JSON/Markdown records; judged results are in `docs/evaluation_report.md`. Quote only numbers from
   that report once you have confirmed them.
 - Limitations: no OCR for scanned PDFs, tables/figures, small local model quality, single-user.
-- Possible improvements: hybrid BM25 + dense retrieval, a re-ranker, larger model via `LLM_PROVIDER=openai`.
+- Improvements done in V1.3: header stripping, hybrid BM25 + dense retrieval, a cross-encoder re-ranker
+  (wrong answers 7 → 2 of 22). Next: a larger model via `LLM_PROVIDER=openai` or a 16 GB+ machine.

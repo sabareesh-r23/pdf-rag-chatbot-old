@@ -162,6 +162,7 @@ def run_question(pipeline, q: dict, file_hashes: list[str], top_k: int) -> dict:
                 "source": c.source,
                 "page": c.page,
                 "score": round(float(c.score), 4),
+                "rerank_score": None if c.rerank_score is None else round(float(c.rerank_score), 3),
                 "chunk_id": c.chunk_id,
                 "text": c.text,
             }
@@ -170,6 +171,7 @@ def run_question(pipeline, q: dict, file_hashes: list[str], top_k: int) -> dict:
     record.update(
         {
             "retrieved_chunks": chunks,
+            "sub_queries": list(getattr(response, "sub_queries", []) or []) if response is not None else [],
             "actual_answer": response.answer if response is not None else "",
             "sources": list(response.sources) if response is not None else [],
             "abstained": bool(response.abstained) if response is not None else None,
@@ -222,6 +224,7 @@ def render_markdown(result: dict) -> str:
     for key in (
         "llm_provider", "llm_model", "llm_temperature", "llm_top_p", "llm_top_k", "llm_num_ctx", "embedding_model",
         "chunk_size", "chunk_overlap", "retrieval_mode", "top_k", "mmr_fetch_k", "mmr_lambda", "rerank",
+        "rerank_candidates", "query_decomposition",
         "min_relevance", "collection_name", "chroma_dir",
     ):
         lines.append(f"| {key} | `{cfg.get(key)}` |")
@@ -340,6 +343,8 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
     p.add_argument("--mmr-lambda", type=float, default=None, help="MMR relevance weight 0-1 (default: MMR_LAMBDA / 0.5)")
     p.add_argument("--rerank", action=argparse.BooleanOptionalAction, default=None,
                    help="--rerank / --no-rerank: cross-encoder reranking (default: RERANK / on)")
+    p.add_argument("--decompose", action=argparse.BooleanOptionalAction, default=None,
+                   help="--decompose / --no-decompose: split comparison questions into sub-queries (default: QUERY_DECOMPOSITION / off)")
     p.add_argument("--temperature", type=float, default=None, help="override LLM_TEMPERATURE")
     p.add_argument("--top-p", type=float, default=None, help="override LLM_TOP_P")
     p.add_argument("--llm-top-k", type=int, default=None, help="override LLM_TOP_K (sampling, not retrieval)")
@@ -375,6 +380,7 @@ def main(argv: list[str] | None = None) -> int:
         mmr_fetch_k=args.mmr_fetch_k,
         mmr_lambda=args.mmr_lambda,
         rerank=args.rerank,
+        query_decomposition=args.decompose,
         llm_temperature=args.temperature,
         llm_top_p=args.top_p,
         llm_num_ctx=args.num_ctx,
