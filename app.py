@@ -2,7 +2,7 @@
 
 Run with:  streamlit run app.py
 
-The UI only uses the public APIs described in CONTRACTS.md:
+The UI only uses the public APIs of the rag package:
 ingestion (rag.ingest), the vector store (rag.vectorstore) and the
 RAG pipeline (rag.pipeline). Heavy objects (embedding model, Chroma client,
 pipeline/LLM) are cached with st.cache_resource.
@@ -21,7 +21,7 @@ from rag.pipeline import RAGPipeline
 from rag.reranker import RerankerInitError, get_reranker
 from rag.vectorstore import VectorStoreManager
 
-try:  # optional helper (not in CONTRACTS.md); degrade gracefully if absent
+try:  # optional helper; degrade gracefully if absent
     from rag.generation import check_ollama
 except ImportError:  # pragma: no cover
     check_ollama = None
@@ -74,7 +74,7 @@ def cached_ollama_status(settings: Settings):
 
 
 def normalize_status(result) -> tuple[bool, str]:
-    """check_ollama's return shape is not pinned in CONTRACTS.md; accept common shapes."""
+    """Normalise check_ollama's result to (ok, message); accept common shapes."""
     if isinstance(result, tuple) and len(result) >= 2:
         return bool(result[0]), str(result[1])
     if isinstance(result, dict):

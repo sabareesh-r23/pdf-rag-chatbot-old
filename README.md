@@ -196,11 +196,8 @@ pdf-rag-chatbot/
 │   ├── architecture.md
 │   ├── evaluation_report.md  # manual evaluation report (33 questions, 3 corpora)
 │   ├── requirements_matrix.md
-│   ├── evaluation_template.md  # blank template (superseded by evaluation_report.md)
-│   ├── demo_walkthrough.md
 │   ├── demo_voiceover.md     # timed narration script for the demo video
 │   ├── submission_checklist.md
-│   ├── audit_report.md       # independent audit of V1
 │   └── presentation/         # RAG_PDF_Chatbot_Capstone.pptx + source/
 ├── submission/               # demo video (RAG_PDF_Chatbot_Demo.mp4)
 ├── SUBMISSION.md             # index of all deliverables

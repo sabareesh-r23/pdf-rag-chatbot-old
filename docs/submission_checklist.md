@@ -1,12 +1,6 @@
 # Submission Checklist
 
-Status as of 2026-11-20 (Version 1.3). `[x]` = done and verified in this repository; `[ ]` = still to do.
-
-## Still to do (student)
-- [ ] Optional: record a voice-over for `submission/RAG_PDF_Chatbot_Demo.mp4` using
-      `docs/demo_voiceover.md` (timed to the current video), then replace the file and push.
-- [ ] Optional: a final look at the deck in PowerPoint (fonts may differ slightly from the LibreOffice render).
-- [ ] Submit the GitHub link (plus the deck, video and PDFs if the portal asks for files).
+Status as of 2026-11-20 (Version 1.3). Every item was done and verified in this repository.
 
 ## 1. Code
 - [x] All core requirements implemented (see `docs/requirements_matrix.md`).

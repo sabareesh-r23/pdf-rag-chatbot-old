@@ -15,7 +15,6 @@ from __future__ import annotations
 
 import json
 import re
-from pathlib import Path
 
 from evaluation.run_eval import eval_collection_name
 from rag.config import PROJECT_ROOT, get_settings
